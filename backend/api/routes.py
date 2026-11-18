@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 from backend.agent.service import TurnResult
 from backend.db.repositories import PlaceConflict
-from backend.schemas import PlaceIn, PlaceOut, PlanIn, PlanOut, PlanSaveResult, PlanUpdate
+from backend.schemas import PlaceIn, PlaceOut, PlanIn, PlanOut, PlanSaveResult, PlanUpdate, TripIn
 from backend.tools.budget import default_budget
 from backend.tools.registry import catalog
 
@@ -76,6 +76,17 @@ def register_plan_calendar(plan_id: int, request: Request):
         status = {"NOT_FOUND": 404, "CONFLICT": 409, "BAD_ARGUMENT": 400}.get(r["error"]["code"], 502)
         raise HTTPException(status, r["error"]["message"])
     return r["data"]
+
+
+# ---------------------------------------------------------------- 여러 동선 한꺼번에
+@router.post("/trips/plan", tags=["여러 동선"])
+def plan_trip(body: TripIn, request: Request):
+    """지점 2~6개를 순서대로 잇는 이동을 구간별로 계산(LLM 없음). 앞 구간 도착 + 머무는 시간 = 다음 출발 하한."""
+    from backend.agent.trip import TripError
+    try:
+        return _c(request).plan_trip(body)
+    except TripError as e:
+        raise HTTPException(400, str(e))
 
 
 # ---------------------------------------------------------------- 저장한 장소(집·교육장 등)

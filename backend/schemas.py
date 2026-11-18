@@ -85,6 +85,28 @@ class PlaceOut(PlaceIn):
     id: int
 
 
+class StopIn(BaseModel):
+    """여러 동선의 한 지점. arrive_by: 이 지점까지 도착 마감, stay_min: 이 지점에서 머무는 시간."""
+    name: str = Field(min_length=1, max_length=100)
+    address: str | None = Field(default=None, max_length=200)
+    x: float = Field(ge=-180, le=180)
+    y: float = Field(ge=-90, le=90)
+    arrive_by: str | None = None
+    stay_min: int = Field(default=0, ge=0, le=720)
+
+    _v_times = field_validator("arrive_by")(_check_hhmm)
+
+
+class TripIn(BaseModel):
+    date: dt.date
+    stops: list[StopIn] = Field(min_length=2, max_length=6)
+    depart_after: str | None = None
+    budget: int | None = Field(default=None, ge=0, le=10_000_000)
+    priority: str = Field(default="cheapest", pattern="^(cheapest|fastest|fewest_transfers)$")
+
+    _v_times = field_validator("depart_after")(_check_hhmm)
+
+
 class PlanSaveResult(BaseModel):
     plan: PlanOut
     overlaps: list[PlanOut]

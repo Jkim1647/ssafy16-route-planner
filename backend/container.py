@@ -42,6 +42,31 @@ class Container:
             c.after_run = lambda run_id: evaluate_and_store(run_id, c.events, c.anomalies, llm_factory, s.MAX_REPLAN)
         return c
 
+    def plan_trip(self, body) -> dict:
+        """여러 동선 한꺼번에(LLM 없음). 실행은 로그에 남긴다(세션 trip-…)."""
+        import uuid
+
+        from backend.agent.trip import plan_multi
+        from backend.events.bus import Emitter
+        session_id, run_id = "trip-" + uuid.uuid4().hex[:8], uuid.uuid4().hex[:12]
+        em = Emitter(self.bus, session_id, run_id)
+        label = " → ".join(s.name for s in body.stops)
+        self.runs.start(run_id, session_id, f"여러 동선: {label}", "trip")
+        em.emit("run_start", payload={"message": label, "mode": "trip"})
+        status, out = "error", None
+        try:
+            out = plan_multi([s.model_dump() for s in body.stops], body.date, settings=self.settings, emitter=em,
+                             db_path=self.plans.db, now=self.deps.now, depart_after=body.depart_after,
+                             budget=body.budget, priority=body.priority)
+            status = "done" if all(lg["status"] in ("done", "walk") for lg in out["legs"]) else "no_option"
+            return {**out, "run_id": run_id, "session_id": session_id, "status": status, "events": list(em.events)}
+        finally:
+            replans = sum(lg.get("replan_count", 0) for lg in (out or {}).get("legs", []))
+            em.emit("run_end", payload={"status": status, "replan_count": replans, "llm_calls": 0})
+            self.runs.finish(run_id, status, replans, 0)
+            if self.after_run:
+                self.after_run(run_id)
+
     def chat(self, session_id: str | None, message: str) -> TurnResult:
         from backend.auth.context import current_user_id
         if session_id and self.events.session_owner(session_id) not in (None, current_user_id()):
