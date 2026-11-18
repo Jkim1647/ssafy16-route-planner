@@ -33,6 +33,15 @@ def test_plan_crud_roundtrip(client):
     assert client.get(f"/api/plans/{pid}").status_code == 404
 
 
+def test_plan_calendar_register(client, monkeypatch):
+    monkeypatch.setenv("CALENDAR_BACKEND", "local")
+    pid = client.post("/api/plans", json=PLAN).json()["plan"]["id"]
+    r = client.post(f"/api/plans/{pid}/calendar")
+    assert r.status_code == 200 and r.json()["event_id"].startswith("local-")
+    assert client.get(f"/api/plans/{pid}").json()["calendar_event_id"] == r.json()["event_id"]
+    assert client.post("/api/plans/999/calendar").status_code == 404
+
+
 def test_plan_overlap_in_response(client):
     client.post("/api/plans", json=PLAN)
     r = client.post("/api/plans", json={**PLAN, "leave_at": "11:00", "arrive_at": "13:00"})

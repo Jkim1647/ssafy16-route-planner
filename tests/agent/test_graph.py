@@ -385,6 +385,20 @@ def test_debug_force_creates_detectable_anomaly(env, monkeypatch, mode, rule):
     assert r["verdict"] == "warn" and rule in {f["rule"] for f in r["findings"]}
 
 
+def test_calendar_busy_excludes_overlapping_options(env, monkeypatch):
+    world, llm, make, _ = env
+    tools = dict(registry._TOOLS)
+    tools["get_free_busy"] = Tool("get_free_busy", "d", {"type": "object", "properties": {}},
+                                  lambda date: ok({"backend": "local", "busy": [
+                                      {"title": "팀 회의", "start": f"{DAY}T09:00", "end": f"{DAY}T09:30"}]}), "local")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    # 10:00 열차 이동창(09:20~12:20)은 회의와 겹쳐 제외, 11:00 열차(10:20~)는 통과
+    assert any("캘린더 '팀 회의'" in e["reason"] for e in res.excluded)
+    assert res.cards and all(c["leave_at"] >= "09:30" for c in res.cards)
+
+
 def test_rate_limited_falls_back_to_taxi_no_replan(env):
     world, llm, make, _ = env
     world.transit = fail("RATE_LIMITED", "한도")

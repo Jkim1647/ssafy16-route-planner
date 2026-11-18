@@ -62,6 +62,17 @@ def delete_plan(plan_id: int, request: Request):
     return Response(status_code=204)
 
 
+@router.post("/plans/{plan_id}/calendar", tags=["계획"])
+def register_plan_calendar(plan_id: int):
+    """캘린더 등록(F3023). Tool과 같은 함수를 쓰며 계획 ID만 받는다."""
+    from backend.tools.calendar_tools import register_calendar
+
+    r = register_calendar(plan_id)
+    if not r["ok"]:
+        raise HTTPException(404 if r["error"]["code"] == "NOT_FOUND" else 502, r["error"]["message"])
+    return r["data"]
+
+
 # ---------------------------------------------------------------- 실행 로그 (수정 API 없음, F3014)
 @router.get("/logs", tags=["실행 로그"])
 def list_logs(request: Request):

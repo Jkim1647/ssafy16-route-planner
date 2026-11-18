@@ -119,6 +119,8 @@ function planRow(p) {
     el("td", { class: "num" }, won(p.total_fare)),
     el("td", { class: "num" }, p.created_at.replace("T", " ").slice(0, 16)),
     el("td", { class: "actions" },
+      p.calendar_event_id ? el("span", { class: "basis" }, "캘린더 등록됨 ")
+        : el("button", { class: "ghost", onclick: () => addToCalendar(p) }, "캘린더"), " ",
       el("button", { class: "ghost", onclick: () => editPlan(p, tr) }, "수정"), " ",
       el("button", { class: "danger", onclick: () => deletePlan(p) }, "삭제")));
   return tr;
@@ -144,6 +146,15 @@ function editPlan(p, tr) {
     }
   });
   tr.after(row);
+}
+
+async function addToCalendar(p) {
+  try {
+    const r = await api(`/plans/${p.id}/calendar`, { method: "POST" });
+    loadPlans({ text: `캘린더(${r.backend})에 등록했어요.`, ok: true });
+  } catch (e) {
+    showNotice(e.message);
+  }
 }
 
 async function deletePlan(p) {

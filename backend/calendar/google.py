@@ -1,0 +1,59 @@
+"""Google Calendar 구현체. 최초 1회 브라우저 OAuth 동의 후 token.json을 재사용한다(token·credentials는 커밋 금지).
+
+준비: Google Cloud 프로젝트 → Calendar API 사용 설정 → OAuth 클라이언트(데스크톱 앱) → credentials.json을 프로젝트 루트에.
+"""
+from __future__ import annotations
+
+import datetime as dt
+from pathlib import Path
+
+from backend.agent.judge import Busy
+from backend.calendar.base import plan_span
+
+ROOT = Path(__file__).resolve().parents[2]
+SCOPES = ["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly"]
+TZ = "Asia/Seoul"
+
+
+class GoogleCalendar:
+    name = "google"
+
+    def __init__(self, calendar_id: str = "primary", token_path: Path = ROOT / "token.json",
+                 credentials_path: Path = ROOT / "credentials.json"):
+        self.calendar_id, self.token_path, self.credentials_path = calendar_id, token_path, credentials_path
+
+    def _service(self):
+        from google.auth.transport.requests import Request
+        from google.oauth2.credentials import Credentials
+        from google_auth_oauthlib.flow import InstalledAppFlow
+        from googleapiclient.discovery import build
+
+        creds = Credentials.from_authorized_user_file(str(self.token_path), SCOPES) if self.token_path.exists() else None
+        if not creds or not creds.valid:
+            if creds and creds.expired and creds.refresh_token:
+                creds.refresh(Request())
+            else:
+                flow = InstalledAppFlow.from_client_secrets_file(str(self.credentials_path), SCOPES)
+                creds = flow.run_local_server(port=0)
+            self.token_path.write_text(creds.to_json(), encoding="utf-8")
+        return build("calendar", "v3", credentials=creds, cache_discovery=False)
+
+    def get_free_busy(self, day: dt.date) -> list[Busy]:
+        lo = dt.datetime.combine(day, dt.time.min).isoformat() + "+09:00"
+        hi = dt.datetime.combine(day + dt.timedelta(days=1), dt.time.min).isoformat() + "+09:00"
+        res = self._service().freebusy().query(body={"timeMin": lo, "timeMax": hi, "timeZone": TZ,
+                                                     "items": [{"id": self.calendar_id}]}).execute()
+        busy = res["calendars"][self.calendar_id]["busy"]
+
+        def local(s):  # freeBusy는 UTC로 줄 수 있어 서울 시각으로 바꾼다
+            t = dt.datetime.fromisoformat(s.replace("Z", "+00:00"))
+            return t.astimezone(dt.timezone(dt.timedelta(hours=9))).replace(tzinfo=None)
+        return [Busy("일정", local(b["start"]), local(b["end"])) for b in busy]  # freeBusy는 제목을 주지 않는다
+
+    def create_event(self, plan) -> str:
+        start, end = plan_span(plan)
+        body = {"summary": f"이동: {plan.title}",
+                "description": " → ".join(f"{leg.get('name') or leg.get('mode')}" for leg in (plan.legs or [])),
+                "start": {"dateTime": start.isoformat(), "timeZone": TZ},
+                "end": {"dateTime": end.isoformat(), "timeZone": TZ}}
+        return self._service().events().insert(calendarId=self.calendar_id, body=body).execute()["id"]
