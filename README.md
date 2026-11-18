@@ -6,9 +6,9 @@
 
 ![데모](docs/screenshots/demo.gif)
 
-| 대화 + 실행 과정 | 이동 계획 | 실행 로그·이상 징후 |
-|---|---|---|
-| ![대화](docs/screenshots/chat.jpg) | ![계획](docs/screenshots/plans.jpg) | ![로그](docs/screenshots/logs_anomaly.jpg) |
+| 대화 + 경로 지도 | 계획 상세(지도·구간) | 이동 계획 목록 | 실행 로그·이상 징후 |
+|---|---|---|---|
+| ![대화](docs/screenshots/chat.jpg) | ![계획 상세](docs/screenshots/plan_detail.jpg) | ![계획](docs/screenshots/plans.jpg) | ![로그](docs/screenshots/logs_anomaly.jpg) |
 
 ## 1. 실행 방법
 
