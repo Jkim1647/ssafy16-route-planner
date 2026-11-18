@@ -70,6 +70,24 @@ def test_worker_retry_on_no_data(env, monkeypatch):
     assert len(worker_llm_calls(res)) == 1
 
 
+def test_worker_no_llm_when_no_tunable_args(env, monkeypatch):
+    world, llm, make, _ = env
+    tools = dict(registry._TOOLS)
+    base = tools["search_trains"].func
+
+    def trains(dep_station_id, arr_station_id, date=None):
+        if dep_station_id == "GJ2":
+            return fail("NO_DATA", "열차 없음")  # 역·날짜 모두 Planner가 정한 값 → Worker가 고칠 인자 없음
+        return base(dep_station_id=dep_station_id, arr_station_id=arr_station_id, date=date)
+    tools["search_trains"] = Tool("search_trains", "d", {"type": "object", "properties": {}}, trains, "external")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = pw(make)("x")
+    nodata = [e for e in res.events if e["type"] == "worker_decision" and e["payload"]["tool"] == "search_trains"]
+    assert nodata and all(not e["payload"]["llm"] for e in nodata)
+    assert res.llm_calls == 2
+
+
 def test_worker_cannot_change_fixed_args(env, monkeypatch):
     world, llm, make, _ = env
     seen = _flaky_stations(world, monkeypatch)

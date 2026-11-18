@@ -14,6 +14,8 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 RECOVERABLE = {"NO_DATA", "NOT_FOUND", "BAD_ARGUMENT"}
+# 인자를 고치면 결과가 달라질 수 있는 Tool과 그 조정 가능 인자. 이 밖의 Tool은 규칙으로 건너뛴다(LLM 0회).
+TUNABLE = {"find_stations": ["radius_km"], "find_terminals": ["radius_km"]}
 # Planner가 사용자 조건(장소·날짜·시각)에서 채운 인자 — Worker가 바꿀 수 없다
 FIXED_ARGS = {
     "search_places": ["query"], "find_stations": ["x", "y"], "search_trains": ["date"],

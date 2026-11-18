@@ -183,6 +183,20 @@ def test_replan_reuses_cache_and_widens(env):
     assert world.calls.count("search_places") == 2
 
 
+def test_replan_reuses_results_within_run_no_duplicates(env):
+    from backend.events.anomaly import judge_run
+    world, llm, make, _ = env
+    world.trains = [tr("13:00", "15:00")]  # 계속 재계획
+    llm.responses = [A("plan_trip", **TRIP)]
+    res = make()("x")
+    assert res.replan_count == 3
+    assert world.calls.count("find_stations") == 2  # 재계획 때는 같은 입력을 다시 부르지 않는다
+    assert world.calls.count("get_weather") == 2
+    reused = [e for e in res.events if e["type"] == "tool_result" and e["payload"]["cached"]]
+    assert reused
+    assert "DUPLICATE_CALL" not in {f["rule"] for f in judge_run(res.events, 3)["findings"]}
+
+
 def test_replan_limit_stops(env):
     world, llm, make, _ = env
     world.trains = [tr("13:00", "15:00")]

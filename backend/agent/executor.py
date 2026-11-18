@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from backend.agent.conditions import Conditions
 from backend.agent.judge import (Busy, Option, Segment, build_intercity_options, build_intracity_options,
                                  is_intracity, segments_for)
-from backend.tools.budget import default_budget
+from backend.tools.budget import default_budget, normalize_args
 from backend.tools.registry import get_tool
 
 ODSAY_PER_RUN = 4  # 설계 19-3
@@ -37,6 +37,9 @@ class RunCtx:
     max_retry: int = 2
     llm_factory: object = None
     replan_request: str | None = None
+    # 실행 단위 결과 재사용(F3009): 재계획 때 같은 Tool·같은 입력은 다시 부르지 않는다
+    reuse: dict = field(default_factory=dict)
+    no_reuse: bool = False
 
 
 # ---------------------------------------------------------------- 계획
@@ -83,19 +86,23 @@ def _summary(r: dict) -> str:
 
 def call_tool(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int | None = None) -> dict:
     r, call_seq = _call_once(ctx, task_id, name, args, retry_of)
-    if ctx.mode == "planner_worker" and retry_of is None and not r.get("ok"):
+    if ctx.mode == "planner_worker" and retry_of is None and not r.get("ok") and not r.get("reused"):
         r = _worker_on_failure(ctx, task_id, name, args, r, call_seq)
     return r
 
 
 def _worker_on_failure(ctx: RunCtx, task_id: str, name: str, args: dict, r: dict, call_seq: int) -> dict:
     """Worker 판단(F3021). 고칠 여지가 있는 실패에서만 LLM을 부른다."""
-    from backend.agent.planner_worker import RECOVERABLE, decide, violates_fixed
+    from backend.agent.planner_worker import RECOVERABLE, TUNABLE, decide, violates_fixed
     code = r["error"]["code"]
     em = ctx.emitter
     if code not in RECOVERABLE:
         em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "report",
                                                             "llm": False, "reason": "치명적 실패라 LLM 없이 보고"})
+        return r
+    if name not in TUNABLE:
+        em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "skip", "llm": False,
+                                                            "reason": "고칠 수 있는 인자가 없음(Planner가 정한 값뿐)"})
         return r
     if not ctx.worker_llm:
         em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "skip",
@@ -131,8 +138,13 @@ def _call_once(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int |
     call = ctx.emitter.emit("tool_call", agent=ctx.agent, payload={"task_id": task_id, "tool": name, "args": args,
                                                                    **({"retry_of": retry_of} if retry_of else {})})
     t0 = time.perf_counter()
-    tool = get_tool(name)
-    r = tool.run(**args) if tool else {"ok": False, "error": {"code": "NOT_FOUND", "message": f"{name} 없음"}}
+    key = name + normalize_args(args)
+    if key in ctx.reuse and not ctx.no_reuse:
+        r = {**ctx.reuse[key], "cached": True, "reused": True}
+    else:
+        tool = get_tool(name)
+        r = tool.run(**args) if tool else {"ok": False, "error": {"code": "NOT_FOUND", "message": f"{name} 없음"}}
+        ctx.reuse[key] = {k: v for k, v in r.items() if k not in ("cached", "reused")}
     ms = int((time.perf_counter() - t0) * 1000)
     ctx.calls.append((task_id, name))
     ctx.emitter.emit("tool_result", agent=ctx.agent, duration_ms=ms,
@@ -269,8 +281,12 @@ def _debug_force(ctx, conds, o) -> None:
     """검증용(F3020 4.6): 이상 실행을 일부러 만든다. 기본값 꺼짐. 실제 호출을 하므로 판정이 정직하다."""
     mode = os.getenv("DEBUG_FORCE", "").strip()
     if mode == "duplicate":
-        with default_budget().no_cache():
-            call_tool(ctx, "t1", "search_places", {"query": conds.origin})
+        ctx.no_reuse = True
+        try:
+            with default_budget().no_cache():
+                call_tool(ctx, "t1", "search_places", {"query": conds.origin})
+        finally:
+            ctx.no_reuse = False
     elif mode == "unplanned" and get_tool("get_weather"):
         call_tool(ctx, "t99", "get_weather", {"lat": o["y"], "lon": o["x"], "at": f"{conds.date}T12:00"})
 
