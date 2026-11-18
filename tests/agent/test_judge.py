@@ -118,7 +118,7 @@ def test_overnight_option_arrival_next_day():
                                   [transit(20)], [transit(25)])
     assert o.arrive_at == T("02:35", D + dt.timedelta(days=1))
     j = evaluate([o], cond(arrive_by="23:59"), [], NOW)
-    assert j.excluded and j.excluded[0][1].startswith("도착 02:35")
+    assert j.excluded and j.excluded[0][1].startswith("도착 11-22 02:35")
 
 
 def test_intracity_when_close():

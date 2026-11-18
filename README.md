@@ -22,7 +22,7 @@ uvicorn backend.main:app --port 8000          # 백엔드 → http://127.0.0.1:8
 python -m http.server 5500 --bind 127.0.0.1 --directory frontend   # 프론트 → http://127.0.0.1:5500
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
-- 테스트: `pytest` (211개, 외부 API를 부르지 않음)
+- 테스트: `pytest` (222개, 외부 API를 부르지 않음)
 - 확인용 스크립트: `scripts/tools_demo.py`(Tool 단독), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능

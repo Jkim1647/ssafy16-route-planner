@@ -49,10 +49,11 @@ $("chat-form").addEventListener("submit", async (ev) => {
     sessionId = r.session_id;
     const cond = r.events.find((e) => e.type === "node_end" && e.node === "analyze")?.payload?.conditions;
     if (cond) lastConditions = cond;
+    const snap = lastConditions;  // 이 카드들을 만든 조건(나중 대화가 바꿔도 유지)
     pending.remove();
     addMsg("agent",
       el("p", {}, r.reply),
-      r.cards.filter((c) => c.leave_at).map((c) => renderCard(c, saveCard)),
+      r.cards.filter((c) => c.leave_at).map((c) => renderCard(c, (x) => saveCard(x, snap))),
       r.cards.filter((c) => c.type === "source").map((c) => el("p", { class: "hint" }, `출처: ${c.title}${c.page ? " p." + c.page : ""}`)),
       renderExcluded("제외된 후보", r.excluded),
       renderExcluded("판단하지 않은 후보", r.undetermined),
@@ -83,12 +84,12 @@ $("new-chat").addEventListener("click", () => {
   $("trace-meta").textContent = "";
 });
 
-async function saveCard(c) {
-  const title = lastConditions ? `${lastConditions.origin} → ${lastConditions.destination}` : `${c.leave_at} 출발 이동`;
+async function saveCard(c, conds) {
+  const title = conds ? `${conds.origin} → ${conds.destination}` : `${c.leave_at} 출발 이동`;
   try {
     const r = await api("/plans", { method: "POST", body: {
       title, date: c.date, leave_at: c.leave_at, arrive_at: c.arrive_at,
-      origin_name: lastConditions?.origin || "-", destination_name: lastConditions?.destination || "-",
+      origin_name: conds?.origin || "-", destination_name: conds?.destination || "-",
       legs: c.legs, total_fare: c.total_fare } });
     const overlap = r.overlaps.length
       ? ` 같은 날 시간이 겹치는 계획이 있어요: ${r.overlaps.map((p) => `${p.title} ${p.leave_at}~${p.arrive_at}`).join(", ")}` : "";

@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from backend.agent import prompts
 from backend.agent.conditions import Conditions, merge, missing_fields
 from backend.agent.ko_time import fix_changes
-from backend.agent.executor import FATAL, RunCtx, call_tool, make_plan, run_plan_trip
+from backend.agent.executor import FATAL, RunCtx, call_tool, make_plan, run_fact_query, run_plan_trip
 from backend.agent.judge import ROAD_MODES, Option, apply_warnings, evaluate, rank
 from backend.agent.llm import LLMUnavailable, structured
 from backend.agent.state import AgentState
@@ -114,9 +114,12 @@ def numbers_ok(text: str, cards: list[dict]) -> bool:
                  [c["basis"].get(k) for k in ("train_fare", "access_fare", "egress_fare")]:
             if v is not None:
                 allowed_w.add(int(v))
-    times = {t.zfill(5) for t in re.findall(r"\b\d{1,2}:\d{2}\b", text)}
+    # 한글이 바로 붙으면 \b가 통하지 않으므로 숫자 경계로 찾는다.
+    times = {t.zfill(5) for t in re.findall(r"(?<!\d)\d{1,2}:\d{2}(?!\d)", text)}
     wons = {int(w.replace(",", "")) for w in re.findall(r"(\d[\d,]*)\s*원", text)}
-    return times <= allowed_t and wons <= allowed_w
+    # "3시", "9만원"처럼 카드 값과 대조할 수 없는 숫자 표현은 통과시키지 않는다.
+    loose = re.search(r"\d+\s*시(?!간)|\d+\s*[만천]\s*원", text)
+    return not loose and times <= allowed_t and wons <= allowed_w
 
 
 def _template_reply(cards: list[dict]) -> str:
@@ -197,8 +200,13 @@ def build_graph(deps: Deps):
             r = call_tool(ctx, "t1", "search_terms", {"question": state["user_message"]}) \
                 if get_tool("search_terms") else {"ok": False, "error": {"code": "NO_INDEX", "message": "규정 검색 미구성"}}
             return {"extra": {"terms": r}}
-        if intent == "fact_query" and not (conds.arrive_by or conds.depart_after):
-            conds = conds.model_copy(update={"date": conds.date or deps.now().date(), "depart_after": "00:00"})
+        if intent == "fact_query":
+            res = run_fact_query(ctx, conds, state.get("places") or {}, deps.now().date())
+            out = {"tool_errors": (state.get("tool_errors") or []) + res["errors"], "places": ctx.places,
+                   "extra": {"facts": res}}
+            if res.get("clarify"):
+                out.update({"clarification": res["clarify"], "final_reply": res["clarify"], "status": "clarify"})
+            return out
         res = run_plan_trip(ctx, conds, state.get("strategy", 0), state.get("places") or {})
         out = {"tool_errors": (state.get("tool_errors") or []) + res["errors"], "places": ctx.places,
                "extra": {"fatal": res["fatal"], "kind": res.get("kind")}}
@@ -209,9 +217,6 @@ def build_graph(deps: Deps):
     def judge(state: AgentState):
         ctx = deps.ctx
         conds = _conds(state)
-        if state["intent"] == "fact_query":
-            conds = conds.model_copy(update={"date": conds.date or deps.now().date(),
-                                             "depart_after": conds.depart_after or "00:00", "arrive_by": None})
         opts = apply_warnings(ctx.options, ctx.weather, [], conds.avoid)
         if os.getenv("DEBUG_FORCE", "").strip() == "replan" and state.get("replan_count", 0) < 2:
             opts = []  # 검증용: 과도한 재계획을 일부러 만든다(F3020)
@@ -236,8 +241,6 @@ def build_graph(deps: Deps):
         if any(e["code"] in FATAL - {"BAD_ARGUMENT"} and e["tool"] in ("search_places", "find_stations", "search_trains")
                for e in state.get("tool_errors") or []):
             return "respond"
-        if state["intent"] == "fact_query":
-            return "respond"
         if state.get("replan_count", 0) >= deps.settings.MAX_REPLAN:
             return "respond"
         return "replan"
@@ -251,6 +254,8 @@ def build_graph(deps: Deps):
         return {"extra": {**(state.get("extra") or {}), "verify": r["verdict"], "verify_rules": rules}}
 
     def route_execute(state: AgentState):
+        if state.get("intent") in ("terms_query", "fact_query"):
+            return "respond"  # 판단(마감·예산 계산)이 필요 없는 질문
         return "verify" if deps.settings.AGENT_MODE == "planner_worker" else "judge"
 
     def route_verify(state: AgentState):
@@ -294,26 +299,29 @@ def build_graph(deps: Deps):
             return {"final_reply": prompts.HELP, "status": "done"}
         if intent == "terms_query":
             return _terms_reply(state)
+        if intent == "fact_query":
+            return _fact_reply(state)
         cards = state.get("cards") or []
         conds = _conds(state)
         errors = state.get("tool_errors") or []
         if not cards:
-            return {"final_reply": _no_option_reply(state, errors, deps.settings.MAX_REPLAN), "status": "no_option"}
+            # 이전 여정 카드를 지워 "1번 저장"이 옛 카드를 저장하지 않게 한다
+            return {"final_reply": _no_option_reply(state, errors, deps.settings.MAX_REPLAN), "status": "no_option",
+                    "last_cards": []}
         text = None
-        if intent != "fact_query":
-            try:
-                msg = prompts.RESPOND.format(conditions=json.dumps(conds.model_dump(mode="json"), ensure_ascii=False),
-                                             cards=json.dumps(cards, ensure_ascii=False),
-                                             n_excluded=len(state.get("excluded") or []),
-                                             n_undetermined=len(state.get("undetermined") or []),
-                                             replans=state.get("replan_count", 0))
-                text = structured(deps.llm_factory(), Reply, [("system", msg)], deps.ctx.counter).text
-            except Exception:  # LLM 실패해도 템플릿으로 응답(NF3003)
-                text = None
-            if text is not None and not numbers_ok(text, cards):
-                deps.ctx.emitter.emit("llm_decision", node="respond",
-                                      payload={"decision": "reply_rejected", "reason": "카드에 없는 숫자 포함"})
-                text = None
+        try:
+            msg = prompts.RESPOND.format(conditions=json.dumps(conds.model_dump(mode="json"), ensure_ascii=False),
+                                         cards=json.dumps(cards, ensure_ascii=False),
+                                         n_excluded=len(state.get("excluded") or []),
+                                         n_undetermined=len(state.get("undetermined") or []),
+                                         replans=state.get("replan_count", 0))
+            text = structured(deps.llm_factory(), Reply, [("system", msg)], deps.ctx.counter).text
+        except Exception:  # LLM 실패해도 템플릿으로 응답(NF3003)
+            text = None
+        if text is not None and not numbers_ok(text, cards):
+            deps.ctx.emitter.emit("llm_decision", node="respond",
+                                  payload={"decision": "reply_rejected", "reason": "카드에 없는 숫자 포함"})
+            text = None
         reply = (text or _template_reply(cards)) + "\n" + prompts.DISCLAIMER
         return {"final_reply": reply, "status": "done", "last_cards": cards}
 
@@ -331,7 +339,7 @@ def build_graph(deps: Deps):
     g.add_conditional_edges("analyze", route_analyze, ["respond", "action", "clarify", "plan"])
     g.add_edge("clarify", END)
     g.add_edge("plan", "execute")
-    g.add_conditional_edges("execute", route_execute, ["verify", "judge"])
+    g.add_conditional_edges("execute", route_execute, ["verify", "judge", "respond"])
     g.add_conditional_edges("verify", route_verify, ["replan", "judge"])
     g.add_conditional_edges("judge", route_judge, ["respond", "replan"])
     g.add_edge("replan", "plan")
@@ -384,6 +392,29 @@ def _terms_reply(state) -> dict:
                      for c in chunks)
     return {"final_reply": "관련 규정을 찾았어요. 근거 문단과 출처를 확인해 주세요.\n" + body, "status": "done",
             "cards": [{"type": "source", **c} for c in chunks]}
+
+
+def _fact_reply(state) -> dict:
+    f = (state.get("extra") or {}).get("facts") or {}
+    errors = state.get("tool_errors") or []
+    if not f.get("trains"):
+        if errors:
+            return {"final_reply": "열차 시각을 조회하지 못했어요: " + "; ".join(e["message"] for e in errors[:2]),
+                    "status": "no_option"}
+        return {"final_reply": "해당 날짜·구간의 열차를 찾지 못했어요.", "status": "no_option"}
+    c = Conditions(**(state.get("conditions") or {}))
+    trains = [t for t in f["trains"]
+              if (not c.arrive_by or t["arr_at"][11:16] <= c.arrive_by)
+              and (not c.depart_after or t["dep_at"][11:16] >= c.depart_after)]
+    head = f"{f['date']} {f['dep']}역 → {f['arr']}역 열차"
+    if not trains:
+        return {"final_reply": head + "는 있지만 말씀하신 시간 조건에 맞는 열차가 없어요.", "status": "no_option"}
+    lines = [f"- {t['grade'] or ''} {t['train_no'] or ''} {t['dep_at'][11:16]} 출발 → {t['arr_at'][11:16]} 도착"
+             + (f", {t['fare']:,}원" if t.get("fare") is not None else ", 운임 확인 불가") for t in trains[:10]]
+    note = "\n(추정 시간표 — 실제 운행과 다를 수 있어요)" if f.get("estimated") else ""
+    body = "\n".join(lines)
+    return {"final_reply": f"{head} 시각이에요(시간표 조회 결과).\n{body}{note}\n{prompts.DISCLAIMER}",
+            "status": "done"}
 
 
 def _save(state, deps) -> dict:

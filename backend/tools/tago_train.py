@@ -32,16 +32,20 @@ def search_trains(dep_station_id: str, arr_station_id: str, date: str | None = N
         return fail(INVALID_KEY, "DATA_GO_KR_KEY가 설정되지 않았습니다.")
     params = {"depPlaceId": dep_station_id, "arrPlaceId": arr_station_id,
               "depPlandTime": day.strftime("%Y%m%d"), "_type": "json", "numOfRows": 100}
-    r = default_budget().cached_call("tago_train", params, TTL,
-                                     lambda: fetch_json(URL, params={**params, "serviceKey": key}))
+    def fetch():  # HTTP 200 오류 응답은 캐시 전에 실패로 바꾼다(키를 고치면 바로 다시 조회되게)
+        r = fetch_json(URL, params={**params, "serviceKey": key})
+        if not r["ok"]:
+            return r
+        code = str((((r["data"] or {}).get("response") or {}).get("header") or {}).get("resultCode", "00"))
+        if code in AUTH_CODES:
+            return fail(INVALID_KEY, "공공데이터포털 인증키가 등록되지 않았거나 승인되지 않았습니다.")
+        if code != "00":
+            return fail(UPSTREAM_ERROR, "열차 정보 서비스 오류입니다.")
+        return r
+    r = default_budget().cached_call("tago_train", params, TTL, fetch)
     if not r["ok"]:
         return r
     resp = (r["data"] or {}).get("response") or {}
-    code = str((resp.get("header") or {}).get("resultCode", "00"))
-    if code in AUTH_CODES:
-        return fail(INVALID_KEY, "공공데이터포털 인증키가 등록되지 않았거나 승인되지 않았습니다.")
-    if code != "00":
-        return fail(UPSTREAM_ERROR, "열차 정보 서비스 오류입니다.")
     items = ((resp.get("body") or {}).get("items") or {})
     items = items.get("item", []) if isinstance(items, dict) else []
     items = items if isinstance(items, list) else [items]

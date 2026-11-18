@@ -50,12 +50,15 @@ def get_road_events(bbox: list, date: str) -> dict:
     min_x, min_y, max_x, max_y = (round(float(v), 3) for v in bbox)
     params = {"type": "all", "eventType": "all", "minX": min_x, "maxX": max_x, "minY": min_y, "maxY": max_y,
               "getType": "json"}
-    r = default_budget().cached_call("its", params, TTL, lambda: fetch_json(URL, params={**params, "apiKey": key}))
+    def fetch():  # HTTP 200 오류 응답은 캐시 전에 실패로 바꾼다(캐시되지 않게)
+        r = fetch_json(URL, params={**params, "apiKey": key})
+        if r["ok"] and str(((r["data"] or {}).get("header") or {}).get("resultCode", 0)) not in ("0", "00"):
+            return fail(UPSTREAM_ERROR, "돌발정보 서비스 오류입니다.")
+        return r
+    r = default_budget().cached_call("its", params, TTL, fetch)
     if not r["ok"]:
         return r
     body = r["data"] or {}
-    if str((body.get("header") or {}).get("resultCode", 0)) not in ("0", "00"):
-        return fail(UPSTREAM_ERROR, "돌발정보 서비스 오류입니다.")
     events = [_event(i) for i in (body.get("body") or {}).get("items") or []]
     realtime = day == today()
     if not realtime:

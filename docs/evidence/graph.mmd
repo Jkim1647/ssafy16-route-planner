@@ -9,6 +9,7 @@ graph TD;
 	clarify(clarify)
 	plan(plan)
 	execute(execute)
+	verify(verify)
 	judge(judge)
 	replan(replan)
 	respond(respond)
@@ -19,11 +20,15 @@ graph TD;
 	analyze -.-> clarify;
 	analyze -.-> plan;
 	analyze -.-> respond;
-	execute --> judge;
+	execute -.-> judge;
+	execute -.-> respond;
+	execute -.-> verify;
 	judge -.-> replan;
 	judge -.-> respond;
 	plan --> execute;
 	replan --> plan;
+	verify -.-> judge;
+	verify -.-> replan;
 	action --> __end__;
 	clarify --> __end__;
 	respond --> __end__;

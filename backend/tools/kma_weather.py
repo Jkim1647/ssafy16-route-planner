@@ -60,13 +60,15 @@ def get_weather(lat: float, lon: float, at: str) -> dict:
     base_date, base_time = latest_base_time(cur)
     params = {"dataType": "JSON", "numOfRows": 1500, "pageNo": 1,
               "base_date": base_date, "base_time": base_time, "nx": nx, "ny": ny}
-    r = default_budget().cached_call("kma", params, 3 * 3600,
-                                     lambda: fetch_json(URL, params={**params, "serviceKey": key}))
+    def fetch():  # HTTP 200 오류 응답은 캐시 전에 실패로 바꾼다(캐시되지 않게)
+        r = fetch_json(URL, params={**params, "serviceKey": key})
+        if r["ok"] and str((((r["data"] or {}).get("response") or {}).get("header") or {}).get("resultCode")) != "00":
+            return fail(UPSTREAM_ERROR, "기상청 서비스 오류입니다.")
+        return r
+    r = default_budget().cached_call("kma", params, 3 * 3600, fetch)
     if not r["ok"]:
         return r
     resp = (r["data"] or {}).get("response") or {}
-    if str((resp.get("header") or {}).get("resultCode")) != "00":
-        return fail(UPSTREAM_ERROR, "기상청 서비스 오류입니다.")
     items = (((resp.get("body") or {}).get("items")) or {}).get("item", [])
     # 3일 뒤부터는 3시간 간격 예보 → 가장 가까운 예보 시각(±3시간 이내)을 쓰고 그 시각을 함께 밝힌다
     slots = {}

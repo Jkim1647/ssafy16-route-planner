@@ -159,8 +159,13 @@ def build_intracity_options(paths: list[dict], car: dict | None, conds: Conditio
 
 def evaluate(options: list[Option], conds: Conditions, busy: list[Busy], now: dt.datetime) -> Judgment:
     j = Judgment([], [], [], [])
+    # "22시 이후 출발, 02:30까지 도착"처럼 마감이 출발 하한보다 이르면 마감은 다음 날이다
+    overnight = bool(conds.arrive_by and conds.depart_after and conds.arrive_by <= conds.depart_after)
     deadline = (dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.arrive_by))
-                - dt.timedelta(minutes=conds.buffer_min)) if conds.arrive_by else None
+                + dt.timedelta(days=overnight, minutes=-conds.buffer_min)) if conds.arrive_by else None
+
+    def when(t: dt.datetime) -> str:  # 요청 날짜와 다른 날이면 날짜도 밝힌다
+        return _hm(t) if t.date() == conds.date else t.strftime("%m-%d %H:%M")
     lower = dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.depart_after)) if conds.depart_after else None
     if conds.date == now.date():
         lower = max(lower, now) if lower else now
@@ -172,10 +177,10 @@ def evaluate(options: list[Option], conds: Conditions, busy: list[Busy], now: dt
             j.undetermined.append((o, "구간 소요시간 확인 불가"))
             continue
         if deadline and o.arrive_at > deadline:
-            j.excluded.append((o, f"도착 {_hm(o.arrive_at)} > 마감 {_hm(deadline)}"))
+            j.excluded.append((o, f"도착 {when(o.arrive_at)} > 마감 {when(deadline)}"))
             continue
         if lower and o.leave_at < lower:
-            j.excluded.append((o, f"출발 {_hm(o.leave_at)} < 가능 시각 {_hm(lower)}"))
+            j.excluded.append((o, f"출발 {when(o.leave_at)} < 가능 시각 {when(lower)}"))
             continue
         clash = next((b for b in busy if o.leave_at < b.end and b.start < o.arrive_at), None)
         if clash:

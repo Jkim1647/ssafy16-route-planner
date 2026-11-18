@@ -45,6 +45,7 @@ def missing_fields(c: Conditions, now: dt.datetime) -> list[str]:
         return missing
     if c.date < now.date():
         return ["past_deadline"]
-    if c.date == now.date() and c.arrive_by and c.arrive_by <= now.strftime("%H:%M"):
+    overnight = bool(c.arrive_by and c.depart_after and c.arrive_by <= c.depart_after)  # 마감이 다음 날
+    if c.date == now.date() and c.arrive_by and not overnight and c.arrive_by <= now.strftime("%H:%M"):
         return ["past_deadline"]
     return []

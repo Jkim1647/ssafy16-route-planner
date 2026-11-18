@@ -166,10 +166,19 @@ def _at(conds: Conditions) -> str:
     return f"{conds.date.isoformat()}T{t}"
 
 
-def _segment(ctx, errors, task_t, task_c, sx, sy, ex, ey, want_taxi) -> list[Segment]:
-    transit, terr = None, None
+def _transit_allowed(ctx, args: dict) -> bool:
+    """요청당 ODsay 상한(설계 19-3). 이번 실행에서 이미 조회한 구간은 재사용이라 세지 않는다."""
+    if not ctx.no_reuse and "get_transit_route" + normalize_args(args) in ctx.reuse:
+        return True
     if ctx.odsay_calls < ODSAY_PER_RUN:
         ctx.odsay_calls += 1
+        return True
+    return False
+
+
+def _segment(ctx, errors, task_t, task_c, sx, sy, ex, ey, want_taxi) -> list[Segment]:
+    transit, terr = None, None
+    if _transit_allowed(ctx, {"sx": sx, "sy": sy, "ex": ex, "ey": ey}):
         r = call_tool(ctx, task_t, "get_transit_route", {"sx": sx, "sy": sy, "ex": ex, "ey": ey})
         if r["ok"]:
             transit = r["data"]
@@ -188,6 +197,46 @@ def _segment(ctx, errors, task_t, task_c, sx, sy, ex, ey, want_taxi) -> list[Seg
     if transit and not want_taxi:
         segs = [s for s in segs if s.kind == "transit"]
     return segs
+
+
+def _places(ctx, conds, cached_places, errors) -> dict | None:
+    """t1·t2: 출발·도착 장소 좌표. 실패하면 None(오류는 errors에 기록)."""
+    places = dict(cached_places)
+    for tid, key, q in (("t1", "origin", conds.origin), ("t2", "destination", conds.destination)):
+        if key in places and places[key]["query"] == q:
+            continue
+        r = call_tool(ctx, tid, "search_places", {"query": q})
+        if not r["ok"]:
+            _err(errors, tid, "search_places", r)
+            return None
+        places[key] = {"query": q, **r["data"]["places"][0]}
+    ctx.places = places
+    return places
+
+
+def run_fact_query(ctx: RunCtx, conds: Conditions, cached_places: dict, today: dt.date) -> dict:
+    """사실 질문(열차 시각): 계획(FACT_QUERY = t1~t5)에 있는 Tool만 부른다. 날짜가 없으면 오늘."""
+    errors: list[dict] = []
+    day = conds.date or today
+    places = _places(ctx, conds, cached_places, errors)
+    if places is None:
+        amb = next((e for e in errors if e["code"] == "AMBIGUOUS_PLACE"), None)
+        return {"errors": errors, "trains": [], "clarify": amb and amb["message"] + " 어느 곳인가요?"}
+    st = {}
+    for tid, key in (("t3", "origin"), ("t4", "destination")):
+        r = call_tool(ctx, tid, "find_stations", {"x": places[key]["x"], "y": places[key]["y"]})
+        if not r["ok"]:
+            _err(errors, tid, "find_stations", r)
+            return {"errors": errors, "trains": [], "clarify": None}
+        st[key] = r["data"]["stations"][0]
+    so, sd = st["origin"], st["destination"]
+    r = call_tool(ctx, "t5", "search_trains", {"dep_station_id": so["station_id"], "arr_station_id": sd["station_id"],
+                                               "date": day.isoformat()})
+    if not r["ok"]:
+        _err(errors, "t5", "search_trains", r, f"{so['name']}→{sd['name']}")
+        return {"errors": errors, "trains": [], "clarify": None}
+    return {"errors": errors, "clarify": None, "date": day.isoformat(), "dep": so["name"], "arr": sd["name"],
+            "trains": r["data"]["trains"], "estimated": r["data"].get("estimated", False)}
 
 
 def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: dict) -> dict:
@@ -293,8 +342,7 @@ def _debug_force(ctx, conds, o) -> None:
 
 def _intracity(ctx, conds, o, d, errors) -> dict:
     paths, car = [], None
-    if ctx.odsay_calls < ODSAY_PER_RUN:
-        ctx.odsay_calls += 1
+    if _transit_allowed(ctx, {"sx": o["x"], "sy": o["y"], "ex": d["x"], "ey": d["y"]}):
         r = call_tool(ctx, "t8", "get_transit_route", {"sx": o["x"], "sy": o["y"], "ex": d["x"], "ey": d["y"]})
         if r["ok"]:
             paths = r["data"]["paths"]
