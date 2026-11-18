@@ -1,0 +1,59 @@
+{
+ "header": {
+  "resultCode": 0,
+  "resultMsg": "SUCCESS"
+ },
+ "body": {
+  "totalCount": 3,
+  "items": [
+   {
+    "type": "국도",
+    "eventType": "공사",
+    "eventDetailType": "시설물보수작업",
+    "startDate": "20261030000000",
+    "coordX": "126.60064",
+    "coordY": "35.1722",
+    "linkId": "3400048100",
+    "roadName": "국도22호선",
+    "roadNo": "22",
+    "roadDrcType": "종점방향",
+    "lanesBlockType": "",
+    "lanesBlocked": "2 차로",
+    "message": "",
+    "endDate": "20261207000000"
+   },
+   {
+    "type": "국도",
+    "eventType": "공사",
+    "eventDetailType": "기타공사",
+    "startDate": "20261111000000",
+    "coordX": "127.0071",
+    "coordY": "35.03986",
+    "linkId": "3340083200",
+    "roadName": "국도22호선",
+    "roadNo": "22",
+    "roadDrcType": "시점방향",
+    "lanesBlockType": "",
+    "lanesBlocked": "1 차로",
+    "message": "",
+    "endDate": "20261127000000"
+   },
+   {
+    "type": "시군도",
+    "eventType": "교통사고",
+    "eventDetailType": "",
+    "startDate": "20261118000000",
+    "coordX": "126.846828",
+    "coordY": "35.192711",
+    "linkId": "1790131602",
+    "roadName": "북문대로419번길",
+    "roadNo": "0",
+    "roadDrcType": "",
+    "lanesBlockType": "",
+    "lanesBlocked": "",
+    "message": "<사고>::고양이가 죽어있어요 ㅠ  고양이가 죽어있어요 ㅠ ",
+    "endDate": "20261119000000"
+   }
+  ]
+ }
+}

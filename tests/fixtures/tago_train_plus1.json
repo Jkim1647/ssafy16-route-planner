@@ -1,0 +1,332 @@
+{
+ "response": {
+  "header": {
+   "resultCode": "00",
+   "resultMsg": "NORMAL SERVICE."
+  },
+  "body": {
+   "items": {
+    "item": [
+     {
+      "trainno": "00402",
+      "traingradename": "KTX-산천(B-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119053700",
+      "arrplandtime": "20261119074200",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00452",
+      "traingradename": "KTX-산천",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119054600",
+      "arrplandtime": "20261119083100",
+      "adultcharge": "41500"
+     },
+     {
+      "trainno": "00404",
+      "traingradename": "KTX-산천(A-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119060100",
+      "arrplandtime": "20261119081300",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00464",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119061000",
+      "arrplandtime": "20261119092500",
+      "adultcharge": "37500"
+     },
+     {
+      "trainno": "00406",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119074100",
+      "arrplandtime": "20261119094600",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "01452",
+      "traingradename": "무궁화호",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119075000",
+      "arrplandtime": "20261119122600",
+      "adultcharge": "33100"
+     },
+     {
+      "trainno": "00408",
+      "traingradename": "KTX-산천(A-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119084800",
+      "arrplandtime": "20261119105900",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00410",
+      "traingradename": "KTX-산천(B-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119094300",
+      "arrplandtime": "20261119113800",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00412",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119101700",
+      "arrplandtime": "20261119121800",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00414",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119110500",
+      "arrplandtime": "20261119125700",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "01402",
+      "traingradename": "ITX-새마을",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119110900",
+      "arrplandtime": "20261119150800",
+      "adultcharge": "33100"
+     },
+     {
+      "trainno": "00416",
+      "traingradename": "KTX-산천(A-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119112100",
+      "arrplandtime": "20261119132600",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00418",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119113400",
+      "arrplandtime": "20261119134100",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "01404",
+      "traingradename": "ITX-마음",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119114600",
+      "arrplandtime": "20261119153900",
+      "adultcharge": "33100"
+     },
+     {
+      "trainno": "00456",
+      "traingradename": "KTX-산천(B-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119115300",
+      "arrplandtime": "20261119151200",
+      "adultcharge": "37500"
+     },
+     {
+      "trainno": "00420",
+      "traingradename": "KTX-산천(B-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119134000",
+      "arrplandtime": "20261119155200",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00422",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119140900",
+      "arrplandtime": "20261119160100",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00424",
+      "traingradename": "KTX-산천(A-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119142900",
+      "arrplandtime": "20261119162600",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00426",
+      "traingradename": "KTX-산천(A-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119145700",
+      "arrplandtime": "20261119170300",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00428",
+      "traingradename": "KTX-산천(B-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119155600",
+      "arrplandtime": "20261119174100",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00430",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119161700",
+      "arrplandtime": "20261119181600",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "01406",
+      "traingradename": "ITX-마음",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119163400",
+      "arrplandtime": "20261119202700",
+      "adultcharge": "33100"
+     },
+     {
+      "trainno": "01408",
+      "traingradename": "ITX-새마을",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119170800",
+      "arrplandtime": "20261119214000",
+      "adultcharge": "33100"
+     },
+     {
+      "trainno": "00458",
+      "traingradename": "KTX-산천",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119172900",
+      "arrplandtime": "20261119201500",
+      "adultcharge": "41500"
+     },
+     {
+      "trainno": "00466",
+      "traingradename": "KTX-산천",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119173500",
+      "arrplandtime": "20261119193600",
+      "adultcharge": "38100"
+     },
+     {
+      "trainno": "00460",
+      "traingradename": "KTX-산천",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119174800",
+      "arrplandtime": "20261119204200",
+      "adultcharge": "41500"
+     },
+     {
+      "trainno": "01410",
+      "traingradename": "ITX-새마을",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119182200",
+      "arrplandtime": "20261119222200",
+      "adultcharge": "33100"
+     },
+     {
+      "trainno": "00432",
+      "traingradename": "KTX-청룡",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119182500",
+      "arrplandtime": "20261119200500",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00434",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119184100",
+      "arrplandtime": "20261119204600",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00436",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119192600",
+      "arrplandtime": "20261119211800",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00438",
+      "traingradename": "KTX-산천(B-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119202900",
+      "arrplandtime": "20261119223400",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00440",
+      "traingradename": "KTX-산천",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119205000",
+      "arrplandtime": "20261119225400",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "09440",
+      "traingradename": "KTX-산천(A-type)",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119205000",
+      "arrplandtime": "20261119225400",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00442",
+      "traingradename": "KTX-산천",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119212200",
+      "arrplandtime": "20261119232600",
+      "adultcharge": "42000"
+     },
+     {
+      "trainno": "00444",
+      "traingradename": "KTX",
+      "depplacename": "광주송정",
+      "arrplacename": "용산",
+      "depplandtime": "20261119222400",
+      "arrplandtime": "20261120001500",
+      "adultcharge": "42000"
+     }
+    ]
+   },
+   "numOfRows": 100,
+   "pageNo": 1,
+   "totalCount": 35
+  }
+ }
+}
