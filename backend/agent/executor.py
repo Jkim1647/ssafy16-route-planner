@@ -6,12 +6,13 @@
 from __future__ import annotations
 
 import datetime as dt
+import math
 import os
 import time
 from dataclasses import dataclass, field
 
 from backend.agent.conditions import Conditions
-from backend.agent.judge import (Busy, Option, Segment, build_intercity_options, build_intracity_options,
+from backend.agent.judge import (Busy, Leg, Option, Segment, build_intercity_options, build_intracity_options,
                                  is_intracity, segments_for)
 from backend.tools.budget import default_budget, normalize_args
 from backend.tools.registry import get_tool
@@ -189,7 +190,14 @@ def _transit_allowed(ctx, args: dict) -> bool:
     return False
 
 
+WALK_M_PER_MIN = 67  # 시속 4km
+
+
 def _segment(ctx, errors, task_t, task_c, sx, sy, ex, ey, want_taxi) -> list[Segment]:
+    km = haversine_km(sx, sy, ex, ey)
+    if km < WALK_KM:  # 역·터미널이 바로 앞이면 길찾기 API가 경로를 주지 않는다(같은 지점은 NO_DATA) → 도보
+        minutes = max(1, math.ceil(km * 1000 / WALK_M_PER_MIN))
+        return [Segment("transit", minutes, 0, [Leg("walk", None, minutes, 0, "estimate")])]
     transit, terr = None, None
     if _transit_allowed(ctx, {"sx": sx, "sy": sy, "ex": ex, "ey": ey}):
         r = call_tool(ctx, task_t, "get_transit_route", {"sx": sx, "sy": sy, "ex": ex, "ey": ey})

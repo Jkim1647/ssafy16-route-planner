@@ -1,0 +1,444 @@
+{
+ "before": {
+  "odsay": {
+   "used": 9,
+   "limit": 30
+  },
+  "its": {
+   "used": 6,
+   "limit": 100
+  }
+ },
+ "after": {
+  "odsay": {
+   "used": 9,
+   "limit": 30
+  },
+  "its": {
+   "used": 6,
+   "limit": 100
+  }
+ },
+ "rows": [
+  {
+   "id": "C1",
+   "title": "부산행(장거리·행사)",
+   "status": "done",
+   "intent": "plan_trip",
+   "replans": 2,
+   "llm_calls": 2,
+   "tool_calls": 67,
+   "tools": [
+    "find_stations",
+    "find_terminals",
+    "get_car_route",
+    "get_festivals",
+    "get_free_busy",
+    "get_road_events",
+    "get_transit_route",
+    "get_weather",
+    "search_express_bus",
+    "search_places",
+    "search_trains"
+   ],
+   "conditions": null,
+   "cards": [
+    {
+     "label": "최저가",
+     "leave_at": "06:09",
+     "arrive_at": "10:04",
+     "fare": 48600,
+     "modes": [
+      "walk",
+      "bus",
+      "taxi"
+     ],
+     "warnings": [
+      "요청당 대중교통 조회 상한(4회) → 택시 기준",
+      "참고: 도착지 0.39km 거리에서 '게임문화축제'(11.19~11.22) 행사 중 — 주변이 붐빌 수 있어요"
+     ]
+    },
+    {
+     "label": "최단 소요",
+     "leave_at": "08:59",
+     "arrive_at": "12:54",
+     "fare": 48600,
+     "modes": [
+      "walk",
+      "bus",
+      "taxi"
+     ],
+     "warnings": [
+      "요청당 대중교통 조회 상한(4회) → 택시 기준",
+      "참고: 도착지 0.39km 거리에서 '게임문화축제'(11.19~11.22) 행사 중 — 주변이 붐빌 수 있어요"
+     ]
+    },
+    {
+     "label": "늦게 출발",
+     "leave_at": "10:39",
+     "arrive_at": "14:34",
+     "fare": 48600,
+     "modes": [
+      "walk",
+      "bus",
+      "taxi"
+     ],
+     "warnings": [
+      "요청당 대중교통 조회 상한(4회) → 택시 기준",
+      "참고: 도착지 0.39km 거리에서 '게임문화축제'(11.19~11.22) 행사 중 — 주변이 붐빌 수 있어요"
+     ]
+    },
+    {
+     "label": "환승 최소",
+     "leave_at": "07:19",
+     "arrive_at": "11:14",
+     "fare": 57900,
+     "modes": [
+      "walk",
+      "bus",
+      "taxi"
+     ],
+     "warnings": [
+      "요청당 대중교통 조회 상한(4회) → 택시 기준",
+      "참고: 도착지 0.39km 거리에서 '게임문화축제'(11.19~11.22) 행사 중 — 주변이 붐빌 수 있어요"
+     ]
+    }
+   ],
+   "excluded_sample": [
+    "도착 15:29 > 마감 14:50",
+    "도착 16:19 > 마감 14:50",
+    "도착 16:54 > 마감 14:50"
+   ],
+   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 06:09 출발 → 10:04 도착, 총 48,600원\n2) 최단 소요: 08:59 출발 → 12:54 도착, 총 48,600원\n3) 늦게 출발: 10:39 출발 → 14:34 도착, 총 48,600원\n4) 환승 최소: 07:19 출발 → 11:14 도착, 총 57,900원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+   "run_id": "caacdf3ebdb0",
+   "session_id": "b6b2448330c0",
+   "message": "내일 오후 3시까지 광주 유스퀘어에서 부산 벡스코 가야 해"
+  },
+  {
+   "id": "C2",
+   "title": "광주 시내",
+   "status": "done",
+   "intent": "plan_trip",
+   "replans": 0,
+   "llm_calls": 2,
+   "tool_calls": 9,
+   "tools": [
+    "get_car_route",
+    "get_festivals",
+    "get_free_busy",
+    "get_road_events",
+    "get_transit_route",
+    "get_weather",
+    "search_places"
+   ],
+   "conditions": null,
+   "cards": [
+    {
+     "label": "최저가",
+     "leave_at": "08:11",
+     "arrive_at": "08:50",
+     "fare": 1250,
+     "modes": [
+      "walk",
+      "bus",
+      "walk"
+     ],
+     "warnings": []
+    },
+    {
+     "label": "최단 소요",
+     "leave_at": "08:26",
+     "arrive_at": "08:50",
+     "fare": 15100,
+     "modes": [
+      "taxi"
+     ],
+     "warnings": []
+    }
+   ],
+   "excluded_sample": [],
+   "reply": "조건에 맞는 이동 방법 2가지를 찾았어요.\n1) 최저가: 08:11 출발 → 08:50 도착, 총 1,250원\n2) 최단 소요: 08:26 출발 → 08:50 도착, 총 15,100원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+   "run_id": "84a2d99e40b5",
+   "session_id": "27f5c82227c0",
+   "message": "내일 오전 9시까지 광주 첨단동에서 광주 유스퀘어 가야 해"
+  },
+  {
+   "id": "C3",
+   "title": "'모레' 날짜 해석",
+   "status": "done",
+   "intent": "plan_trip",
+   "replans": 0,
+   "llm_calls": 2,
+   "tool_calls": 17,
+   "tools": [
+    "find_stations",
+    "get_festivals",
+    "get_free_busy",
+    "get_road_events",
+    "get_transit_route",
+    "get_weather",
+    "search_places",
+    "search_trains"
+   ],
+   "conditions": null,
+   "cards": [
+    {
+     "label": "최저가",
+     "leave_at": "05:18",
+     "arrive_at": "09:57",
+     "fare": 39850,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk",
+      "subway",
+      "walk",
+      "subway",
+      "walk",
+      "subway",
+      "walk"
+     ],
+     "warnings": []
+    },
+    {
+     "label": "최단 소요",
+     "leave_at": "06:10",
+     "arrive_at": "09:22",
+     "fare": 43700,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk",
+      "subway",
+      "walk",
+      "subway",
+      "walk"
+     ],
+     "warnings": []
+    },
+    {
+     "label": "늦게 출발",
+     "leave_at": "07:04",
+     "arrive_at": "10:22",
+     "fare": 43700,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk",
+      "subway",
+      "walk",
+      "subway",
+      "walk"
+     ],
+     "warnings": []
+    },
+    {
+     "label": "환승 최소",
+     "leave_at": "04:23",
+     "arrive_at": "07:36",
+     "fare": 43700,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk",
+      "subway",
+      "walk",
+      "subway",
+      "walk"
+     ],
+     "warnings": []
+    }
+   ],
+   "excluded_sample": [
+    "도착 11:27 > 마감 10:50",
+    "도착 12:58 > 마감 10:50",
+    "도착 13:25 > 마감 10:50"
+   ],
+   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 05:18 출발 → 09:57 도착, 총 39,850원\n2) 최단 소요: 06:10 출발 → 09:22 도착, 총 43,700원\n3) 늦게 출발: 07:04 출발 → 10:22 도착, 총 43,700원\n4) 환승 최소: 04:23 출발 → 07:36 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+   "run_id": "e085a4ca3295",
+   "session_id": "c7e5ef5d2763",
+   "message": "모레 오전 11시까지 광주 첨단동에서 서울 강남역 가야 해"
+  },
+  {
+   "id": "C4",
+   "title": "후속 변경(도착지만)",
+   "status": "done",
+   "intent": "modify",
+   "replans": 0,
+   "llm_calls": 2,
+   "tool_calls": 15,
+   "tools": [
+    "find_stations",
+    "get_festivals",
+    "get_free_busy",
+    "get_road_events",
+    "get_transit_route",
+    "get_weather",
+    "search_places",
+    "search_trains"
+   ],
+   "conditions": null,
+   "cards": [
+    {
+     "label": "최저가",
+     "leave_at": "05:18",
+     "arrive_at": "09:33",
+     "fare": 38600,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk"
+     ],
+     "warnings": []
+    },
+    {
+     "label": "최단 소요",
+     "leave_at": "04:48",
+     "arrive_at": "07:52",
+     "fare": 44800,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk",
+      "subway",
+      "walk"
+     ],
+     "warnings": []
+    },
+    {
+     "label": "늦게 출발",
+     "leave_at": "06:52",
+     "arrive_at": "09:56",
+     "fare": 44800,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk",
+      "subway",
+      "walk"
+     ],
+     "warnings": []
+    },
+    {
+     "label": "환승 최소",
+     "leave_at": "05:12",
+     "arrive_at": "08:22",
+     "fare": 43650,
+     "modes": [
+      "walk",
+      "bus",
+      "walk",
+      "train",
+      "walk"
+     ],
+     "warnings": []
+    }
+   ],
+   "excluded_sample": [
+    "도착 15:23 > 마감 10:50",
+    "도착 11:05 > 마감 10:50",
+    "도착 12:36 > 마감 10:50"
+   ],
+   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 05:18 출발 → 09:33 도착, 총 38,600원\n2) 최단 소요: 04:48 출발 → 07:52 도착, 총 44,800원\n3) 늦게 출발: 06:52 출발 → 09:56 도착, 총 44,800원\n4) 환승 최소: 05:12 출발 → 08:22 도착, 총 43,650원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+   "run_id": "81f832c33f48",
+   "session_id": "c7e5ef5d2763",
+   "message": "도착지를 서울역으로 바꿔줘"
+  },
+  {
+   "id": "C5",
+   "title": "예산 초과",
+   "status": "no_option",
+   "intent": "plan_trip",
+   "replans": 3,
+   "llm_calls": 1,
+   "tool_calls": 113,
+   "tools": [
+    "find_stations",
+    "find_terminals",
+    "get_car_route",
+    "get_festivals",
+    "get_free_busy",
+    "get_transit_route",
+    "get_weather",
+    "search_express_bus",
+    "search_places",
+    "search_trains"
+   ],
+   "conditions": null,
+   "cards": [],
+   "excluded_sample": [
+    "총 39,850원 > 예산 20,000원",
+    "총 52,400원 > 예산 20,000원",
+    "총 53,850원 > 예산 20,000원"
+   ],
+   "reply": "조건을 만족하는 이동 방법을 찾지 못했어요(재계획 3/3회: 거점 확장(근처 역 3곳까지), 수단 확장(택시 구간 포함), 전날 출발 후보 추가). 예: KTX 00464 05:18 출발 → 09:57 도착 — 총 39,850원 > 예산 20,000원; KTX 00464 05:18 출발 → 09:56 도착 — 총 52,400원 > 예산 20,000원. 도착 시각을 늦추거나 예산을 늘려 볼까요?",
+   "run_id": "836cb08888f5",
+   "session_id": "3de7f5c72482",
+   "message": "내일 오후 2시까지 광주 첨단동에서 서울 강남역 가야 해. 2만원 이하로"
+  },
+  {
+   "id": "C6",
+   "title": "열차 없는 시각 → 고속버스",
+   "status": "done",
+   "intent": "plan_trip",
+   "replans": 2,
+   "llm_calls": 2,
+   "tool_calls": 67,
+   "tools": [
+    "find_stations",
+    "find_terminals",
+    "get_car_route",
+    "get_festivals",
+    "get_free_busy",
+    "get_road_events",
+    "get_transit_route",
+    "get_weather",
+    "search_express_bus",
+    "search_places",
+    "search_trains"
+   ],
+   "conditions": null,
+   "cards": [
+    {
+     "label": "최저가",
+     "leave_at": "00:34",
+     "arrive_at": "04:06",
+     "fare": 40200,
+     "modes": [
+      "walk",
+      "bus",
+      "walk"
+     ],
+     "warnings": []
+    }
+   ],
+   "excluded_sample": [
+    "도착 08:03 > 마감 06:20",
+    "도착 08:05 > 마감 06:20",
+    "도착 08:03 > 마감 06:20"
+   ],
+   "reply": "조건에 맞는 이동 방법 1가지를 찾았어요.\n1) 최저가: 00:34 출발 → 04:06 도착, 총 40,200원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+   "run_id": "e3825021cedb",
+   "session_id": "e9e6ecbfe927",
+   "message": "내일 오전 6시 30분까지 광주 유스퀘어에서 서울 센트럴시티 가야 해"
+  }
+ ]
+}

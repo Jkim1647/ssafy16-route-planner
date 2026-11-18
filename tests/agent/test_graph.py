@@ -387,6 +387,24 @@ def test_bus_added_on_mode_expansion(env, monkeypatch):
     assert first_bus > first_replan
 
 
+def test_origin_at_station_walks_instead_of_route_api(env, monkeypatch):
+    # 실사용 점검: 출발지가 역·터미널 자체면 길찾기 API가 같은 점에 NO_DATA → 후보가 모두 사라졌다
+    world, llm, make, _ = env
+    world.places["첨단동"] = {**ORIGIN, "x": 126.79, "y": 35.13}  # 광주송정(GJ1)과 같은 좌표
+    tools = dict(registry._TOOLS)
+    for n in ("get_transit_route", "get_car_route"):
+        real = tools[n].func
+
+        def same_point_fails(sx, sy, ex, ey, _real=real):
+            return fail("NO_DATA", "같은 지점") if (sx, sy) == (ex, ey) else _real(sx=sx, sy=sy, ex=ex, ey=ey)
+        tools[n] = Tool(n, n, {"type": "object", "properties": {}}, same_point_fails, "external")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    from_gj1 = [c for c in res.cards if c["basis"].get("dep_station") == "광주송정"]
+    assert from_gj1 and from_gj1[0]["legs"][0]["mode"] in ("walk", "train")
+
+
 def _add_festivals(monkeypatch, result):
     tools = dict(registry._TOOLS)
     calls = []
