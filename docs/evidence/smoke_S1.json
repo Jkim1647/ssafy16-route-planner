@@ -1,0 +1,132 @@
+{
+ "run_id": "cfdcc99f8b63",
+ "session_id": "smoke1",
+ "reply": "어느 날짜에 이동하시나요? 몇 시까지 도착해야 하나요? (또는 몇 시 이후에 출발하시나요?)",
+ "cards": [],
+ "excluded": [],
+ "undetermined": [],
+ "estimated": [],
+ "warnings": [],
+ "clarification": "어느 날짜에 이동하시나요? 몇 시까지 도착해야 하나요? (또는 몇 시 이후에 출발하시나요?)",
+ "status": "clarify",
+ "intent": "plan_trip",
+ "replan_count": 0,
+ "llm_calls": 1,
+ "events": [
+  {
+   "session_id": "smoke1",
+   "run_id": "cfdcc99f8b63",
+   "seq": 1,
+   "ts": "2026-11-18T12:03:57.829",
+   "agent": "main",
+   "type": "run_start",
+   "node": null,
+   "payload": {
+    "message": "토요일 오후 2시까지 광주 첨단동에서 서울 강남역 가야 해. 6만원 이하로",
+    "mode": "single"
+   },
+   "duration_ms": null
+  },
+  {
+   "session_id": "smoke1",
+   "run_id": "cfdcc99f8b63",
+   "seq": 2,
+   "ts": "2026-11-18T12:03:57.835",
+   "agent": "main",
+   "type": "node_start",
+   "node": "analyze",
+   "payload": {},
+   "duration_ms": null
+  },
+  {
+   "session_id": "smoke1",
+   "run_id": "cfdcc99f8b63",
+   "seq": 3,
+   "ts": "2026-11-18T12:04:00.884",
+   "agent": "main",
+   "type": "llm_decision",
+   "node": "analyze",
+   "payload": {
+    "decision": "intent",
+    "value": "plan_trip",
+    "reason": "출발지, 도착지, 시간, 예산 조건을 포함한 이동 계획 요청",
+    "changes": {
+     "origin": "광주 첨단동",
+     "destination": "서울 강남역",
+     "arrive_by": "2026-11-21",
+     "budget": 60000
+    }
+   },
+   "duration_ms": null
+  },
+  {
+   "session_id": "smoke1",
+   "run_id": "cfdcc99f8b63",
+   "seq": 4,
+   "ts": "2026-11-18T12:04:00.889",
+   "agent": "main",
+   "type": "node_end",
+   "node": "analyze",
+   "payload": {
+    "intent": "plan_trip",
+    "intent_reason": "출발지, 도착지, 시간, 예산 조건을 포함한 이동 계획 요청",
+    "conditions": {
+     "origin": "광주 첨단동",
+     "destination": "서울 강남역",
+     "date": null,
+     "arrive_by": null,
+     "depart_after": null,
+     "priority": "cheapest",
+     "modes": null,
+     "avoid": [],
+     "budget": 60000,
+     "buffer_min": 10
+    },
+    "missing": [
+     "date",
+     "time"
+    ]
+   },
+   "duration_ms": 3049
+  },
+  {
+   "session_id": "smoke1",
+   "run_id": "cfdcc99f8b63",
+   "seq": 5,
+   "ts": "2026-11-18T12:04:00.893",
+   "agent": "main",
+   "type": "node_start",
+   "node": "clarify",
+   "payload": {},
+   "duration_ms": null
+  },
+  {
+   "session_id": "smoke1",
+   "run_id": "cfdcc99f8b63",
+   "seq": 6,
+   "ts": "2026-11-18T12:04:00.896",
+   "agent": "main",
+   "type": "node_end",
+   "node": "clarify",
+   "payload": {
+    "status": "clarify"
+   },
+   "duration_ms": 0
+  },
+  {
+   "session_id": "smoke1",
+   "run_id": "cfdcc99f8b63",
+   "seq": 7,
+   "ts": "2026-11-18T12:04:00.900",
+   "agent": "main",
+   "type": "run_end",
+   "node": null,
+   "payload": {
+    "status": "clarify",
+    "replan_count": 0,
+    "llm_calls": 1
+   },
+   "duration_ms": null
+  }
+ ]
+}

@@ -36,6 +36,13 @@ def test_weather_ok(monkeypatch):
     assert isinstance(d["pop"], int) and d["temp"] is not None and d["pty"] is not None
 
 
+def test_weather_three_hourly_uses_nearest_slot(monkeypatch):
+    _fixed_now(monkeypatch)
+    route_get(monkeypatch, [(lambda u, p: KMA in u, load("kma"))])
+    r = get_weather(35.1395, 126.7937, "2026-11-21T14:00")
+    assert r["ok"] and r["data"]["forecast_at"] == "2026-11-21T15:00"
+
+
 def test_weather_out_of_range(monkeypatch):
     _fixed_now(monkeypatch)
     route_get(monkeypatch, [(lambda u, p: KMA in u, load("kma"))])

@@ -68,11 +68,16 @@ def get_weather(lat: float, lon: float, at: str) -> dict:
     if str((resp.get("header") or {}).get("resultCode")) != "00":
         return fail(UPSTREAM_ERROR, "기상청 서비스 오류입니다.")
     items = (((resp.get("body") or {}).get("items")) or {}).get("item", [])
-    fdate, ftime = target.strftime("%Y%m%d"), target.strftime("%H00")
-    vals = {i["category"]: i["fcstValue"] for i in items if i["fcstDate"] == fdate and i["fcstTime"] == ftime}
-    if not vals:
+    # 3일 뒤부터는 3시간 간격 예보 → 가장 가까운 예보 시각(±3시간 이내)을 쓰고 그 시각을 함께 밝힌다
+    slots = {}
+    for i in items:
+        slot = dt.datetime.strptime(i["fcstDate"] + i["fcstTime"], "%Y%m%d%H%M")
+        slots.setdefault(slot, {})[i["category"]] = i["fcstValue"]
+    near = min(slots, key=lambda s: (abs(s - target), s < target), default=None)
+    if near is None or abs(near - target) > dt.timedelta(hours=3):
         return fail(OUT_OF_RANGE, "해당 시각의 예보가 아직 발표되지 않았습니다.")
-    return ok({"at": target.isoformat(timespec="minutes"),
+    vals = slots[near]
+    return ok({"at": target.isoformat(timespec="minutes"), "forecast_at": near.isoformat(timespec="minutes"),
                "pop": int(vals["POP"]) if "POP" in vals else None,
                "pty": PTY.get(vals.get("PTY")) if "PTY" in vals else None,
                "temp": float(vals["TMP"]) if "TMP" in vals else None})
