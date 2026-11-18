@@ -52,6 +52,8 @@ export const RouteCard = {
              :aria-label="(card.label || '추천') + ' ' + card.leave_at + ' 출발 ' + card.arrive_at + ' 도착'">
       <header class="card-top">
         <span class="pill" :class="'pill-' + (card.index || 1)">{{ card.label || '추천' }}</span>
+        <span v-if="card.risk" class="pill risk" :class="'risk-' + card.risk.level" :title="card.risk.text">여유 {{ card.risk.level }}</span>
+        <span v-if="card.risk" class="risk-text">{{ card.risk.text }}</span>
         <span v-if="card.warnings && card.warnings.length" class="pill warn-pill" :title="card.warnings.join(' / ')">주의 {{ card.warnings.length }}</span>
       </header>
       <div class="card-main">

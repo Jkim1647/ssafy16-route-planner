@@ -118,6 +118,12 @@ main { padding: 12px 24px 32px; outline: none; }
 .pill { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); }
 .pill-2 { background: var(--replan-soft); color: var(--replan); }
 .pill-3 { background: #f1f3f2; color: var(--ink); }
+.pill-4 { background: var(--warn-soft); color: var(--warn); }
+.pill.risk { background: #fff; border: 1px solid currentColor; font-weight: 600; }
+.risk-넉넉 { color: var(--accent); }
+.risk-보통 { color: var(--warn); }
+.risk-빠듯 { color: var(--bad); }
+.risk-text { font-size: 12px; color: var(--muted); }
 .warn-pill { background: var(--warn-soft); color: var(--warn); }
 .card-main { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin: 6px 0 8px; }
 .duration strong { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
@@ -176,9 +182,14 @@ details.excluded li { margin: 2px 0; }
 .route-map { display: flex; flex-direction: column; gap: 6px; }
 .map-box { width: 100%; border-radius: var(--radius); border: 1px solid var(--line); background: #e9ecea; }
 .map-fallback { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 13px; border: 1px dashed var(--line); border-radius: var(--radius); }
+.map-views { display: flex; gap: 6px; }
 .map-legend { margin: 0; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .lg { display: inline-block; width: 22px; height: 0; border-top: 4px solid var(--accent); vertical-align: middle; }
 .lg.access { border-top: 3px dashed var(--access); }
+.lg.bus { border-top-color: var(--m-bus); }
+.lg.subway { border-top-color: var(--m-subway); }
+.lg.taxi { border-top-color: var(--m-taxi); }
+.lg.walk { border-top: 3px dashed #7d8783; }
 .lg-note { color: var(--muted); }
 .leaflet-tooltip.map-label { font: 12px/1.3 "Pretendard", "Malgun Gothic", sans-serif; padding: 2px 6px; border-radius: 4px;
   border: 1px solid var(--line); box-shadow: none; color: var(--ink); }

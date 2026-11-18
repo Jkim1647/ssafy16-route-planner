@@ -121,7 +121,7 @@ export default {
         <div class="detail-grid">
           <div class="panel">
             <h3>지도</h3>
-            <RouteMap v-if="plan.points && plan.points.length" :points="plan.points" height="380px" />
+            <RouteMap v-if="plan.points && plan.points.length" :points="plan.points" :legs="plan.legs" height="380px" />
             <p v-else class="hint">이 계획은 지도 정보 없이 저장됐어요(지도 기능 추가 전에 저장한 계획).</p>
           </div>
           <div class="panel">

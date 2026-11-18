@@ -21,7 +21,8 @@ from backend.agent.conditions import Conditions, merge, missing_fields
 from backend.agent.ko_time import fix_changes
 from backend.agent.executor import (FATAL, RunCtx, call_tool, make_plan, prev_day_ok, run_fact_query,
                                    run_plan_trip)
-from backend.agent.judge import ROAD_MODES, Option, apply_warnings, checks_for, evaluate, exclusion_kind, rank
+from backend.agent.judge import (ROAD_MODES, Option, apply_warnings, checks_for, evaluate, exclusion_kind,
+                                 pareto_front, rank, risk_for)
 from backend.agent.llm import LLMUnavailable, structured
 from backend.agent.state import AgentState
 from backend.schemas import PlanIn
@@ -91,8 +92,8 @@ def card(o: Option, i: int) -> dict:
             "leave_at": _hm(o.leave_at), "arrive_at": _hm(o.arrive_at),
             "arrive_date": o.arrive_at.date().isoformat() if o.arrive_at else None,
             "total_fare": o.total_fare, "total_min": o.total_min, "transfers": o.transfers,
-            "legs": [{"mode": lg.mode, "name": lg.name, "minutes": lg.minutes, "fare": lg.fare, "source": lg.source}
-                     for lg in o.legs],
+            "legs": [{"mode": lg.mode, "name": lg.name, "minutes": lg.minutes, "fare": lg.fare, "source": lg.source,
+                      "path": lg.path} for lg in o.legs],
             "warnings": list(o.warnings), "estimated": o.estimated, "points": list(o.points),
             "basis": {k: v for k, v in o.basis.items() if k != "rain_block"}}
 
@@ -225,15 +226,18 @@ def build_graph(deps: Deps):
         if os.getenv("DEBUG_FORCE", "").strip() == "replan" and state.get("replan_count", 0) < 2:
             opts = []  # 검증용: 과도한 재계획을 일부러 만든다(F3020)
         j = evaluate(opts, conds, ctx.busy, deps.now())
-        ranked = rank(j.passed, conds.priority)
+        front = pareto_front(j.passed)  # 다른 후보에 모든 면에서 밀리는 후보는 추천하지 않는다
+        ranked = rank(front, conds.priority)
         _road_events(ctx, ranked, conds)
         cards = [card(o, i + 1) for i, o in enumerate(ranked)]
         for c, o in zip(cards, ranked):  # 판단 결과: 마감 여유·예산 남은 금액·일정 겹침 여부
             c["checks"] = checks_for(o, conds, ctx.busy, ctx.calendar_checked)
+            c["risk"] = risk_for(o, conds)
         by: dict[str, int] = {}
         for _, r in j.excluded:
             by[exclusion_kind(r)] = by.get(exclusion_kind(r), 0) + 1
-        decision = {"checked": len(opts), "passed": len(j.passed), "excluded_by": by,
+        decision = {"checked": len(opts), "passed": len(j.passed), "dominated": len(j.passed) - len(front),
+                    "excluded_by": by,
                     "undetermined": len(j.undetermined), "estimated": len(j.estimated)}
         excluded = [{"summary": _brief(o), "reason": r} for o, r in j.excluded][:8]
         undetermined = [{"summary": _brief(o), "reason": r} for o, r in j.undetermined][:5]

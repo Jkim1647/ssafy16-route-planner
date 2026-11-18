@@ -28,6 +28,7 @@ class Leg:
     minutes: int | None
     fare: int | None
     source: str
+    path: list | None = None  # 지도 동선 좌표 [[x, y], ...] (정류장·도로). 열차·도보는 없음
 
 
 @dataclass
@@ -92,13 +93,14 @@ def is_intracity(ox: float, oy: float, dx: float, dy: float, same_station: bool)
 
 
 def _transit_segment(path: dict) -> Segment:
-    legs = [Leg(lg["mode"], lg.get("name"), lg.get("min"), None, "odsay") for lg in path.get("legs", [])]
+    legs = [Leg(lg["mode"], lg.get("name"), lg.get("min"), None, "odsay", lg.get("path")) for lg in path.get("legs", [])]
     return Segment("transit", path.get("total_min"), path.get("fare"), legs)
 
 
 def _taxi_segment(car: dict, note: str | None = None) -> Segment:
     return Segment("taxi", car.get("duration_min"), car.get("taxi_fare"),
-                   [Leg("taxi", "택시", car.get("duration_min"), car.get("taxi_fare"), "kakao_mobility")], note)
+                   [Leg("taxi", "택시", car.get("duration_min"), car.get("taxi_fare"), "kakao_mobility",
+                        car.get("path"))], note)
 
 
 def segments_for(transit: dict | None, car: dict | None, transit_error: str | None) -> list[Segment]:
@@ -231,20 +233,58 @@ def exclusion_kind(reason: str) -> str:
     return next((k for prefix, k in _EXCLUSION_KINDS if reason.startswith(prefix)), "기타")
 
 
+def _dominates(p: Option, o: Option) -> bool:
+    """p가 o보다 모든 기준에서 같거나 낫고 하나 이상 나은가.
+    기준: 늦게 출발할수록(집에서 더 있다 나감), 일찍 도착할수록, 쌀수록, 환승이 적을수록 좋다.
+    요금을 모르는 후보는 요금으로 비교할 수 없으므로 지배 관계를 만들지 않는다."""
+    if p.total_fare is None or o.total_fare is None:
+        return False
+    no_worse = (p.leave_at >= o.leave_at and p.arrive_at <= o.arrive_at
+                and p.total_fare <= o.total_fare and p.transfers <= o.transfers)
+    better = (p.leave_at > o.leave_at or p.arrive_at < o.arrive_at
+              or p.total_fare < o.total_fare or p.transfers < o.transfers)
+    return no_worse and better
+
+
+def pareto_front(options: list[Option]) -> list[Option]:
+    """파레토 최적 후보만 남긴다(다른 후보에 모든 면에서 밀리는 후보 제외). 입력 순서를 유지한다."""
+    return [o for o in options if not any(_dominates(p, o) for p in options if p is not o)]
+
+
+def risk_for(o: Option, conds: Conditions) -> dict | None:
+    """지각 위험: 마감까지 남는 시간(버틸 수 있는 지연)과 환승 횟수로 넉넉/보통/빠듯. 마감이 없으면 판단하지 않는다."""
+    if not conds.arrive_by or not o.arrive_at:
+        return None
+    overnight = bool(conds.depart_after and conds.arrive_by <= conds.depart_after)
+    deadline = dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.arrive_by)) + dt.timedelta(days=overnight)
+    slack = int((deadline - o.arrive_at).total_seconds() // 60)
+    many = o.transfers >= 4
+    level = "넉넉" if slack >= 30 and not many else "보통" if slack >= 15 else "빠듯"
+    late = f"{slack}분" if slack < 90 else _dur(slack)  # 짧으면 분, 길면 "6시간 24분"
+    text = f"{late} 늦어져도 마감 안" + (f" · 환승 {o.transfers}회라 연결 지연 주의" if many else "")
+    return {"level": level, "absorb_min": slack, "text": text}
+
+
 _KEYS = {
     "cheapest": ("최저가", lambda o: (o.total_fare if o.total_fare is not None else 10**9, o.total_min or 0)),
     "fastest": ("최단 소요", lambda o: (o.total_min or 10**9, o.total_fare or 10**9)),
+    "latest": ("늦게 출발", lambda o: (-o.leave_at.timestamp() if o.leave_at else 0, o.total_min or 10**9)),
     "fewest_transfers": ("환승 최소", lambda o: (o.transfers, o.total_min or 10**9)),
 }
 
 
 def rank(passed: list[Option], priority: str) -> list[Option]:
+    """기준별 대표를 하나씩(최대 4장). '늦게 출발'은 가장 늦게 나가는 후보가 이미 뽑혔으면 다른 후보에 붙이지 않는다."""
     order = [priority] + [k for k in _KEYS if k != priority]
     picked: list[Option] = []
     for k in order:
         label, key = _KEYS[k]
-        best = next((o for o in sorted(passed, key=key) if o not in picked), None)
-        if best is not None and len(picked) < 3:
+        ordered = sorted(passed, key=key)
+        if k == "latest":
+            best = ordered[0] if ordered and ordered[0] not in picked else None
+        else:
+            best = next((o for o in ordered if o not in picked), None)
+        if best is not None and len(picked) < 4:
             best.basis["label"] = label
             picked.append(best)
     return picked

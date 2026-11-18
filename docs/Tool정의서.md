@@ -28,8 +28,8 @@
 | `search_places` | 출발지·도착지 이름을 좌표·주소로 바꿀 때(가장 먼저) | `query`, `near_x?`, `near_y?` | `places[{name, address, x, y, place_url}]` | 카카오 로컬 키워드 검색 |
 | `find_stations` | 좌표 근처 기차역과 TAGO 역 ID가 필요할 때 | `x`, `y`, `radius_km?=20` | `stations[{station_id, name, x, y, distance_km, ktx}]` (KTX 정차역 우선, 최대 3) | 카카오 로컬 + TAGO 역 목록(파일 캐시) |
 | `search_trains` **(F3002 필수)** | 두 역 사이 특정 날짜 열차 시각·운임 | `dep_station_id`, `arr_station_id`, `date?=오늘` | `{date_requested, date_queried, estimated, trains[{train_no, grade, dep_at, arr_at, fare}]}` | TAGO 열차정보 `GetStrtpntAlocFndTrainInfo` |
-| `get_transit_route` **(F3003 필수)** | 두 지점 사이 도보·지하철·버스 소요·요금 | `sx, sy, ex, ey` | `paths[{total_min, fare, transfers, walk_min, legs[{mode, name, min}]}]` (최대 3) | ODsay `searchPubTransPathT` |
-| `get_car_route` | 택시·자동차 시간·요금, 대중교통 실패·한도 시 대체 | `sx, sy, ex, ey` | `{duration_min, distance_km, taxi_fare, toll, bbox}` | 카카오 모빌리티 길찾기 |
+| `get_transit_route` **(F3003 필수)** | 두 지점 사이 도보·지하철·버스 소요·요금 | `sx, sy, ex, ey` | `paths[{total_min, fare, transfers, walk_min, legs[{mode, name, min, path}]}]` (최대 3) — `path`: 버스·지하철이 지나는 정류장·역 좌표 `[[x, y], …]`(지도 동선), 도보는 `null` | ODsay `searchPubTransPathT` |
+| `get_car_route` | 택시·자동차 시간·요금, 대중교통 실패·한도 시 대체 | `sx, sy, ex, ey` | `{duration_min, distance_km, taxi_fare, toll, bbox, path}` — `path`: 도로 좌표 `[[x, y], …]`(최대 120점으로 줄임) | 카카오 모빌리티 길찾기 |
 | `get_weather` **(F3004)** | 이동 시각 강수확률(도보 구간 주의) | `lat, lon, at` | `{at, forecast_at, pop, pty, temp}` (3시간 간격 예보는 ±3시간 내 가장 가까운 시각) | 기상청 단기예보 |
 | `get_road_events` | 최종 후보 도로 구간 주변 공사·사고 | `bbox[4]`, `date` | `{realtime, events[{type, detail, description, start, end, x, y}]}` (미래 날짜는 기간이 그날을 포함하는 것만) | ITS 돌발정보 |
 | `find_terminals` | 고속버스 대안이 필요할 때 근처 터미널 ID | `x, y` | `terminals[{terminal_id, name, x, y, distance_km}]` | 카카오 로컬 + TAGO 터미널 목록 |

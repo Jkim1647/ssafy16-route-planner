@@ -9,6 +9,20 @@ from backend.tools.registry import register
 
 URL = "https://apis-navi.kakaomobility.com/v1/directions"
 TTL = 6 * 3600
+MAX_POINTS = 120  # 지도 동선용 도로 좌표는 이 정도로 줄여 담는다
+
+
+def _road_path(route: dict) -> list[list[float]]:
+    """응답의 도로 꼭짓점 [x1, y1, x2, y2, ...]을 이어 [[x, y], ...]로. 너무 많으면 고르게 줄인다(양 끝은 유지)."""
+    pts = []
+    for sec in route.get("sections") or []:
+        for road in sec.get("roads") or []:
+            v = road.get("vertexes") or []
+            pts += [[round(v[i], 5), round(v[i + 1], 5)] for i in range(0, len(v) - 1, 2)]
+    if len(pts) > MAX_POINTS:
+        step = (len(pts) - 1) / (MAX_POINTS - 1)
+        pts = [pts[round(i * step)] for i in range(MAX_POINTS)]
+    return pts
 
 
 def get_car_route(sx: float, sy: float, ex: float, ey: float) -> dict:
@@ -28,6 +42,7 @@ def get_car_route(sx: float, sy: float, ex: float, ey: float) -> dict:
     return ok({"duration_min": math.ceil(s["duration"] / 60), "distance_km": round(s["distance"] / 1000, 1),
                "taxi_fare": (s.get("fare") or {}).get("taxi"), "toll": (s.get("fare") or {}).get("toll"),
                "bbox": [b.get("min_x"), b.get("min_y"), b.get("max_x"), b.get("max_y")],
+               "path": _road_path(routes[0]),
                "cached": r.get("cached", False)})
 
 

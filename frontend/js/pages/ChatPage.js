@@ -93,6 +93,7 @@ export default {
       const why = Object.entries(d.excluded_by || {}).sort((a, b) => b[1] - a[1])
         .map(([k, n]) => `${LABEL[k] || k} ${n}`).join(" · ");
       return `후보 ${d.checked}개 검토 → ${d.passed}개 조건 통과` + (why ? ` · 제외: ${why}` : "") +
+        (d.dominated ? ` · 모든 면에서 더 나은 경로가 있는 ${d.dominated}개는 추천에서 뺌` : "") +
         (d.undetermined ? ` · 판단 불가 ${d.undetermined}` : "");
     }
 
@@ -157,7 +158,7 @@ export default {
         </div>
         <div v-if="panel === 'map'" class="side-body">
           <p v-if="store.selected" class="map-title">{{ store.selected.index }}. {{ store.selected.label }} · {{ store.selected.leave_at }} → {{ store.selected.arrive_at }}</p>
-          <RouteMap :points="mapPoints" :others="otherPoints" height="420px" />
+          <RouteMap :points="mapPoints" :legs="store.selected ? store.selected.legs : []" :others="otherPoints" height="420px" />
           <p v-if="!store.selected" class="hint">경로를 찾으면 출발지·역·도착지가 지도에 표시돼요. 카드를 누르면 그 경로를 크게 보여 줘요.</p>
         </div>
         <div v-else class="side-body">
