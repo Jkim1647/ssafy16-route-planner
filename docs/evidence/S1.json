@@ -1,59 +1,59 @@
 {
- "run_id": "a68b1312c83f",
+ "run_id": "847573e9c334",
  "session_id": "smoke-S1",
- "reply": "요금은 최저가 37,100원, 소요 시간은 약 5시간 35분 내외로 예측됩니다. 다만 좌석 상황과 실시간 지연은 확인하지 못했습니다. 출발은 광주 첨단동에서 07:57, 도착은 서울 강남역으로 13:25인 여정이 최저가 옵션으로 제시됩니다.\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+ "reply": "최저가 경로는 2026-11-21 08:13에 출발해 13:25에 도착하며, 요금은 35,250원, 소요시간은 312분으로 예산과 도착 시간 조건에 맞습니다(환승 5회). 좌석과 실시간 지연 여부는 확인하지 못했습니다.\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
  "cards": [
   {
    "index": 1,
    "label": "최저가",
    "date": "2026-11-21",
-   "leave_at": "07:57",
+   "leave_at": "08:13",
    "arrive_at": "13:25",
    "arrive_date": "2026-11-21",
-   "total_fare": 37100,
-   "total_min": 328,
+   "total_fare": 35250,
+   "total_min": 312,
    "transfers": 5,
    "legs": [
     {
      "mode": "walk",
      "name": null,
-     "minutes": 1,
+     "minutes": 7,
      "fare": null,
      "source": "odsay"
     },
     {
      "mode": "bus",
-     "name": "09",
-     "minutes": 13,
+     "name": "20",
+     "minutes": 10,
      "fare": null,
      "source": "odsay"
     },
     {
      "mode": "walk",
      "name": null,
-     "minutes": 1,
+     "minutes": 2,
      "fare": null,
      "source": "odsay"
     },
     {
      "mode": "bus",
-     "name": "48",
-     "minutes": 31,
+     "name": "100(비아.장성)",
+     "minutes": 33,
      "fare": null,
      "source": "odsay"
     },
     {
      "mode": "walk",
      "name": null,
-     "minutes": 3,
+     "minutes": 5,
      "fare": null,
      "source": "odsay"
     },
     {
      "mode": "train",
      "name": "ITX-새마을 01424",
-     "minutes": 237,
-     "fare": 34300,
+     "minutes": 213,
+     "fare": 31000,
      "source": "tago_train"
     },
     {
@@ -110,14 +110,14 @@
    "estimated": false,
    "basis": {
     "board_buffer_min": 10,
-    "access_min": 49,
+    "access_min": 57,
     "egress_min": 32,
-    "train_dep": "08:56",
+    "train_dep": "09:20",
     "train_arr": "12:53",
-    "train_fare": 34300,
-    "access_fare": 1250,
+    "train_fare": 31000,
+    "access_fare": 2700,
     "egress_fare": 1550,
-    "dep_station": "광주",
+    "dep_station": "장성",
     "arr_station": "용산",
     "label": "최저가"
    }
@@ -126,66 +126,24 @@
    "index": 2,
    "label": "최단 소요",
    "date": "2026-11-21",
-   "leave_at": "05:52",
-   "arrive_at": "11:27",
+   "leave_at": "07:45",
+   "arrive_at": "10:52",
    "arrive_date": "2026-11-21",
-   "total_fare": 37100,
-   "total_min": 335,
-   "transfers": 5,
+   "total_fare": 43700,
+   "total_min": 187,
+   "transfers": 3,
    "legs": [
     {
      "mode": "walk",
      "name": null,
-     "minutes": 1,
+     "minutes": 8,
      "fare": null,
      "source": "odsay"
     },
     {
      "mode": "bus",
-     "name": "09",
-     "minutes": 13,
-     "fare": null,
-     "source": "odsay"
-    },
-    {
-     "mode": "walk",
-     "name": null,
-     "minutes": 1,
-     "fare": null,
-     "source": "odsay"
-    },
-    {
-     "mode": "bus",
-     "name": "48",
-     "minutes": 31,
-     "fare": null,
-     "source": "odsay"
-    },
-    {
-     "mode": "walk",
-     "name": null,
-     "minutes": 3,
-     "fare": null,
-     "source": "odsay"
-    },
-    {
-     "mode": "train",
-     "name": "ITX-새마을 01422",
-     "minutes": 244,
-     "fare": 34300,
-     "source": "tago_train"
-    },
-    {
-     "mode": "walk",
-     "name": null,
-     "minutes": 1,
-     "fare": null,
-     "source": "odsay"
-    },
-    {
-     "mode": "subway",
-     "name": "경의중앙선",
-     "minutes": 4,
+     "name": "1002",
+     "minutes": 29,
      "fare": null,
      "source": "odsay"
     },
@@ -197,9 +155,23 @@
      "source": "odsay"
     },
     {
+     "mode": "train",
+     "name": "KTX-산천(A-type) 00610",
+     "minutes": 112,
+     "fare": 40900,
+     "source": "tago_train"
+    },
+    {
+     "mode": "walk",
+     "name": null,
+     "minutes": 6,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
      "mode": "subway",
-     "name": "수도권 4호선",
-     "minutes": 9,
+     "name": "수도권 수인.분당선",
+     "minutes": 12,
      "fare": null,
      "source": "odsay"
     },
@@ -213,7 +185,7 @@
     {
      "mode": "subway",
      "name": "수도권 2호선",
-     "minutes": 9,
+     "minutes": 3,
      "fare": null,
      "source": "odsay"
     },
@@ -229,43 +201,142 @@
    "estimated": false,
    "basis": {
     "board_buffer_min": 10,
-    "access_min": 49,
-    "egress_min": 32,
-    "train_dep": "06:51",
-    "train_arr": "10:55",
-    "train_fare": 34300,
+    "access_min": 39,
+    "egress_min": 26,
+    "train_dep": "08:34",
+    "train_arr": "10:26",
+    "train_fare": 40900,
     "access_fare": 1250,
     "egress_fare": 1550,
-    "dep_station": "광주",
-    "arr_station": "용산",
+    "dep_station": "광주송정",
+    "arr_station": "수서",
     "label": "최단 소요"
+   }
+  },
+  {
+   "index": 3,
+   "label": "환승 최소",
+   "date": "2026-11-21",
+   "leave_at": "06:10",
+   "arrive_at": "09:22",
+   "arrive_date": "2026-11-21",
+   "total_fare": 43700,
+   "total_min": 192,
+   "transfers": 3,
+   "legs": [
+    {
+     "mode": "walk",
+     "name": null,
+     "minutes": 8,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
+     "mode": "bus",
+     "name": "1002",
+     "minutes": 29,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
+     "mode": "walk",
+     "name": null,
+     "minutes": 2,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
+     "mode": "train",
+     "name": "KTX-산천 00606",
+     "minutes": 117,
+     "fare": 40900,
+     "source": "tago_train"
+    },
+    {
+     "mode": "walk",
+     "name": null,
+     "minutes": 6,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
+     "mode": "subway",
+     "name": "수도권 수인.분당선",
+     "minutes": 12,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
+     "mode": "walk",
+     "name": null,
+     "minutes": 2,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
+     "mode": "subway",
+     "name": "수도권 2호선",
+     "minutes": 3,
+     "fare": null,
+     "source": "odsay"
+    },
+    {
+     "mode": "walk",
+     "name": null,
+     "minutes": 1,
+     "fare": null,
+     "source": "odsay"
+    }
+   ],
+   "warnings": [],
+   "estimated": false,
+   "basis": {
+    "board_buffer_min": 10,
+    "access_min": 39,
+    "egress_min": 26,
+    "train_dep": "06:59",
+    "train_arr": "08:56",
+    "train_fare": 40900,
+    "access_fare": 1250,
+    "egress_fare": 1550,
+    "dep_station": "광주송정",
+    "arr_station": "수서",
+    "label": "환승 최소"
    }
   }
  ],
  "excluded": [
   {
-   "summary": "무궁화호 01462 11:20 출발 → 17:18 도착",
+   "summary": "ITX-새마을 01402 10:17 출발 → 15:40 도착",
+   "reason": "도착 15:40 > 마감 13:50"
+  },
+  {
+   "summary": "ITX-마음 01404 10:54 출발 → 16:11 도착",
+   "reason": "도착 16:11 > 마감 13:50"
+  },
+  {
+   "summary": "KTX-산천(B-type) 00456 11:00 출발 → 15:44 도착",
+   "reason": "도착 15:44 > 마감 13:50"
+  },
+  {
+   "summary": "무궁화호 01462 11:12 출발 → 17:18 도착",
    "reason": "도착 17:18 > 마감 13:50"
   },
   {
-   "summary": "무궁화호 01464 14:47 출발 → 20:54 도착",
-   "reason": "도착 20:54 > 마감 13:50"
-  },
-  {
-   "summary": "무궁화호 01462 10:51 출발 → 17:18 도착",
-   "reason": "도착 17:18 > 마감 13:50"
-  },
-  {
-   "summary": "ITX-새마을 01426 12:33 출발 → 18:08 도착",
+   "summary": "ITX-새마을 01426 12:49 출발 → 18:08 도착",
    "reason": "도착 18:08 > 마감 13:50"
   },
   {
-   "summary": "무궁화호 01464 14:18 출발 → 20:54 도착",
+   "summary": "무궁화호 01464 14:40 출발 → 20:54 도착",
    "reason": "도착 20:54 > 마감 13:50"
   },
   {
-   "summary": "ITX-새마을 01428 17:28 출발 → 23:09 도착",
-   "reason": "도착 23:09 > 마감 13:50"
+   "summary": "ITX-마음 01406 15:42 출발 → 20:59 도착",
+   "reason": "도착 20:59 > 마감 13:50"
+  },
+  {
+   "summary": "ITX-새마을 01408 16:16 출발 → 22:12 도착",
+   "reason": "도착 22:12 > 마감 13:50"
   }
  ],
  "undetermined": [],
@@ -279,9 +350,9 @@
  "events": [
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 1,
-   "ts": "2026-11-18T12:07:12.037",
+   "ts": "2026-11-18T12:18:12.185",
    "agent": "main",
    "type": "run_start",
    "node": null,
@@ -293,9 +364,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 2,
-   "ts": "2026-11-18T12:07:12.044",
+   "ts": "2026-11-18T12:18:12.206",
    "agent": "main",
    "type": "node_start",
    "node": "analyze",
@@ -304,37 +375,37 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 3,
-   "ts": "2026-11-18T12:07:15.406",
+   "ts": "2026-11-18T12:18:16.232",
    "agent": "main",
    "type": "llm_decision",
    "node": "analyze",
    "payload": {
     "decision": "intent",
     "value": "plan_trip",
-    "reason": "출발지(광주 첨단동)에서 도착지(서울 강남역)까지의 이동 계획 요청이며, 도착 시점과 예산 조건이 포함됨.",
+    "reason": "토요일까지 광주 첨단동에서 서울 강남역으로 이동하는 계획을 요청했습니다.",
     "changes": {
      "origin": "광주 첨단동",
      "destination": "서울 강남역",
+     "date": "2026-11-21",
      "arrive_by": "14:00",
-     "budget": 60000,
-     "date": "2026-11-21"
+     "budget": 60000
     }
    },
    "duration_ms": null
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 4,
-   "ts": "2026-11-18T12:07:15.422",
+   "ts": "2026-11-18T12:18:16.235",
    "agent": "main",
    "type": "node_end",
    "node": "analyze",
    "payload": {
     "intent": "plan_trip",
-    "intent_reason": "출발지(광주 첨단동)에서 도착지(서울 강남역)까지의 이동 계획 요청이며, 도착 시점과 예산 조건이 포함됨.",
+    "intent_reason": "토요일까지 광주 첨단동에서 서울 강남역으로 이동하는 계획을 요청했습니다.",
     "conditions": {
      "origin": "광주 첨단동",
      "destination": "서울 강남역",
@@ -349,13 +420,13 @@
     },
     "missing": []
    },
-   "duration_ms": 3373
+   "duration_ms": 4011
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 5,
-   "ts": "2026-11-18T12:07:15.426",
+   "ts": "2026-11-18T12:18:16.240",
    "agent": "main",
    "type": "node_start",
    "node": "plan",
@@ -364,9 +435,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 6,
-   "ts": "2026-11-18T12:07:15.430",
+   "ts": "2026-11-18T12:18:16.243",
    "agent": "main",
    "type": "plan_tasks",
    "node": "plan",
@@ -439,9 +510,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 7,
-   "ts": "2026-11-18T12:07:15.433",
+   "ts": "2026-11-18T12:18:16.246",
    "agent": "main",
    "type": "node_end",
    "node": "plan",
@@ -450,9 +521,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 8,
-   "ts": "2026-11-18T12:07:15.437",
+   "ts": "2026-11-18T12:18:16.251",
    "agent": "main",
    "type": "node_start",
    "node": "execute",
@@ -461,9 +532,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 9,
-   "ts": "2026-11-18T12:07:15.440",
+   "ts": "2026-11-18T12:18:16.255",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -478,9 +549,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 10,
-   "ts": "2026-11-18T12:07:15.445",
+   "ts": "2026-11-18T12:18:16.261",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -497,9 +568,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 11,
-   "ts": "2026-11-18T12:07:15.449",
+   "ts": "2026-11-18T12:18:16.264",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -514,9 +585,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 12,
-   "ts": "2026-11-18T12:07:15.452",
+   "ts": "2026-11-18T12:18:16.267",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -533,9 +604,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 13,
-   "ts": "2026-11-18T12:07:15.455",
+   "ts": "2026-11-18T12:18:16.270",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -552,9 +623,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 14,
-   "ts": "2026-11-18T12:07:15.463",
+   "ts": "2026-11-18T12:18:16.281",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -567,13 +638,13 @@
     "summary": "at=2026-11-21T14:00, forecast_at=2026-11-21T15:00, pop=0",
     "cached": false
    },
-   "duration_ms": 5
+   "duration_ms": 6
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 15,
-   "ts": "2026-11-18T12:07:15.467",
+   "ts": "2026-11-18T12:18:16.284",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -590,9 +661,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 16,
-   "ts": "2026-11-18T12:07:15.475",
+   "ts": "2026-11-18T12:18:16.292",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -609,9 +680,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 17,
-   "ts": "2026-11-18T12:07:15.478",
+   "ts": "2026-11-18T12:18:16.295",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -627,9 +698,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 18,
-   "ts": "2026-11-18T12:07:15.482",
+   "ts": "2026-11-18T12:18:16.300",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -642,13 +713,13 @@
     "summary": "stations 3건",
     "cached": false
    },
-   "duration_ms": 0
+   "duration_ms": 1
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 19,
-   "ts": "2026-11-18T12:07:15.497",
+   "ts": "2026-11-18T12:18:16.304",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -664,9 +735,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 20,
-   "ts": "2026-11-18T12:07:15.500",
+   "ts": "2026-11-18T12:18:16.307",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -683,9 +754,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 21,
-   "ts": "2026-11-18T12:07:15.503",
+   "ts": "2026-11-18T12:18:16.312",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -695,17 +766,17 @@
     "args": {
      "sx": 126.841304933753,
      "sy": 35.2228609553696,
-     "ex": 126.83029486172833,
-     "ey": 35.17618120481935
+     "ex": 126.78019386686799,
+     "ey": 35.300022173219034
     }
    },
    "duration_ms": null
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 22,
-   "ts": "2026-11-18T12:07:15.507",
+   "ts": "2026-11-18T12:18:16.613",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -716,15 +787,15 @@
     "code": null,
     "message": null,
     "summary": "paths 3건",
-    "cached": true
+    "cached": false
    },
-   "duration_ms": 0
+   "duration_ms": 297
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 23,
-   "ts": "2026-11-18T12:07:15.510",
+   "ts": "2026-11-18T12:18:16.616",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -734,17 +805,17 @@
     "args": {
      "sx": 126.841304933753,
      "sy": 35.2228609553696,
-     "ex": 126.90933350743458,
-     "ey": 35.16530023524146
+     "ex": 126.79080503506053,
+     "ey": 35.13766750683345
     }
    },
    "duration_ms": null
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 24,
-   "ts": "2026-11-18T12:07:15.514",
+   "ts": "2026-11-18T12:18:17.010",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -755,15 +826,15 @@
     "code": null,
     "message": null,
     "summary": "paths 3건",
-    "cached": true
+    "cached": false
    },
-   "duration_ms": 0
+   "duration_ms": 390
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 25,
-   "ts": "2026-11-18T12:07:15.517",
+   "ts": "2026-11-18T12:18:17.015",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -781,9 +852,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 26,
-   "ts": "2026-11-18T12:07:15.521",
+   "ts": "2026-11-18T12:18:17.019",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -800,9 +871,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 27,
-   "ts": "2026-11-18T12:07:15.524",
+   "ts": "2026-11-18T12:18:17.024",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -820,9 +891,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 28,
-   "ts": "2026-11-18T12:07:15.956",
+   "ts": "2026-11-18T12:18:17.029",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -833,15 +904,15 @@
     "code": null,
     "message": null,
     "summary": "paths 3건",
-    "cached": false
+    "cached": true
    },
-   "duration_ms": 428
+   "duration_ms": 0
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 29,
-   "ts": "2026-11-18T12:07:15.960",
+   "ts": "2026-11-18T12:18:17.033",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -849,7 +920,7 @@
     "task_id": "t5",
     "tool": "search_trains",
     "args": {
-     "dep_station_id": "NAT883086",
+     "dep_station_id": "NAT031638",
      "arr_station_id": "NAT010032",
      "date": "2026-11-21"
     }
@@ -858,9 +929,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 30,
-   "ts": "2026-11-18T12:07:15.965",
+   "ts": "2026-11-18T12:18:17.038",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -870,16 +941,16 @@
     "ok": true,
     "code": null,
     "message": null,
-    "summary": "trains 2건",
+    "summary": "trains 14건",
     "cached": false
    },
-   "duration_ms": 0
+   "duration_ms": 1
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 31,
-   "ts": "2026-11-18T12:07:15.969",
+   "ts": "2026-11-18T12:18:17.041",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -887,7 +958,7 @@
     "task_id": "t5",
     "tool": "search_trains",
     "args": {
-     "dep_station_id": "NAT883086",
+     "dep_station_id": "NAT031638",
      "arr_station_id": "NATH30000",
      "date": "2026-11-21"
     }
@@ -896,9 +967,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 32,
-   "ts": "2026-11-18T12:07:15.973",
+   "ts": "2026-11-18T12:18:17.045",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -915,9 +986,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 33,
-   "ts": "2026-11-18T12:07:15.976",
+   "ts": "2026-11-18T12:18:17.049",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -925,7 +996,7 @@
     "task_id": "t5",
     "tool": "search_trains",
     "args": {
-     "dep_station_id": "NAT883012",
+     "dep_station_id": "NAT031857",
      "arr_station_id": "NAT010032",
      "date": "2026-11-21"
     }
@@ -934,9 +1005,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 34,
-   "ts": "2026-11-18T12:07:15.980",
+   "ts": "2026-11-18T12:18:17.411",
    "agent": "main",
    "type": "tool_result",
    "node": null,
@@ -946,16 +1017,16 @@
     "ok": true,
     "code": null,
     "message": null,
-    "summary": "trains 6건",
+    "summary": "trains 35건",
     "cached": false
    },
-   "duration_ms": 0
+   "duration_ms": 357
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 35,
-   "ts": "2026-11-18T12:07:15.983",
+   "ts": "2026-11-18T12:18:17.415",
    "agent": "main",
    "type": "tool_call",
    "node": null,
@@ -963,7 +1034,7 @@
     "task_id": "t5",
     "tool": "search_trains",
     "args": {
-     "dep_station_id": "NAT883012",
+     "dep_station_id": "NAT031857",
      "arr_station_id": "NATH30000",
      "date": "2026-11-21"
     }
@@ -972,39 +1043,39 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 36,
-   "ts": "2026-11-18T12:07:15.987",
+   "ts": "2026-11-18T12:18:17.771",
    "agent": "main",
    "type": "tool_result",
    "node": null,
    "payload": {
     "task_id": "t5",
     "tool": "search_trains",
-    "ok": false,
-    "code": "NO_DATA",
-    "message": "해당 날짜·구간의 열차가 없습니다.",
-    "summary": "NO_DATA",
+    "ok": true,
+    "code": null,
+    "message": null,
+    "summary": "trains 22건",
     "cached": false
    },
-   "duration_ms": 0
+   "duration_ms": 353
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 37,
-   "ts": "2026-11-18T12:07:15.990",
+   "ts": "2026-11-18T12:18:17.778",
    "agent": "main",
    "type": "node_end",
    "node": "execute",
    "payload": {},
-   "duration_ms": 550
+   "duration_ms": 1523
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 38,
-   "ts": "2026-11-18T12:07:15.993",
+   "ts": "2026-11-18T12:18:17.782",
    "agent": "main",
    "type": "node_start",
    "node": "judge",
@@ -1013,9 +1084,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 39,
-   "ts": "2026-11-18T12:07:15.996",
+   "ts": "2026-11-18T12:18:17.786",
    "agent": "main",
    "type": "node_end",
    "node": "judge",
@@ -1024,9 +1095,9 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 40,
-   "ts": "2026-11-18T12:07:16.000",
+   "ts": "2026-11-18T12:18:17.793",
    "agent": "main",
    "type": "node_start",
    "node": "respond",
@@ -1035,22 +1106,22 @@
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 41,
-   "ts": "2026-11-18T12:07:17.934",
+   "ts": "2026-11-18T12:18:20.295",
    "agent": "main",
    "type": "node_end",
    "node": "respond",
    "payload": {
     "status": "done"
    },
-   "duration_ms": 1930
+   "duration_ms": 2497
   },
   {
    "session_id": "smoke-S1",
-   "run_id": "a68b1312c83f",
+   "run_id": "847573e9c334",
    "seq": 42,
-   "ts": "2026-11-18T12:07:17.950",
+   "ts": "2026-11-18T12:18:20.302",
    "agent": "main",
    "type": "run_end",
    "node": null,

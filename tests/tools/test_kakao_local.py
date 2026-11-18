@@ -76,6 +76,16 @@ def test_find_stations_matches_tago(monkeypatch, station_cache):
     assert all("신호장" not in s["name"] for s in st)
 
 
+def test_find_stations_prefers_ktx(monkeypatch, station_cache):
+    docs = {"documents": [
+        {"place_name": "서광주역", "x": "126.85", "y": "35.15", "category_name": "교통,수송 > 교통시설 > 기차역"},
+        {"place_name": "광주송정역", "x": "126.79", "y": "35.13", "category_name": "교통,수송 > 교통시설 > 기차역 > KTX정차역"}],
+        "meta": {}}
+    route_get(monkeypatch, [(lambda u, p: KAKAO in u, docs)])
+    st = find_stations(126.86, 35.16)["data"]["stations"]
+    assert st[0]["name"] == "광주송정" and st[0]["ktx"] is True and st[1]["ktx"] is False
+
+
 def test_find_stations_none_matched(monkeypatch, station_cache):
     route_get(monkeypatch, [(lambda u, p: KAKAO in u, {"documents": [{"place_name": "북송정신호장", "x": "126.8", "y": "35.1", "category_name": "교통 > 기차역"}], "meta": {}})])
     assert find_stations(126.79, 35.13)["error"]["code"] == "NO_DATA"

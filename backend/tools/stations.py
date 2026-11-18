@@ -71,10 +71,11 @@ def find_stations(x: float, y: float, radius_km: float = 20) -> dict:
         seen.add(info["station_id"])
         sx, sy = float(d["x"]), float(d["y"])
         found.append({"station_id": info["station_id"], "name": name, "x": sx, "y": sy,
-                      "distance_km": round(haversine_km(x, y, sx, sy), 2)})
+                      "distance_km": round(haversine_km(x, y, sx, sy), 2),
+                      "ktx": "KTX" in (d.get("category_name") or "")})
     if not found:
         return fail(NO_DATA, "근처에서 열차를 탈 수 있는 역을 찾지 못했습니다.")
-    found.sort(key=lambda s: s["distance_km"])
+    found.sort(key=lambda s: (not s["ktx"], s["distance_km"]))  # KTX 정차역을 먼저(간선 열차가 많음)
     return ok({"stations": found[:3]})
 
 

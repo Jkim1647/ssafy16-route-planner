@@ -62,8 +62,8 @@ def get_settings() -> Settings:
     return Settings(
         GMS_API_KEY=_str("GMS_API_KEY"),
         GMS_BASE_URL=_str("GMS_BASE_URL"),
-        LLM_MODEL=_str("LLM_MODEL", "gpt-5-nano"),
-        LLM_REASONING_EFFORT=_str("LLM_REASONING_EFFORT", "minimal"),
+        LLM_MODEL=_str("LLM_MODEL", "gpt-6-luna"),
+        LLM_REASONING_EFFORT=_str("LLM_REASONING_EFFORT"),
         EMBEDDING_MODEL=_str("EMBEDDING_MODEL", "text-embedding-3-small"),
         KAKAO_REST_KEY=_str("KAKAO_REST_KEY"),
         ODSAY_API_KEY=_str("ODSAY_API_KEY"),

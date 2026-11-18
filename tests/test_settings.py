@@ -13,6 +13,11 @@ def test_key_status_has_no_values(monkeypatch):
     assert "secret123" not in str(status)
 
 
+def test_empty_reasoning_effort_is_none(monkeypatch):
+    monkeypatch.setenv("LLM_REASONING_EFFORT", "")
+    assert get_settings().LLM_REASONING_EFFORT is None
+
+
 def test_bool_and_int_parsing(monkeypatch):
     monkeypatch.setenv("WORKER_LLM", "off")
     monkeypatch.setenv("MAX_REPLAN", "5")
