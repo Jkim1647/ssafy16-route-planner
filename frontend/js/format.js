@@ -15,6 +15,12 @@ export const dateLabel = (iso) => {
 export const legLabel = (leg) =>
   leg.mode === "train" ? leg.name || "열차" : `${MODE_LABEL[leg.mode] || leg.mode}${leg.name ? " " + leg.name : ""}`;
 
+// 카드에 쓸 짧은 노선 이름: "지하철 수도권 2호선" → "2호선", 열차·버스는 이름 그대로.
+export function shortLegName(leg) {
+  const n = (leg.name || "").replace(/^지하철\s*/, "").replace(/^수도권\s*/, "").trim();
+  return n || MODE_LABEL[leg.mode] || leg.mode;
+}
+
 export function basisText(c) {
   const b = c.basis || {};
   if (!b.train_dep) return `이동 ${mins(b.segment_min)} 기준(마감에서 거꾸로 계산)`;

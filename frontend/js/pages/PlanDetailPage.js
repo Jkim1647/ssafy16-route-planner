@@ -5,10 +5,12 @@ import { api } from "../api.js";
 import { dateLabel, legLabel, mins, won, POINT_LABEL } from "../format.js";
 import { toast } from "../store.js";
 import RouteMap from "../components/RouteMap.js";
+import ModeIcon from "../components/ModeIcon.js";
+import { RouteBar } from "../components/common.js";
 
 export default {
   name: "PlanDetailPage",
-  components: { RouteMap },
+  components: { RouteMap, ModeIcon, RouteBar },
   props: { id: String },
   setup(props) {
     const router = useRouter();
@@ -124,9 +126,10 @@ export default {
           </div>
           <div class="panel">
             <h3>구간</h3>
+            <RouteBar class="detail-bar" :legs="plan.legs" />
             <ol class="leg-timeline">
               <li v-for="(l, i) in plan.legs" :key="i" :class="l.mode">
-                <span class="dot" aria-hidden="true"></span>
+                <span class="step-icon"><ModeIcon :mode="l.mode" :size="14" /></span>
                 <span class="leg-name">{{ legLabel(l) }}</span>
                 <span class="leg-min">{{ l.minutes ?? '?' }}분</span>
                 <span v-if="l.fare != null" class="leg-fare">{{ won(l.fare) }}</span>
