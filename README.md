@@ -23,7 +23,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
 - 화면은 빌드 없이 CDN의 Vue 3·Vue Router·Leaflet(버전 고정·무결성 해시)과 OpenStreetMap 지도 타일을 불러오므로 **인터넷 연결이 필요**합니다. `python -m http.server`는 Windows에서 `.js`를 `text/plain`으로 보내 화면이 뜨지 않을 수 있어 `serve_frontend.py`를 씁니다.
-- 테스트: `pytest` (294개, 외부 API를 부르지 않음)
+- 테스트: `pytest` (306개, 외부 API를 부르지 않음)
 - 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능
@@ -51,6 +51,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 |---|---|
 | 로그인 | Google 로그인(OpenID Connect, 인가 코드 방식) → 서버가 id_token 검증(서명·발급자·대상·만료·이메일 인증) → HS256 JWT를 HttpOnly·SameSite=Lax 쿠키로. 계획·내 장소·실행 로그·로컬 캘린더는 사용자별로 분리. `AUTH_REQUIRED=false`면 로그인 없이 이 컴퓨터 사용자 한 명 |
 | 내 장소 | 집·교육장처럼 이름을 붙여 저장(장소 검색으로 고름). 대화에서 그 이름을 말하면 검색 없이 저장한 좌표 사용 |
+| 행사 참고 안내 | 이동하는 날 도착지 1km 안에서 열리는 축제·행사(한국관광공사 TourAPI)를 카드에 "주변이 붐빌 수 있어요"로 안내. 후보는 거르지 않음, 상설 공연 제외 |
 | 여러 동선 | 들를 곳 2~6곳을 끌어서 순서 정하기(키보드는 ↑↓), 곳마다 도착 마감·머무는 시간 → 한꺼번에 길찾기. 구간마다 기존 판단을 쓰고 앞 구간 도착 + 머무는 시간이 다음 출발 하한(LLM 없음, 실행 로그 기록) |
 
 ## 3. API 키 설정
@@ -61,7 +62,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | `GMS_API_KEY` | SSAFY GMS (모델 `LLM_MODEL=gpt-6-luna`, 임베딩 `text-embedding-3-small`) |
 | `KAKAO_REST_KEY` | Kakao Developers → 앱 생성 → 플랫폼 키의 REST API 키, 제품 설정 > 카카오맵 사용 ON |
 | `ODSAY_API_KEY` | ODsay LAB → 애플리케이션 등록(Basic, Server IP 등록) |
-| `DATA_GO_KR_KEY` | 공공데이터포털 → TAGO 열차정보·고속버스정보, 기상청 단기예보 활용신청(일반 인증키) |
+| `DATA_GO_KR_KEY` | 공공데이터포털 → TAGO 열차정보·고속버스정보, 기상청 단기예보, 한국관광공사 국문 관광정보 서비스(행사 정보, 선택) 활용신청(일반 인증키) |
 | `ITS_API_KEY` | 국가교통정보센터 오픈데이터 → 인증키 발급(돌발상황정보) |
 | `AUTH_REQUIRED`·`GOOGLE_CLIENT_ID`·`GOOGLE_CLIENT_SECRET`·`GOOGLE_REDIRECT_URI`·`JWT_SECRET` | 로그인(선택). Google Cloud → Google 인증 플랫폼 → 클라이언트 만들기 → **웹 애플리케이션**, 승인된 리디렉션 URI `http://127.0.0.1:8000/api/auth/google/callback`(백엔드 포트에 맞게). `JWT_SECRET`은 32자 이상 임의 문자열. `CALENDAR_OWNER_EMAIL`: 실제 Google 캘린더를 쓸 계정(다른 사용자는 각자 로컬 캘린더) |
 | `CALENDAR_BACKEND=google` | Google Cloud → Calendar API 사용 → OAuth 동의 화면(외부·테스트 사용자 등록) → 데스크톱 OAuth 클라이언트 JSON을 `credentials.json`으로 저장, 최초 실행 시 브라우저 동의 후 `token.json` 생성. 키 없이 쓰려면 `local` |
