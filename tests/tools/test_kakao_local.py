@@ -81,5 +81,10 @@ def test_find_stations_none_matched(monkeypatch, station_cache):
     assert find_stations(126.79, 35.13)["error"]["code"] == "NO_DATA"
 
 
+def test_find_stations_no_kakao_key(monkeypatch, station_cache):
+    monkeypatch.setenv("KAKAO_REST_KEY", "")
+    assert find_stations(126.79, 35.13)["error"]["code"] == "INVALID_KEY"
+
+
 def test_haversine_seoul_busan():
     assert 315 <= haversine_km(126.9707, 37.5547, 129.0414, 35.1151) <= 335

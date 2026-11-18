@@ -1,0 +1,51 @@
+== 등록된 Tool (Agent에 넘기는 것: 이름·설명·입력 규격) ==
+[Tool] search_places — 사용자가 말한 출발지·도착지 이름(동네, 건물, 역 이름)을 좌표와 주소로 바꿔야 할 때 부른다. 다른 Tool에 좌표를 넘기기 전에 가장 먼저 쓴다.
+       입력: ['query', 'near_x', 'near_y'] 필수: ['query']
+[Tool] get_car_route — 두 지점 사이를 택시나 자동차로 갈 때 시간·택시요금·통행료가 필요하거나, 대중교통 조회가 실패·한도 초과일 때 대체 수단으로 부른다.
+       입력: ['sx', 'sy', 'ex', 'ey'] 필수: ['sx', 'sy', 'ex', 'ey']
+[Tool] get_weather — 이동하는 날짜·시각에 출발지나 도착지에 비·눈이 올지(강수확률) 확인해 도보 구간 주의를 안내할 때 부른다. 오늘부터 4일 뒤까지만 가능.
+       입력: ['lat', 'lon', 'at'] 필수: ['lat', 'lon', 'at']
+[Tool] get_transit_route — 두 지점(예: 출발지↔기차역, 기차역↔목적지, 또는 같은 도시 안 이동) 사이를 도보·지하철·버스로 갈 때 걸리는 시간과 요금이 필요할 때 부른다.
+       입력: ['sx', 'sy', 'ex', 'ey'] 필수: ['sx', 'sy', 'ex', 'ey']
+[Tool] find_stations — 출발지나 도착지 좌표 근처에서 KTX·일반열차를 탈 수 있는 역과 그 역 ID가 필요할 때 부른다. 열차 시간표를 조회하기 전에 쓴다.
+       입력: ['x', 'y', 'radius_km'] 필수: ['x', 'y']
+[Tool] search_trains — 두 기차역 사이에서 특정 날짜에 운행하는 KTX·일반열차의 출발·도착 시각과 운임이 필요할 때 부른다. 역 ID는 find_stations 결과를 쓴다. 날짜를 생략하면 오늘.
+       입력: ['dep_station_id', 'arr_station_id', 'date'] 필수: ['dep_station_id', 'arr_station_id']
+
+== search_places ==
+  True  정상     → {'places': [{'name': '광주송정역', 'address': '전남광주통합특별시 광산구 상무대로 201', 'x': 126.79080503506053, 'y': 35.1376675068…
+  False 빈입력    → BAD_ARGUMENT
+  False 키없음    → INVALID_KEY
+  False 결과없음   → NO_DATA
+
+== find_stations ==
+  True  정상     → {'stations': [{'station_id': 'NAT031857', 'name': '광주송정', 'x': 126.79080503506053, 'y': 35.13766750683345, 'di…
+  False 빈입력    → BAD_ARGUMENT
+  False 키없음    → INVALID_KEY
+  False 결과없음   → NO_DATA
+
+== search_trains ==
+  True  정상     → {'date_requested': '2026-11-19', 'date_queried': '2026-11-19', 'estimated': False, 'estimated_reason': None, '…
+  False 빈입력    → BAD_ARGUMENT
+  False 키없음    → INVALID_KEY
+  False 결과없음   → NO_DATA
+
+== get_transit_route ==
+  True  정상     → {'paths': [{'total_min': 45, 'fare': 1250, 'transfers': 0, 'walk_min': 9, 'legs': [{'mode': 'walk', 'name': No…
+  False 빈입력    → BAD_ARGUMENT
+  False 키없음    → INVALID_KEY
+  False 결과없음   → NO_DATA
+
+== get_car_route ==
+  True  정상     → {'duration_min': 22, 'distance_km': 16.3, 'taxi_fare': 17700, 'toll': 0, 'bbox': [126.78016263421412, 35.13769…
+  False 빈입력    → BAD_ARGUMENT
+  False 키없음    → INVALID_KEY
+  False 결과없음   → NO_DATA
+
+== get_weather ==
+  True  정상     → {'at': '2026-11-19T15:00', 'pop': 60, 'pty': '비', 'temp': 6.0}
+  False 빈입력    → BAD_ARGUMENT
+  False 키없음    → INVALID_KEY
+  False 결과없음   → OUT_OF_RANGE
+
+오늘 외부 API 사용량: {'odsay': {'used': 3, 'limit': 30}, 'its': {'used': 0, 'limit': 100}}
