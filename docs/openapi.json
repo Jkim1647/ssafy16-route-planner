@@ -242,7 +242,7 @@
      "계획"
     ],
     "summary": "Register Plan Calendar",
-    "description": "캘린더 등록(F3023). Tool과 같은 함수를 쓰며 계획 ID만 받는다.",
+    "description": "캘린더 등록(F3023). Tool과 같은 함수를 쓰며 계획 ID만 받는다.\nJSON 요청만 받는다: 다른 사이트의 폼 전송(사전 확인 없이 보내지는 요청)으로 실제 캘린더에 일정이 생기지 않게.",
     "operationId": "register_plan_calendar_api_plans__plan_id__calendar_post",
     "parameters": [
      {
@@ -491,6 +491,102 @@
     "type": "object",
     "title": "HTTPValidationError"
    },
+   "LegIn": {
+    "properties": {
+     "mode": {
+      "type": "string",
+      "maxLength": 20,
+      "title": "Mode"
+     },
+     "name": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Name"
+     },
+     "minutes": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 10000.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Minutes"
+     },
+     "fare": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 10000000.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Fare"
+     },
+     "source": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 30
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source"
+     },
+     "path": {
+      "anyOf": [
+       {
+        "items": {
+         "items": {
+          "type": "number"
+         },
+         "type": "array",
+         "maxItems": 2,
+         "minItems": 2
+        },
+        "type": "array",
+        "maxItems": 400
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Path"
+     },
+     "line_code": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Line Code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "mode"
+    ],
+    "title": "LegIn",
+    "description": "계획에 저장하는 구간(경로 카드의 legs와 같은 모양). 크기 상한으로 저장소 남용을 막는다."
+   },
    "PlanIn": {
     "properties": {
      "title": {
@@ -514,27 +610,31 @@
      },
      "origin_name": {
       "type": "string",
+      "maxLength": 100,
       "minLength": 1,
       "title": "Origin Name"
      },
      "destination_name": {
       "type": "string",
+      "maxLength": 100,
       "minLength": 1,
       "title": "Destination Name"
      },
      "legs": {
       "items": {
-       "additionalProperties": true,
-       "type": "object"
+       "$ref": "#/components/schemas/LegIn"
       },
       "type": "array",
+      "maxItems": 30,
       "title": "Legs",
       "default": []
      },
      "total_fare": {
       "anyOf": [
        {
-        "type": "integer"
+        "type": "integer",
+        "maximum": 10000000.0,
+        "minimum": 0.0
        },
        {
         "type": "null"
@@ -545,7 +645,8 @@
      "source_run_id": {
       "anyOf": [
        {
-        "type": "string"
+        "type": "string",
+        "maxLength": 40
        },
        {
         "type": "null"
@@ -555,10 +656,10 @@
      },
      "points": {
       "items": {
-       "additionalProperties": true,
-       "type": "object"
+       "$ref": "#/components/schemas/PointIn"
       },
       "type": "array",
+      "maxItems": 10,
       "title": "Points",
       "default": []
      }
@@ -597,27 +698,31 @@
      },
      "origin_name": {
       "type": "string",
+      "maxLength": 100,
       "minLength": 1,
       "title": "Origin Name"
      },
      "destination_name": {
       "type": "string",
+      "maxLength": 100,
       "minLength": 1,
       "title": "Destination Name"
      },
      "legs": {
       "items": {
-       "additionalProperties": true,
-       "type": "object"
+       "$ref": "#/components/schemas/LegIn"
       },
       "type": "array",
+      "maxItems": 30,
       "title": "Legs",
       "default": []
      },
      "total_fare": {
       "anyOf": [
        {
-        "type": "integer"
+        "type": "integer",
+        "maximum": 10000000.0,
+        "minimum": 0.0
        },
        {
         "type": "null"
@@ -628,7 +733,8 @@
      "source_run_id": {
       "anyOf": [
        {
-        "type": "string"
+        "type": "string",
+        "maxLength": 40
        },
        {
         "type": "null"
@@ -638,10 +744,10 @@
      },
      "points": {
       "items": {
-       "additionalProperties": true,
-       "type": "object"
+       "$ref": "#/components/schemas/PointIn"
       },
       "type": "array",
+      "maxItems": 10,
       "title": "Points",
       "default": []
      },
@@ -779,6 +885,36 @@
     },
     "type": "object",
     "title": "PlanUpdate"
+   },
+   "PointIn": {
+    "properties": {
+     "kind": {
+      "type": "string",
+      "maxLength": 20,
+      "title": "Kind"
+     },
+     "name": {
+      "type": "string",
+      "maxLength": 100,
+      "title": "Name"
+     },
+     "x": {
+      "type": "number",
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "title": "Y"
+     }
+    },
+    "type": "object",
+    "required": [
+     "kind",
+     "name",
+     "x",
+     "y"
+    ],
+    "title": "PointIn"
    },
    "TurnResult": {
     "properties": {

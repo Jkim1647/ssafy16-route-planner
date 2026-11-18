@@ -2,7 +2,9 @@
 import datetime as dt
 import re
 
-from pydantic import BaseModel, Field, field_validator
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 _HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 
@@ -13,17 +15,40 @@ def _check_hhmm(v):
     return v
 
 
+Coord = Annotated[list[float], Field(min_length=2, max_length=2)]  # [경도, 위도]
+
+
+class LegIn(BaseModel):
+    """계획에 저장하는 구간(경로 카드의 legs와 같은 모양). 크기 상한으로 저장소 남용을 막는다."""
+    model_config = ConfigDict(extra="ignore")
+    mode: str = Field(max_length=20)
+    name: str | None = Field(default=None, max_length=100)
+    minutes: int | None = Field(default=None, ge=0, le=10_000)
+    fare: int | None = Field(default=None, ge=0, le=10_000_000)
+    source: str | None = Field(default=None, max_length=30)
+    path: list[Coord] | None = Field(default=None, max_length=400)
+    line_code: int | None = None
+
+
+class PointIn(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    kind: str = Field(max_length=20)
+    name: str = Field(max_length=100)
+    x: float
+    y: float
+
+
 class PlanIn(BaseModel):
     title: str = Field(min_length=1, max_length=100)
     date: dt.date
     leave_at: str
     arrive_at: str
-    origin_name: str = Field(min_length=1)
-    destination_name: str = Field(min_length=1)
-    legs: list[dict] = []
-    total_fare: int | None = None
-    source_run_id: str | None = None
-    points: list[dict] = []  # 지도 표시용 지점 [{kind, name, x, y}]
+    origin_name: str = Field(min_length=1, max_length=100)
+    destination_name: str = Field(min_length=1, max_length=100)
+    legs: list[LegIn] = Field(default=[], max_length=30)
+    total_fare: int | None = Field(default=None, ge=0, le=10_000_000)
+    source_run_id: str | None = Field(default=None, max_length=40)
+    points: list[PointIn] = Field(default=[], max_length=10)  # 지도 표시용 지점
 
     _v_times = field_validator("leave_at", "arrive_at")(_check_hhmm)
 

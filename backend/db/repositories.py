@@ -65,8 +65,8 @@ class PlanRepo:
                 "INSERT INTO plans(title,date,leave_at,arrive_at,origin_name,destination_name,legs_json,total_fare,"
                 "source_run_id,created_at,updated_at,points_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                 (p.title, p.date.isoformat(), p.leave_at, p.arrive_at, p.origin_name, p.destination_name,
-                 json.dumps(p.legs, ensure_ascii=False), p.total_fare, p.source_run_id, now, now,
-                 json.dumps(p.points, ensure_ascii=False)))
+                 json.dumps([lg.model_dump() for lg in p.legs], ensure_ascii=False), p.total_fare, p.source_run_id,
+                 now, now, json.dumps([pt.model_dump() for pt in p.points], ensure_ascii=False)))
             new_id = cur.lastrowid
         return PlanSaveResult(plan=self.get(new_id), overlaps=overlaps)
 

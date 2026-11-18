@@ -53,7 +53,7 @@ class GoogleCalendar:
     def create_event(self, plan) -> str:
         start, end = plan_span(plan)
         body = {"summary": f"이동: {plan.title}",
-                "description": " → ".join(f"{leg.get('name') or leg.get('mode')}" for leg in (plan.legs or [])),
+                "description": " → ".join(f"{leg.name or leg.mode}" for leg in (plan.legs or [])),
                 "start": {"dateTime": start.isoformat(), "timeZone": TZ},
                 "end": {"dateTime": end.isoformat(), "timeZone": TZ}}
         return self._service().events().insert(calendarId=self.calendar_id, body=body).execute()["id"]

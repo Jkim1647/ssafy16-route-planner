@@ -5,6 +5,11 @@
 - CORS: `http://127.0.0.1:5500`, `http://localhost:5500`만 허용
 - 오류: 없는 리소스 404 `{"detail": "..."}`, 입력 검증 실패 422, 처리 중 예외 500 `{"detail": "서버 오류가 발생했어요."}`(원문은 서버 로그에만, NF3002)
 
+공통 보안 규칙
+- Host 헤더가 `127.0.0.1`·`localhost`가 아니면 400(악성 도메인을 127.0.0.1로 바꿔치기하는 DNS rebinding 차단).
+- CORS는 프론트 `http://127.0.0.1:5500`·`http://localhost:5500`만 허용. 서버는 127.0.0.1에만 바인딩.
+- 계획 입력 상한: 제목·출발지·도착지 100자, `legs` 30개(구간 이름 100자, `path` 좌표 400개), `points` 10개, `total_fare` 0~10,000,000. 넘으면 422.
+
 ## 1. 대화
 
 ### `POST /api/chat`
@@ -46,7 +51,7 @@
 | `GET /api/plans/{plan_id}` | - | `PlanOut` / 404 |
 | `PUT /api/plans/{plan_id}` | `PlanUpdate`(부분 수정) | `PlanSaveResult`(겹침 재검사) / 404 / 422 |
 | `DELETE /api/plans/{plan_id}` | - | 204 / 404 |
-| `POST /api/plans/{plan_id}/calendar` | - | `{event_id, backend}` 캘린더 등록(F3023, 계획 ID만 받음) / 404 |
+| `POST /api/plans/{plan_id}/calendar` | `{}` (JSON 필수) | `{event_id, backend}` 캘린더 등록(F3023, 계획 ID만 받음) / 404 없음 / 409 이미 등록됨 / 415 JSON이 아닌 요청(다른 사이트의 폼 전송 차단) |
 
 `PlanIn`
 ```json

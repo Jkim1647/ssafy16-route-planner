@@ -4,7 +4,7 @@ import datetime as dt
 from backend.calendar.base import get_calendar
 from backend.db.repositories import PlanRepo
 from backend.settings import get_settings
-from backend.tools.base import BAD_ARGUMENT, NOT_FOUND, UPSTREAM_ERROR, Tool, fail, ok
+from backend.tools.base import BAD_ARGUMENT, CONFLICT, NOT_FOUND, UPSTREAM_ERROR, Tool, fail, ok
 from backend.tools.registry import register
 
 
@@ -38,6 +38,8 @@ def register_calendar(plan_id: int) -> dict:
     plan = PlanRepo(s.DB_PATH).get(pid)
     if plan is None:
         return fail(NOT_FOUND, "그런 이동 계획이 없습니다.")
+    if plan.calendar_event_id:  # 같은 계획을 여러 번 등록해 중복 일정이 생기지 않게
+        return fail(CONFLICT, "이미 캘린더에 등록된 계획입니다.")
     cal = get_calendar(s)
     try:
         event_id = cal.create_event(plan)

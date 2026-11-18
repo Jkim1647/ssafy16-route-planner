@@ -3,19 +3,24 @@ import logging
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.api.routes import router
 from backend.container import Container
 
 log = logging.getLogger(__name__)
-ALLOWED_ORIGINS = ["http://127.0.0.1:5500", "http://localhost:5500"]  # VS Code Live Server만 허용
+ALLOWED_ORIGINS = ["http://127.0.0.1:5500", "http://localhost:5500"]  # 프론트(5500)만 허용
+# 이 컴퓨터 주소로 온 요청만 받는다. 악성 도메인을 127.0.0.1로 바꿔치기하는 공격(DNS rebinding)은
+# Host 헤더가 그 도메인이라 여기서 거절된다.
+ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
 def create_app(container: Container | None = None) -> FastAPI:
     app = FastAPI(title="이동 플래너 API", version="1.0",
                   description="Agent 기반 이동 플래너 — 대화·계획 관리·실행 로그")
     app.state.container = container or Container.build()
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=ALLOWED_HOSTS)
     app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_methods=["GET", "POST", "PUT", "DELETE"],
                        allow_headers=["Content-Type"])
 

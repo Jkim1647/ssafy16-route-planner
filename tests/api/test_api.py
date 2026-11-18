@@ -16,7 +16,7 @@ def client(tmp_path, monkeypatch):
     llm = FakeLLM()
     c = Container.build(llm_factory=lambda: llm)
     app = create_app(c)
-    tc = TestClient(app, raise_server_exceptions=False)
+    tc = TestClient(app, raise_server_exceptions=False, base_url="http://127.0.0.1")  # 허용된 Host로
     tc.llm = llm
     return tc
 
@@ -36,10 +36,10 @@ def test_plan_crud_roundtrip(client):
 def test_plan_calendar_register(client, monkeypatch):
     monkeypatch.setenv("CALENDAR_BACKEND", "local")
     pid = client.post("/api/plans", json=PLAN).json()["plan"]["id"]
-    r = client.post(f"/api/plans/{pid}/calendar")
+    r = client.post(f"/api/plans/{pid}/calendar", json={})
     assert r.status_code == 200 and r.json()["event_id"].startswith("local-")
     assert client.get(f"/api/plans/{pid}").json()["calendar_event_id"] == r.json()["event_id"]
-    assert client.post("/api/plans/999/calendar").status_code == 404
+    assert client.post("/api/plans/999/calendar", json={}).status_code == 404
 
 
 def test_plan_overlap_in_response(client):

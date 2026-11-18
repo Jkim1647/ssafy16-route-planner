@@ -9,7 +9,7 @@ from tests.agent.test_graph import DAY, TRIP, A, AnalyzeOut, Changes, Reply, env
 
 
 def kinds(points):
-    return [p["kind"] for p in points]
+    return [p["kind"] if isinstance(p, dict) else p.kind for p in points]
 
 
 def test_intercity_card_has_route_points(env):
@@ -47,7 +47,7 @@ def test_plan_points_roundtrip(tmp_path):
     pts = [{"kind": "origin", "name": "a", "x": 126.8, "y": 35.2}, {"kind": "destination", "name": "b", "x": 127.0, "y": 37.5}]
     res = PlanRepo(db).create(PlanIn(title="a → b", date=dt.date(2026, 11, 21), leave_at="09:00", arrive_at="10:00",
                                      origin_name="a", destination_name="b", points=pts))
-    assert PlanRepo(db).get(res.plan.id).points == pts
+    assert [p.model_dump() for p in PlanRepo(db).get(res.plan.id).points] == pts
 
 
 def test_old_database_gets_points_column(tmp_path):

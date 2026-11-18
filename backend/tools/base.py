@@ -14,6 +14,7 @@ AMBIGUOUS_PLACE = "AMBIGUOUS_PLACE"
 OUT_OF_RANGE = "OUT_OF_RANGE"
 NO_INDEX = "NO_INDEX"
 RATE_LIMITED = "RATE_LIMITED"
+CONFLICT = "CONFLICT"  # 이미 처리된 요청(예: 이미 캘린더에 등록한 계획)
 
 
 def ok(data) -> dict:
