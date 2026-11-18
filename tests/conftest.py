@@ -14,6 +14,14 @@ def no_network(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def fake_keys(monkeypatch):
+    """실제 키 대신 가짜 키. 키 없음 시나리오는 각 테스트에서 빈 값으로 덮어쓴다."""
+    for k in ("KAKAO_REST_KEY", "ODSAY_API_KEY", "DATA_GO_KR_KEY", "ITS_API_KEY", "GMS_API_KEY"):
+        monkeypatch.setenv(k, "test-key")
+    monkeypatch.setenv("QUOTA_USE_RESERVE", "false")
+
+
+@pytest.fixture(autouse=True)
 def temp_budget(tmp_path):
     """테스트마다 빈 캐시·쿼터 DB를 쓴다."""
     from backend.tools.budget import ApiBudget, set_default_budget
