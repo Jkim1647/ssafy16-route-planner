@@ -1,0 +1,222 @@
+[
+ {
+  "case": "일반 여정",
+  "message": "토요일 오후 2시까지 광주 첨단동에서 서울 강남역 가야 해. 6만원 이하로",
+  "status": "done",
+  "intent": "plan_trip",
+  "reply": "가장 저렴한 경로는 11월 21일 09:42에 출발해 13:24에 도착하며, 요금은 43,200원이고 소요 시간은 222분입니다. 버스와 KTX를 이용한 뒤 지하철로 이동하며, 요청하신 도착 시각 전에 도착합니다.\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+  "cards": [
+   {
+    "label": "최저가",
+    "date": "2026-11-21",
+    "leave_at": "09:42",
+    "arrive_at": "13:24",
+    "total_fare": 43200,
+    "warnings": []
+   },
+   {
+    "label": "최단 소요",
+    "date": "2026-11-21",
+    "leave_at": "09:49",
+    "arrive_at": "13:01",
+    "total_fare": 43700,
+    "warnings": []
+   },
+   {
+    "label": "환승 최소",
+    "date": "2026-11-21",
+    "leave_at": "04:23",
+    "arrive_at": "07:36",
+    "total_fare": 43700,
+    "warnings": []
+   }
+  ],
+  "excluded": [
+   {
+    "summary": "KTX 00464 05:18 출발 → 09:57 도착",
+    "reason": "캘린더 기존 일정과 겹침(개인 일정 시각 생략)"
+   },
+   {
+    "summary": "ITX-새마을 01422 06:08 출발 → 11:27 도착",
+    "reason": "캘린더 기존 일정과 겹침(개인 일정 시각 생략)"
+   },
+   {
+    "summary": "무궁화호 01452 06:57 출발 → 12:58 도착",
+    "reason": "캘린더 기존 일정과 겹침(개인 일정 시각 생략)"
+   },
+   {
+    "summary": "ITX-새마을 01424 08:13 출발 → 13:25 도착",
+    "reason": "캘린더 기존 일정과 겹침(개인 일정 시각 생략)"
+   }
+  ],
+  "replan_count": 0,
+  "llm_calls": 2,
+  "tool_calls": [
+   "t1:search_places",
+   "t2:search_places",
+   "t10:get_weather",
+   "t10:get_weather",
+   "t11:get_free_busy",
+   "t3:find_stations",
+   "t4:find_stations",
+   "t6:get_transit_route",
+   "t6:get_transit_route",
+   "t6:get_transit_route",
+   "t6:get_transit_route",
+   "t5:search_trains",
+   "t5:search_trains",
+   "t5:search_trains",
+   "t5:search_trains",
+   "t12:get_road_events"
+  ],
+  "reply_rejected_by_guard": false,
+  "anomaly": {
+   "run_id": "10e257973e82",
+   "verdict": "ok",
+   "diagnosis": null,
+   "created_at": "2026-11-18T14:31:08",
+   "findings": []
+  }
+ },
+ {
+  "case": "날짜 없는 열차 질문",
+  "message": "광주 첨단동에서 서울 강남역 가는 열차 몇 시에 있어?",
+  "status": "done",
+  "intent": "fact_query",
+  "reply": "2026-11-18 장성역 → 용산역 열차 시각이에요(시간표 조회 결과).\n- KTX 00464 06:25 출발 → 09:25 도착, 35,600원\n- ITX-새마을 01422 07:15 출발 → 10:55 도착, 31,000원\n- 무궁화호 01452 08:04 출발 → 12:26 도착, 31,000원\n- ITX-새마을 01424 09:20 출발 → 12:53 도착, 31,000원\n- ITX-새마을 01402 11:24 출발 → 15:08 도착, 31,000원\n- ITX-마음 01404 12:01 출발 → 15:39 도착, 31,000원\n- KTX-산천(B-type) 00456 12:07 출발 → 15:12 도착, 35,600원\n- 무궁화호 01462 12:19 출발 → 16:46 도착, 31,000원\n- ITX-새마을 01426 13:56 출발 → 17:36 도착, 31,000원\n- 무궁화호 01464 15:47 출발 → 20:22 도착, 31,000원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+  "cards": [],
+  "excluded": [],
+  "replan_count": 0,
+  "llm_calls": 1,
+  "tool_calls": [
+   "t1:search_places",
+   "t2:search_places",
+   "t3:find_stations",
+   "t4:find_stations",
+   "t5:search_trains"
+  ],
+  "reply_rejected_by_guard": false,
+  "anomaly": {
+   "run_id": "413b361260ae",
+   "verdict": "ok",
+   "diagnosis": null,
+   "created_at": "2026-11-18T14:31:11",
+   "findings": []
+  }
+ },
+ {
+  "case": "도보 거리",
+  "message": "토요일 오후 2시까지 광주 첨단동에서 첨단동 행정복지센터까지 가야 해",
+  "status": "done",
+  "intent": "plan_trip",
+  "reply": "출발지와 도착지가 직선거리 약 386m로 가까워 걸어서 이동하시면 돼요. 이 거리는 대중교통 경로 검색 대상이 아니에요.",
+  "cards": [],
+  "excluded": [],
+  "replan_count": 0,
+  "llm_calls": 1,
+  "tool_calls": [
+   "t1:search_places",
+   "t2:search_places"
+  ],
+  "reply_rejected_by_guard": false,
+  "anomaly": {
+   "run_id": "aa663b8f6e9e",
+   "verdict": "ok",
+   "diagnosis": null,
+   "created_at": "2026-11-18T14:31:14",
+   "findings": []
+  }
+ },
+ {
+  "case": "조건 덜 찬 뒤 규정 질문",
+  "message": "KTX 출발 30분 전에 반환하면 위약금 얼마야?",
+  "status": "done",
+  "intent": "terms_query",
+  "reply": "관련 규정을 찾았어요. 근거 문단과 출처를 확인해 주세요.\n- 1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시간전까지: 10%\n 4)출발3시간전경과후부터출발시각전까지: 20%\n 2.출발후\n 가.출발시각경과후20분까지: 30%(단,월～목요일은15%)\n 나.출발시각20분경과후 60분까지:40%\n 다.출발 (출처: korail_terms, p.14)\n- # 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)\n\n출처: 대한민국 정책브리핑, 국토교통부 보도(2025.03.18) \"주말·명절 고속버스 취소 수수료 10%→15%·20%…'노쇼 방지'\"\nhttps://www.korea.kr/news/policyNewsView.do?newsId=148940659 — 텍스트 공공누리 제1유 (출처: 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행))\n- 을제공하여연계수송을완료한경우에는환불ㆍ배상하지않으며,여\n객은철도공사에서제공하는대체교통수단의이용여부를선택할수\n있습니다.<개정2019.07.05.>\n 1.출발전\n 가. 운행중지를 역ㆍ홈페이지 등에 게시한 시각을 기준으로 1시간\n이내에출발하는열차: 전액환불및영수금액의10%배상\n 나.운행중지를역ㆍ홈페이지등에게시한시각을기준으로1시간～\n3시간사이에출발하는열차:전액환불및 (출처: korail_terms, p.17)",
+  "cards": [],
+  "excluded": [],
+  "replan_count": 0,
+  "llm_calls": 1,
+  "tool_calls": [
+   "t1:search_terms"
+  ],
+  "reply_rejected_by_guard": false,
+  "anomaly": {
+   "run_id": "cd3be02c0c8f",
+   "verdict": "ok",
+   "diagnosis": null,
+   "created_at": "2026-11-18T14:31:24",
+   "findings": []
+  }
+ },
+ {
+  "case": "자정 넘김",
+  "message": "토요일 밤 10시 이후 광주 첨단동에서 출발해서 새벽 2시 30분까지 서울 강남역",
+  "status": "done",
+  "intent": "plan_trip",
+  "reply": "최저가 경로는 11월 21일 22:14에 광주 첨단동을 출발해 11월 22일 01:20에 서울 강남역에 도착하며, 총 43,700원입니다. 광주송정에서 KTX-산천을 타고 수서역에 도착한 뒤 지하철로 이동하며, 환승은 3회입니다.\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+  "cards": [
+   {
+    "label": "최저가",
+    "date": "2026-11-21",
+    "leave_at": "22:14",
+    "arrive_at": "01:20",
+    "total_fare": 43700,
+    "warnings": []
+   }
+  ],
+  "excluded": [
+   {
+    "summary": "KTX 00464 05:18 출발 → 09:57 도착",
+    "reason": "출발 05:18 < 가능 시각 22:00"
+   },
+   {
+    "summary": "ITX-새마을 01422 06:08 출발 → 11:27 도착",
+    "reason": "출발 06:08 < 가능 시각 22:00"
+   },
+   {
+    "summary": "무궁화호 01452 06:57 출발 → 12:58 도착",
+    "reason": "출발 06:57 < 가능 시각 22:00"
+   },
+   {
+    "summary": "ITX-새마을 01424 08:13 출발 → 13:25 도착",
+    "reason": "출발 08:13 < 가능 시각 22:00"
+   }
+  ],
+  "replan_count": 0,
+  "llm_calls": 2,
+  "tool_calls": [
+   "t1:search_places",
+   "t2:search_places",
+   "t10:get_weather",
+   "t10:get_weather",
+   "t11:get_free_busy",
+   "t3:find_stations",
+   "t4:find_stations",
+   "t6:get_transit_route",
+   "t6:get_transit_route",
+   "t6:get_transit_route",
+   "t6:get_transit_route",
+   "t5:search_trains",
+   "t5:search_trains",
+   "t5:search_trains",
+   "t5:search_trains",
+   "t12:get_road_events"
+  ],
+  "reply_rejected_by_guard": false,
+  "anomaly": {
+   "run_id": "83202553af00",
+   "verdict": "ok",
+   "diagnosis": null,
+   "created_at": "2026-11-18T14:31:29",
+   "findings": []
+  }
+ },
+ {
+  "case": "날짜 없는 열차 질문(지난 열차 제외 수정 후, 14:33 화면에서)",
+  "status": "done",
+  "intent": "fact_query",
+  "reply_first_train": "무궁화호 01464 15:47 출발 → 20:22 도착, 31,000원",
+  "note": "실제 시간표 13:56 다음이 15:47 — 이미 떠난 열차 제외 확인"
+ }
+]

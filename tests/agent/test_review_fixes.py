@@ -81,11 +81,11 @@ def test_excluded_reason_shows_date_when_day_differs():
 def test_fact_query_without_date_uses_today_and_stays_in_plan(env):
     from backend.events.anomaly import judge_run
     world, llm, make, _ = env
-    world.trains = [{**tr("10:00", "11:50"), "dep_at": "2026-11-18T10:00", "arr_at": "2026-11-18T11:50"},
+    world.trains = [{**tr("12:00", "13:50"), "dep_at": "2026-11-18T12:00", "arr_at": "2026-11-18T13:50"},
                     {**tr("15:00", "16:50"), "dep_at": "2026-11-18T15:00", "arr_at": "2026-11-18T16:50"}]
     llm.responses = [A("fact_query", origin="첨단동", destination="강남역", arrive_by="14:00")]
     res = make()("첨단동에서 강남역 열차 몇 시?")
-    assert res.status == "done" and "10:00" in res.reply
+    assert res.status == "done" and "12:00" in res.reply and "15:00" not in res.reply
     assert judge_run(res.events, 3)["verdict"] == "ok"
     tools = {e["payload"]["tool"] for e in res.events if e["type"] == "tool_call"}
     assert tools <= {"search_places", "find_stations", "search_trains"}
@@ -123,3 +123,13 @@ def test_kma_error_not_cached(monkeypatch):
     route_get(monkeypatch, [(lambda u, p: "VilageFcst" in u, lambda u, p: Resp(bodies.pop(0)))])
     assert kma_weather.get_weather(35.13, 126.79, "2026-11-19T15:00")["error"]["code"] == "UPSTREAM_ERROR"
     assert kma_weather.get_weather(35.13, 126.79, "2026-11-19T15:00")["ok"]
+
+
+# 실제 확인에서 발견: 오늘 열차를 물으면 이미 떠난 열차는 빼야 한다(NOW = 11:00)
+def test_fact_query_today_hides_departed_trains(env):
+    world, llm, make, _ = env
+    world.trains = [{**tr("10:00", "11:50"), "dep_at": "2026-11-18T10:00", "arr_at": "2026-11-18T11:50"},
+                    {**tr("15:00", "16:50"), "dep_at": "2026-11-18T15:00", "arr_at": "2026-11-18T16:50"}]
+    llm.responses = [A("fact_query", origin="첨단동", destination="강남역")]
+    res = make()("첨단동에서 강남역 열차 몇 시?")
+    assert "15:00" in res.reply and "10:00" not in res.reply

@@ -308,7 +308,7 @@ def build_graph(deps: Deps):
         if intent == "terms_query":
             return _terms_reply(state)
         if intent == "fact_query":
-            return _fact_reply(state)
+            return _fact_reply(state, deps.now())
         walk_m = (state.get("extra") or {}).get("walk_m")
         if walk_m is not None:
             return {"final_reply": f"출발지와 도착지가 직선거리 약 {walk_m}m로 가까워 걸어서 이동하시면 돼요. "
@@ -406,7 +406,7 @@ def _terms_reply(state) -> dict:
             "cards": [{"type": "source", **c} for c in chunks]}
 
 
-def _fact_reply(state) -> dict:
+def _fact_reply(state, now: dt.datetime) -> dict:
     f = (state.get("extra") or {}).get("facts") or {}
     errors = state.get("tool_errors") or []
     if not f.get("trains"):
@@ -415,9 +415,17 @@ def _fact_reply(state) -> dict:
                     "status": "no_option"}
         return {"final_reply": "해당 날짜·구간의 열차를 찾지 못했어요.", "status": "no_option"}
     c = Conditions(**(state.get("conditions") or {}))
+    day = dt.date.fromisoformat(f["date"])
+    # 출발 하한: 요청한 출발 시각, 오늘이면 지금 이후(이미 떠난 열차 제외). ISO 문자열 비교라 날짜 넘김도 맞다.
+    lower = [f"{f['date']}T{c.depart_after}"] if c.depart_after else []
+    if day == now.date():
+        lower.append(now.strftime("%Y-%m-%dT%H:%M"))
+    deadline = None
+    if c.arrive_by:
+        overnight = bool(c.depart_after and c.arrive_by <= c.depart_after)
+        deadline = f"{(day + dt.timedelta(days=overnight)).isoformat()}T{c.arrive_by}"
     trains = [t for t in f["trains"]
-              if (not c.arrive_by or t["arr_at"][11:16] <= c.arrive_by)
-              and (not c.depart_after or t["dep_at"][11:16] >= c.depart_after)]
+              if (not deadline or t["arr_at"][:16] <= deadline) and all(t["dep_at"][:16] >= lo for lo in lower)]
     head = f"{f['date']} {f['dep']}역 → {f['arr']}역 열차"
     if not trains:
         return {"final_reply": head + "는 있지만 말씀하신 시간 조건에 맞는 열차가 없어요.", "status": "no_option"}
