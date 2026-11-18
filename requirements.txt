@@ -15,6 +15,7 @@ google-api-python-client==2.201.0
 google-auth-oauthlib==1.5.0
 google-auth-httplib2==0.4.3
 chromadb==1.5.9
+pypdf==7.1.0  # RAG 원문 PDF(코레일 약관) 텍스트 추출
 
 # dev
 pytest
