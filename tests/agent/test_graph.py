@@ -399,6 +399,29 @@ def test_calendar_busy_excludes_overlapping_options(env, monkeypatch):
     assert res.cards and all(c["leave_at"] >= "09:30" for c in res.cards)
 
 
+def test_terms_query_uses_rag_with_sources(env, monkeypatch):
+    world, llm, make, _ = env
+    tools = dict(registry._TOOLS)
+    tools["search_terms"] = Tool("search_terms", "d", {"type": "object", "properties": {}}, lambda question, k=4: ok(
+        {"chunks": [{"text": "출발 1시간 전까지 반환 시 위약금 5%", "source": "korail.md", "title": "여객운송약관",
+                     "page": 3, "distance": 0.1}]}), "local")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    llm.responses = [A("terms_query", "규정 질문")]
+    res = make()("KTX 출발 30분 전 취소 위약금?")
+    assert "여객운송약관" in res.reply and "p.3" in res.reply
+    assert res.cards[0]["type"] == "source" and res.llm_calls == 1
+
+
+def test_terms_query_without_index(env, monkeypatch):
+    world, llm, make, _ = env
+    tools = dict(registry._TOOLS)
+    tools["search_terms"] = Tool("search_terms", "d", {"type": "object", "properties": {}},
+                                 lambda question, k=4: fail("NO_INDEX", "없음"), "local")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    llm.responses = [A("terms_query", "규정 질문")]
+    assert "색인하지 못했어요" in make()("위약금?").reply
+
+
 def test_rate_limited_falls_back_to_taxi_no_replan(env):
     world, llm, make, _ = env
     world.transit = fail("RATE_LIMITED", "한도")
