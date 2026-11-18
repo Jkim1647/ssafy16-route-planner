@@ -160,6 +160,11 @@ def _call_once(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int |
     return r, call["seq"]
 
 
+def point(kind: str, p: dict) -> dict:
+    """지도 표시용 지점. Tool 결과(장소·역·터미널)의 이름과 좌표만 쓴다."""
+    return {"kind": kind, "name": p["name"], "x": float(p["x"]), "y": float(p["y"])}
+
+
 def _err(errors: list, task_id: str, tool: str, r: dict, note: str = "") -> None:
     errors.append({"task_id": task_id, "tool": tool, "code": r["error"]["code"],
                    "message": r["error"]["message"] + (f" ({note})" if note else "")})
@@ -303,6 +308,8 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
                 for opt in build_intercity_options(trains, access[so["station_id"]], egress[sd["station_id"]]):
                     opt.id = f"{so['name']}-{sd['name']}-{opt.id}"
                     opt.basis.update({"dep_station": so["name"], "arr_station": sd["name"]})
+                    opt.points = [point("origin", o), point("dep_station", so), point("arr_station", sd),
+                                  point("destination", d)]
                     ctx.options.append(opt)
     if strategy >= 2:
         _bus_trunk(ctx, errors, o, d, dates)
@@ -332,6 +339,8 @@ def _bus_trunk(ctx, errors, o, d, dates) -> None:
         for opt in build_intercity_options(r["data"]["buses"], access, egress):
             opt.id = f"bus-{opt.id}"
             opt.basis.update({"dep_station": to["name"], "arr_station": td["name"]})
+            opt.points = [point("origin", o), point("dep_station", to), point("arr_station", td),
+                          point("destination", d)]
             ctx.options.append(opt)
 
 
@@ -362,7 +371,9 @@ def _intracity(ctx, conds, o, d, errors) -> dict:
         car = r["data"]
     else:
         _err(errors, "t9", "get_car_route", r)
-    ctx.options.extend(build_intracity_options(paths, car, conds))
+    for opt in build_intracity_options(paths, car, conds):
+        opt.points = [point("origin", o), point("destination", d)]
+        ctx.options.append(opt)
     return {"errors": errors, "fatal": not ctx.options and any(e["code"] in FATAL for e in errors),
             "clarify": None, "kind": "intracity"}
 

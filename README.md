@@ -19,10 +19,11 @@ pip install -r requirements.txt
 copy .env.example .env            # 키 입력 (아래 3장)
 python scripts/build_index.py     # 규정 문서 RAG 색인(최초 1회)
 uvicorn backend.main:app --port 8000          # 백엔드 → http://127.0.0.1:8000/docs
-python -m http.server 5500 --bind 127.0.0.1 --directory frontend   # 프론트 → http://127.0.0.1:5500
+python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:5500
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
-- 테스트: `pytest` (243개, 외부 API를 부르지 않음)
+- 화면은 빌드 없이 CDN의 Vue 3·Vue Router·Leaflet(버전 고정·무결성 해시)과 OpenStreetMap 지도 타일을 불러오므로 **인터넷 연결이 필요**합니다. `python -m http.server`는 Windows에서 `.js`를 `text/plain`으로 보내 화면이 뜨지 않을 수 있어 `serve_frontend.py`를 씁니다.
+- 테스트: `pytest` (248개, 외부 API를 부르지 않음)
 - 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능
@@ -35,7 +36,7 @@ python -m http.server 5500 --bind 127.0.0.1 --directory frontend   # 프론트 �
 | 메인 Agent(LangGraph) | 분석 → 계획 → 실행 → 판단 → (재계획) → 응답. 제약 계산(마감·출발 하한·예산·캘린더), 재계획 3단계(거점 확장·수단 확장·전날 출발, 상한 3), 대화 맥락 유지 |
 | 로깅 | 실행 이벤트 발행 ↔ 로깅 Agent(LLM 없음)가 세션 단위로 SQLite 저장, 목록·상세·삭제(수정 없음) |
 | 계획 관리 | 저장(같은 날 겹침 알림)·조회·수정·삭제 |
-| 서버·화면 | FastAPI(`docs/API명세서.md`), 대화·이동 계획·실행 로그 화면, 실행 단계·Tool 이력·재계획 구분·처리 중·키 누락·호출 한도 표시 |
+| 서버·화면 | FastAPI(`docs/API명세서.md`), Vue 화면 — 주소별 페이지(대화 `#/`, 이동 계획 `#/plans`, 계획 상세 `#/plans/:id`, 실행 로그 `#/logs`, 세션 상세 `#/logs/:sid`), 경로 지도(출발지·역·도착지), 실행 단계·Tool 이력·재계획 구분·처리 중(경과 초)·키 누락·호출 한도 표시, 예시 질문, 저장 알림에서 상세로 이동, 계획 검색·기간 필터, 이상 징후 세션 필터 |
 
 ### 심화 (F3020~F3023) — 4종 모두 적용
 | 기능 | 내용 |
@@ -68,6 +69,7 @@ python -m http.server 5500 --bind 127.0.0.1 --directory frontend   # 프론트 �
 | ODsay 대중교통 길찾기 | ODsay LAB Basic | **하루 30회**, 무료(개인·학생) | 7일 캐시, 하루 24회 + 예약 6회, 요청당 4회 상한, 초과 시 택시 대체 |
 | ITS 돌발정보 | 국가교통정보센터 | **월 100회**(개발용) | 실행당 1회·하루 4회 상한, 30분 캐시 |
 | SSAFY GMS | SSAFY | 교육용 사용량 한도 | 요청당 LLM 최대 2회 |
+| OpenStreetMap 지도 타일 | OpenStreetMap 재단 | ODbL, 타일 이용 정책(가벼운 사용·출처 표시) | 지도에 출처 표시, 경로 화면에서만 사용 |
 | 코레일 여객운송약관, 정책브리핑 공지 | 한국철도공사, 국토교통부 | 공개 약관 / 공공누리 제1유형 | `data/docs/SOURCES.md` |
 
 ## 5. 문서
@@ -128,14 +130,22 @@ route-planner/
 │       ├── base.py
 │       ├── local.py
 │       └── google.py
-├── frontend/                    # 화면(대화·이동 계획·실행 로그)
-│   ├── index.html
+├── frontend/                    # Vue 3 화면(빌드 없음, CDN + 주소별 페이지)
+│   ├── index.html               # 라이브러리 로드(버전 고정·무결성 해시)
 │   ├── css/app.css
 │   └── js/
-│       ├── api.js
-│       ├── render.js
-│       └── app.js
+│       ├── main.js              # 라우터·상단바·알림
+│       ├── api.js · store.js · format.js
+│       ├── components/
+│       │   ├── RouteMap.js      # 경로 지도(Leaflet + OpenStreetMap)
+│       │   └── common.js        # 경로 카드·구간 칩·실행 과정 타임라인
+│       └── pages/
+│           ├── ChatPage.js      # 대화 + 지도 + 실행 과정
+│           ├── PlansPage.js     # 이동 계획 목록(검색·기간 필터)
+│           ├── PlanDetailPage.js# 계획 상세(지도·구간·캘린더·수정·삭제)
+│           └── LogsPage.js      # 실행 로그 목록·세션 상세
 ├── scripts/                     # 확인용 스크립트
+│   ├── serve_frontend.py        # 프론트 정적 서버
 │   ├── check_apis.py · tools_demo.py · tools_demo_extra.py
 │   ├── smoke_run.py · run_scenarios.py · compare_modes.py
 │   └── build_index.py           # 규정 문서 색인

@@ -51,6 +51,7 @@ class Option:
     estimated: bool = False
     warnings: list[str] = field(default_factory=list)
     basis: dict = field(default_factory=dict)
+    points: list[dict] = field(default_factory=list)  # 지도 표시용 지점(출발지·역·도착지 좌표)
 
     @property
     def transfers(self) -> int:

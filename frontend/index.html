@@ -4,104 +4,25 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>이동 플래너</title>
+  <!-- 빌드 없이 쓰는 라이브러리(버전 고정 + 무결성 해시): Vue 3 · Vue Router 4 · Leaflet(지도, OpenStreetMap 타일) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha384-sHL9NAb7lN7rfvG5lfHpm643Xkcjzp4jFvuavGOndn6pjVqS6ny56CAt3nsEVT4H" crossorigin="anonymous">
   <link rel="stylesheet" href="css/app.css">
+  <script type="importmap">
+    { "imports": {
+        "vue": "https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.prod.js",
+        "vue-router": "https://unpkg.com/vue-router@4.5.0/dist/vue-router.esm-browser.prod.js" },
+      "integrity": {
+        "https://unpkg.com/vue@3.5.13/dist/vue.esm-browser.prod.js": "sha384-UD4WWwnzOnT68QK9Dgf/jMrAGH2xuXyfIF9zzlFbWOL8MSrADyQ5BTgs9Kct5Izy",
+        "https://unpkg.com/vue-router@4.5.0/dist/vue-router.esm-browser.prod.js": "sha384-FY4SNqYLpiue9ESFQjZPWhax68RA68YRmnELcTlJ/ztlySvioNhRWGSVwwmjVe0y" } }
+  </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha384-cxOPjt7s7Iz04uaHJceBmS+qpjv2JkIHNVcuOrM+YHwZOmJGBXI00mdUXEq65HTH" crossorigin="anonymous"></script>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <h1>이동 플래너</h1>
-      <p>확인한 시간표·요금으로만 계획하는 Agent · AI 코어 프로젝트 3회차</p>
-    </div>
-    <nav class="tabs" role="tablist">
-      <button role="tab" class="tab active" data-tab="chat" aria-selected="true">대화</button>
-      <button role="tab" class="tab" data-tab="plans" aria-selected="false">이동 계획</button>
-      <button role="tab" class="tab" data-tab="logs" aria-selected="false">실행 로그</button>
-    </nav>
-  </header>
-  <div id="banner" class="banner" hidden></div>
-  <div id="quota" class="quota" aria-live="polite"></div>
-
-  <main>
-    <!-- 대화 -->
-    <section id="tab-chat" class="tabpanel">
-      <div class="chat-col">
-        <div class="panel-head">
-          <h2>대화</h2>
-          <button id="new-chat" class="ghost">새 대화</button>
-        </div>
-        <div id="messages" class="messages" aria-live="polite">
-          <div class="msg agent">
-            <p>출발지·도착지와 "언제까지 도착" 또는 "언제부터 출발"을 알려 주세요.</p>
-            <p class="hint">예) 토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하</p>
-          </div>
-        </div>
-        <form id="chat-form" class="composer">
-          <label for="chat-input" class="sr-only">메시지</label>
-          <input id="chat-input" autocomplete="off" maxlength="500"
-                 placeholder="예) 내일 오후 6시까지 용산역에서 광주송정역, 환승 적게">
-          <button type="submit" id="send">보내기</button>
-        </form>
-      </div>
-      <aside class="trace-col">
-        <div class="panel-head">
-          <h2>실행 과정</h2>
-          <span id="trace-meta" class="meta"></span>
-        </div>
-        <ol id="trace" class="trace"><li class="empty">요청을 보내면 단계와 Tool 호출이 순서대로 표시됩니다.</li></ol>
-      </aside>
-    </section>
-
-    <!-- 이동 계획 -->
-    <section id="tab-plans" class="tabpanel" hidden>
-      <div class="panel-head">
-        <h2>이동 계획</h2>
-        <button id="reload-plans" class="ghost">새로고침</button>
-      </div>
-      <div id="plan-notice" class="notice" hidden></div>
-      <table class="plans">
-        <thead><tr><th>날짜</th><th>출발 → 도착</th><th>계획</th><th>총요금</th><th>생성</th><th></th></tr></thead>
-        <tbody id="plan-rows"></tbody>
-      </table>
-      <p id="plans-empty" class="empty" hidden>저장한 이동 계획이 없어요. 대화에서 경로 카드의 "이 경로로 저장"을 눌러 보세요.</p>
-    </section>
-
-    <!-- 실행 로그 -->
-    <section id="tab-logs" class="tabpanel" hidden>
-      <div class="logs">
-        <div class="log-list-col">
-          <div class="panel-head">
-            <h2>세션</h2>
-            <button id="reload-logs" class="ghost">새로고침</button>
-          </div>
-          <ul id="log-list" class="log-list"></ul>
-        </div>
-        <div class="log-detail-col">
-          <div class="panel-head">
-            <h2 id="log-title">실행 로그</h2>
-            <button id="delete-log" class="danger" hidden>로그 삭제</button>
-          </div>
-          <div id="log-runs"></div>
-          <ol id="log-trace" class="trace"><li class="empty">왼쪽에서 세션을 고르세요.</li></ol>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <template id="edit-tpl">
-    <tr class="edit-row"><td colspan="6">
-      <form class="edit-form">
-        <label>제목 <input name="title" required maxlength="100"></label>
-        <label>날짜 <input name="date" type="date" required></label>
-        <label>출발 <input name="leave_at" type="time" required></label>
-        <label>도착 <input name="arrive_at" type="time" required></label>
-        <button type="submit">저장</button>
-        <button type="button" class="ghost cancel">취소</button>
-      </form>
-    </td></tr>
-  </template>
-
-  <script src="js/api.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/app.js"></script>
+  <div id="app">
+    <noscript>이 화면은 JavaScript가 필요해요.</noscript>
+  </div>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

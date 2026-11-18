@@ -1,0 +1,148 @@
+// 대화 페이지: 요청 → 경로 카드 + 지도 + 실행 과정. 페이지를 옮겨도 대화는 store에 남는다.
+import { computed, nextTick, onBeforeUnmount, ref } from "vue";
+import { api } from "../api.js";
+import { elapsedMs } from "../format.js";
+import { loadStatus, resetChat, setSession, store, toast } from "../store.js";
+import RouteMap from "../components/RouteMap.js";
+import { Excluded, RouteCard, TraceList } from "../components/common.js";
+
+const EXAMPLES = [
+  "토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하",
+  "내일 오후 6시까지 용산역에서 광주송정역, 환승 적게",
+  "KTX 출발 30분 전에 반환하면 위약금 얼마야?",
+];
+
+export default {
+  name: "ChatPage",
+  components: { RouteMap, RouteCard, Excluded, TraceList },
+  setup() {
+    const input = ref("");
+    const inputEl = ref(null);
+    const list = ref(null);
+    const panel = ref(store.selected ? "map" : "trace");
+    const seconds = ref(0);
+    const savingKey = ref(null);
+    let timer = null;
+
+    const selectedMsg = computed(() => store.messages.find((m) => m.cards && m.cards.includes(store.selected)));
+    const mapPoints = computed(() => (store.selected && store.selected.points) || []);
+    const otherPoints = computed(() => (selectedMsg.value ? selectedMsg.value.cards : [])
+      .filter((c) => c !== store.selected && c.points && c.points.length).map((c) => c.points));
+
+    async function scrollDown() {
+      await nextTick();
+      if (list.value) list.value.scrollTop = list.value.scrollHeight;
+    }
+
+    async function send(text) {
+      const msg = (text ?? input.value).trim();
+      if (!msg || store.sending) return;
+      input.value = "";
+      store.messages.push({ role: "user", text: msg });
+      store.sending = true;
+      seconds.value = 0;
+      timer = setInterval(() => seconds.value++, 1000);
+      scrollDown();
+      try {
+        const r = await api("/chat", { method: "POST", body: { message: msg, session_id: store.sessionId } });
+        setSession(r.session_id);
+        const cond = r.events.find((e) => e.type === "node_end" && e.node === "analyze")?.payload?.conditions || null;
+        const cards = r.cards.filter((c) => c.leave_at);
+        store.messages.push({ role: "agent", text: r.reply, cards, conds: cond,
+          sources: r.cards.filter((c) => c.type === "source"), excluded: r.excluded, undetermined: r.undetermined,
+          estimated: r.estimated });
+        store.lastEvents = r.events;
+        store.lastMeta = `재계획 ${r.replan_count}회 · LLM ${r.llm_calls}회 · ${elapsedMs(r.events)}ms`;
+        store.selected = cards[0] || null;
+        panel.value = cards.length ? "map" : "trace";
+        loadStatus();
+      } catch (e) {
+        store.messages.push({ role: "agent", text: e.message, error: true });
+      } finally {
+        clearInterval(timer);
+        store.sending = false;
+        scrollDown();
+        nextTick(() => inputEl.value && inputEl.value.focus());
+      }
+    }
+
+    async function save(card, conds) {
+      const key = card.index + card.leave_at;
+      savingKey.value = key;
+      try {
+        const r = await api("/plans", { method: "POST", body: {
+          title: conds ? `${conds.origin} → ${conds.destination}` : `${card.leave_at} 출발 이동`,
+          date: card.date, leave_at: card.leave_at, arrive_at: card.arrive_at,
+          origin_name: conds?.origin || "-", destination_name: conds?.destination || "-",
+          legs: card.legs, total_fare: card.total_fare, points: card.points || [] } });
+        const overlap = r.overlaps.length
+          ? ` 같은 날 겹치는 계획이 ${r.overlaps.length}건 있어요.` : "";
+        toast(`이동 계획으로 저장했어요(${r.plan.date} ${r.plan.leave_at}~${r.plan.arrive_at}).${overlap}`,
+          r.overlaps.length ? "warn" : "ok", { to: `/plans/${r.plan.id}`, text: "계획 보기" });
+      } catch (e) {
+        toast(e.message, "bad");
+      } finally {
+        savingKey.value = null;
+      }
+    }
+
+    function select(card) { store.selected = card; panel.value = "map"; }
+    function newChat() { resetChat(); panel.value = "trace"; }
+
+    onBeforeUnmount(() => clearInterval(timer));
+    scrollDown();
+    return { store, input, inputEl, list, panel, seconds, savingKey, EXAMPLES, mapPoints, otherPoints,
+      send, save, select, newChat };
+  },
+  template: `
+    <section class="chat-page">
+      <div class="chat-col">
+        <div class="panel-head">
+          <h2>대화</h2>
+          <button type="button" class="ghost" @click="newChat" :disabled="store.sending">새 대화</button>
+        </div>
+        <div ref="list" class="messages" aria-live="polite">
+          <div v-for="(m, i) in store.messages" :key="i" class="msg" :class="[m.role, { error: m.error }]">
+            <p>{{ m.text }}</p>
+            <template v-if="m.cards && m.cards.length">
+              <RouteCard v-for="c in m.cards" :key="c.index + c.leave_at" :card="c" :selected="c === store.selected"
+                         :saving="savingKey === c.index + c.leave_at" @select="select" @save="save($event, m.conds)" />
+            </template>
+            <p v-for="s in m.sources || []" :key="s.title + s.page" class="hint">출처: {{ s.title }}<span v-if="s.page"> p.{{ s.page }}</span></p>
+            <Excluded title="제외된 후보" :items="m.excluded" />
+            <Excluded title="판단하지 않은 후보" :items="m.undetermined" />
+            <Excluded title="추정 시간표(통과 아님)" :items="m.estimated" />
+          </div>
+          <div v-if="store.sending" class="msg agent pending" role="status">
+            <p>경로를 계산하는 중이에요 · {{ seconds }}초</p>
+            <p class="hint">조건 분석 → 시간표·구간 조회 → 마감·예산·일정 판단 순서로 진행해요. 보통 5~15초 걸려요.</p>
+          </div>
+        </div>
+        <div v-if="store.messages.length <= 1 && !store.sending" class="examples">
+          <span class="hint">이렇게 물어보세요</span>
+          <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>
+        </div>
+        <form class="composer" @submit.prevent="send()">
+          <label for="chat-input" class="sr-only">메시지</label>
+          <input id="chat-input" ref="inputEl" v-model="input" autocomplete="off" maxlength="500" :disabled="store.sending"
+                 placeholder="예) 내일 오후 6시까지 용산역에서 광주송정역, 환승 적게">
+          <button type="submit" :disabled="store.sending || !input.trim()">보내기</button>
+        </form>
+      </div>
+      <aside class="side-col">
+        <div class="segmented" role="tablist" aria-label="오른쪽 보기">
+          <button type="button" role="tab" :aria-selected="panel === 'map'" :class="{ active: panel === 'map' }" @click="panel = 'map'">지도</button>
+          <button type="button" role="tab" :aria-selected="panel === 'trace'" :class="{ active: panel === 'trace' }" @click="panel = 'trace'">실행 과정</button>
+          <span class="meta">{{ store.sending ? '처리 중…' : store.lastMeta }}</span>
+        </div>
+        <div v-if="panel === 'map'" class="side-body">
+          <p v-if="store.selected" class="map-title">{{ store.selected.index }}. {{ store.selected.label }} · {{ store.selected.leave_at }} → {{ store.selected.arrive_at }}</p>
+          <RouteMap :points="mapPoints" :others="otherPoints" height="420px" />
+          <p v-if="!store.selected" class="hint">경로를 찾으면 출발지·역·도착지가 지도에 표시돼요. 카드를 누르면 그 경로를 크게 보여 줘요.</p>
+        </div>
+        <div v-else class="side-body">
+          <TraceList :events="store.lastEvents" empty="요청을 보내면 단계와 Tool 호출이 순서대로 표시됩니다." />
+        </div>
+      </aside>
+    </section>`,
+};

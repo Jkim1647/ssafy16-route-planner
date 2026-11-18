@@ -93,7 +93,7 @@ def card(o: Option, i: int) -> dict:
             "total_fare": o.total_fare, "total_min": o.total_min, "transfers": o.transfers,
             "legs": [{"mode": lg.mode, "name": lg.name, "minutes": lg.minutes, "fare": lg.fare, "source": lg.source}
                      for lg in o.legs],
-            "warnings": list(o.warnings), "estimated": o.estimated,
+            "warnings": list(o.warnings), "estimated": o.estimated, "points": list(o.points),
             "basis": {k: v for k, v in o.basis.items() if k != "rain_block"}}
 
 
@@ -448,6 +448,7 @@ def _save(state, deps) -> dict:
         title=f"{conds.origin} → {conds.destination}", date=dt.date.fromisoformat(c["date"]),
         leave_at=c["leave_at"], arrive_at=c["arrive_at"], origin_name=conds.origin or "-",
         destination_name=conds.destination or "-", legs=c["legs"], total_fare=c["total_fare"],
+        points=c.get("points") or [],
         source_run_id=deps.ctx.emitter.run_id))
     msg = f"{ref}번 경로를 이동 계획으로 저장했어요({c['date']} {c['leave_at']}~{c['arrive_at']})."
     if res.overlaps:

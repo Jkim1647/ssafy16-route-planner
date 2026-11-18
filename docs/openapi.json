@@ -552,6 +552,15 @@
        }
       ],
       "title": "Source Run Id"
+     },
+     "points": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Points",
+      "default": []
      }
     },
     "type": "object",
@@ -626,6 +635,15 @@
        }
       ],
       "title": "Source Run Id"
+     },
+     "points": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Points",
+      "default": []
      },
      "id": {
       "type": "integer",

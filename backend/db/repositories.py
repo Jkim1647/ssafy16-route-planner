@@ -30,6 +30,7 @@ class PlanRepo:
     def _row(self, r) -> PlanOut:
         d = dict(r)
         d["legs"] = json.loads(d.pop("legs_json") or "[]")
+        d["points"] = json.loads(d.pop("points_json", None) or "[]")
         return PlanOut(**d)
 
     def get(self, plan_id: int) -> PlanOut | None:
@@ -62,9 +63,10 @@ class PlanRepo:
         with connect(self.db) as c:
             cur = c.execute(
                 "INSERT INTO plans(title,date,leave_at,arrive_at,origin_name,destination_name,legs_json,total_fare,"
-                "source_run_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+                "source_run_id,created_at,updated_at,points_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
                 (p.title, p.date.isoformat(), p.leave_at, p.arrive_at, p.origin_name, p.destination_name,
-                 json.dumps(p.legs, ensure_ascii=False), p.total_fare, p.source_run_id, now, now))
+                 json.dumps(p.legs, ensure_ascii=False), p.total_fare, p.source_run_id, now, now,
+                 json.dumps(p.points, ensure_ascii=False)))
             new_id = cur.lastrowid
         return PlanSaveResult(plan=self.get(new_id), overlaps=overlaps)
 

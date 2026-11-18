@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS plans(
   title TEXT NOT NULL, date TEXT NOT NULL, leave_at TEXT NOT NULL, arrive_at TEXT NOT NULL,
   origin_name TEXT NOT NULL, destination_name TEXT NOT NULL, legs_json TEXT NOT NULL DEFAULT '[]',
   total_fare INTEGER, source_run_id TEXT, calendar_event_id TEXT,
-  created_at TEXT NOT NULL, updated_at TEXT NOT NULL);
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL, points_json TEXT NOT NULL DEFAULT '[]');
 CREATE TABLE IF NOT EXISTS runs(
   run_id TEXT PRIMARY KEY, session_id TEXT NOT NULL, user_message TEXT, mode TEXT, status TEXT,
   replan_count INTEGER DEFAULT 0, llm_calls INTEGER DEFAULT 0, started_at TEXT, ended_at TEXT);
@@ -33,3 +33,7 @@ def init_db(path: str) -> None:
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with connect(path) as c:
         c.executescript(SCHEMA)
+        # 1일차에 만든 DB에는 지점 칸이 없다 → 기존 계획은 빈 목록으로 두고 칸만 추가
+        cols = {r[1] for r in c.execute("PRAGMA table_info(plans)")}
+        if "points_json" not in cols:
+            c.execute("ALTER TABLE plans ADD COLUMN points_json TEXT NOT NULL DEFAULT '[]'")

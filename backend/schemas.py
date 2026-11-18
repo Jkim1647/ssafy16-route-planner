@@ -23,6 +23,7 @@ class PlanIn(BaseModel):
     legs: list[dict] = []
     total_fare: int | None = None
     source_run_id: str | None = None
+    points: list[dict] = []  # 지도 표시용 지점 [{kind, name, x, y}]
 
     _v_times = field_validator("leave_at", "arrive_at")(_check_hhmm)
 

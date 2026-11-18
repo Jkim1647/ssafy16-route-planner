@@ -22,6 +22,7 @@
 | `cards` | object[] | 추천 경로 카드(최대 3) 또는 규정 근거(`type: "source"`) |
 | `cards[].legs` | object[] | `{mode, name, minutes, fare, source}` — 도보·지하철·버스·열차·택시 구간 |
 | `cards[].basis` | object | 판단 근거: 열차 출발·도착, 승차 여유 10분, 역까지/목적지까지 분·요금, 라벨 |
+| `cards[].points` | object[] | 지도용 지점 `{kind: origin·dep_station·arr_station·destination, name, x, y}` — Tool 결과(장소·역·터미널) 좌표 |
 | `excluded` | object[] | `{summary, reason}` 제외 후보와 사유(예: "도착 15:40 > 마감 13:50") |
 | `undetermined` | object[] | 판단하지 않은 후보(운임·소요시간 확인 불가) |
 | `estimated` | object[] | 추정 시간표 후보(통과 아님) |
@@ -48,8 +49,13 @@
 { "title": "첨단동 → 강남역", "date": "2026-11-21", "leave_at": "07:45", "arrive_at": "10:52",
   "origin_name": "광주 첨단동", "destination_name": "서울 강남역",
   "legs": [{"mode": "train", "name": "KTX-산천 00610", "minutes": 112, "fare": 40900, "source": "tago_train"}],
-  "total_fare": 43700, "source_run_id": null }
+  "total_fare": 43700, "source_run_id": null,
+  "points": [{"kind": "origin", "name": "쌍암공원 분수광장", "x": 126.84, "y": 35.22},
+             {"kind": "dep_station", "name": "광주송정", "x": 126.79, "y": 35.14},
+             {"kind": "arr_station", "name": "수서", "x": 127.10, "y": 37.49},
+             {"kind": "destination", "name": "강남역 2호선", "x": 127.03, "y": 37.50}] }
 ```
+- `points`(선택, 기본 `[]`): 지도 표시용 지점. 경로 카드의 `points`를 그대로 넘긴다. 같은 도시 안 이동은 출발지·도착지 2개.
 - `leave_at`/`arrive_at`은 `HH:MM`, 도착이 출발보다 이르면 다음 날 도착(자정 넘김)으로 본다.
 - `PlanOut` = `PlanIn` + `id`, `calendar_event_id`, `created_at`, `updated_at`
 

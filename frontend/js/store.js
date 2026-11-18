@@ -1,0 +1,50 @@
+// 페이지 사이에 유지되는 상태: 대화 내용(페이지를 옮겨도 남음), 서버 상태, 알림.
+import { reactive } from "vue";
+import { api } from "./api.js";
+
+const WELCOME = { role: "agent", text: "출발지·도착지와 \"언제까지 도착\" 또는 \"언제부터 출발\"을 알려 주세요." };
+
+function savedSession() {
+  try { return sessionStorage.getItem("rp.session") || null; } catch { return null; }
+}
+
+export const store = reactive({
+  sessionId: savedSession(),
+  messages: [WELCOME],
+  lastEvents: [],
+  lastMeta: "",
+  sending: false,
+  selected: null,          // 지도에 크게 보여 줄 경로 카드
+  status: null,            // /config/status
+  statusError: "",
+  toasts: [],
+});
+
+export function setSession(id) {
+  store.sessionId = id;
+  try { id ? sessionStorage.setItem("rp.session", id) : sessionStorage.removeItem("rp.session"); } catch { /* 저장 불가 환경 */ }
+}
+
+export function resetChat() {
+  setSession(null);
+  store.messages = [{ role: "agent", text: "새 대화를 시작했어요. 이동 조건을 알려 주세요." }];
+  store.lastEvents = [];
+  store.lastMeta = "";
+  store.selected = null;
+}
+
+export async function loadStatus() {
+  try {
+    store.status = await api("/config/status");
+    store.statusError = "";
+  } catch (e) {
+    store.statusError = e.message;
+  }
+}
+
+let toastId = 0;
+export function toast(text, kind = "ok", link = null) {
+  const id = ++toastId;
+  store.toasts.push({ id, text, kind, link });
+  setTimeout(() => { store.toasts = store.toasts.filter((t) => t.id !== id); }, link ? 12000 : 6000);  // 링크가 있으면 누를 시간을 더 준다
+}
