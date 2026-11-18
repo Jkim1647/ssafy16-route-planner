@@ -6,6 +6,119 @@
   "version": "1.0"
  },
  "paths": {
+  "/api/auth/me": {
+   "get": {
+    "tags": [
+     "로그인"
+    ],
+    "summary": "Me",
+    "operationId": "me_api_auth_me_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/google/login": {
+   "get": {
+    "tags": [
+     "로그인"
+    ],
+    "summary": "Google Login",
+    "operationId": "google_login_api_auth_google_login_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/google/callback": {
+   "get": {
+    "tags": [
+     "로그인"
+    ],
+    "summary": "Google Callback",
+    "operationId": "google_callback_api_auth_google_callback_get",
+    "parameters": [
+     {
+      "name": "code",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "default": "",
+       "title": "Code"
+      }
+     },
+     {
+      "name": "state",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "default": "",
+       "title": "State"
+      }
+     },
+     {
+      "name": "error",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "string",
+       "default": "",
+       "title": "Error"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/auth/logout": {
+   "post": {
+    "tags": [
+     "로그인"
+    ],
+    "summary": "Logout",
+    "operationId": "logout_api_auth_logout_post",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    }
+   }
+  },
   "/api/chat": {
    "post": {
     "tags": [
@@ -263,6 +376,238 @@
         "schema": {}
        }
       }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/trips/plan": {
+   "post": {
+    "tags": [
+     "여러 동선"
+    ],
+    "summary": "Plan Trip",
+    "description": "지점 2~6개를 순서대로 잇는 이동을 구간별로 계산(LLM 없음). 앞 구간 도착 + 머무는 시간 = 다음 출발 하한.",
+    "operationId": "plan_trip_api_trips_plan_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TripIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/places": {
+   "get": {
+    "tags": [
+     "장소"
+    ],
+    "summary": "List Places",
+    "operationId": "list_places_api_places_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/PlaceOut"
+         },
+         "type": "array",
+         "title": "Response List Places Api Places Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "장소"
+    ],
+    "summary": "Create Place",
+    "operationId": "create_place_api_places_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PlaceIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlaceOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/places/search": {
+   "get": {
+    "tags": [
+     "장소"
+    ],
+    "summary": "Search Place",
+    "description": "장소 이름 검색(카카오 로컬, 캐시 사용). 저장할 장소를 고를 때 쓴다.",
+    "operationId": "search_place_api_places_search_get",
+    "parameters": [
+     {
+      "name": "q",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "minLength": 1,
+       "maxLength": 50,
+       "title": "Q"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/places/{place_id}": {
+   "put": {
+    "tags": [
+     "장소"
+    ],
+    "summary": "Update Place",
+    "operationId": "update_place_api_places__place_id__put",
+    "parameters": [
+     {
+      "name": "place_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Place Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PlaceIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlaceOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "장소"
+    ],
+    "summary": "Delete Place",
+    "operationId": "delete_place_api_places__place_id__delete",
+    "parameters": [
+     {
+      "name": "place_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Place Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
      },
      "422": {
       "description": "Validation Error",
@@ -586,6 +931,120 @@
     ],
     "title": "LegIn",
     "description": "계획에 저장하는 구간(경로 카드의 legs와 같은 모양). 크기 상한으로 저장소 남용을 막는다."
+   },
+   "PlaceIn": {
+    "properties": {
+     "label": {
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 1,
+      "title": "Label"
+     },
+     "kind": {
+      "type": "string",
+      "pattern": "^(home|school|work|pin)$",
+      "title": "Kind",
+      "default": "pin"
+     },
+     "name": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name"
+     },
+     "address": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Address"
+     },
+     "x": {
+      "type": "number",
+      "maximum": 180.0,
+      "minimum": -180.0,
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "maximum": 90.0,
+      "minimum": -90.0,
+      "title": "Y"
+     }
+    },
+    "type": "object",
+    "required": [
+     "label",
+     "name",
+     "x",
+     "y"
+    ],
+    "title": "PlaceIn",
+    "description": "저장한 장소. label은 대화에서 부르는 이름(예: 집, 교육장)으로 사용자마다 하나씩."
+   },
+   "PlaceOut": {
+    "properties": {
+     "label": {
+      "type": "string",
+      "maxLength": 20,
+      "minLength": 1,
+      "title": "Label"
+     },
+     "kind": {
+      "type": "string",
+      "pattern": "^(home|school|work|pin)$",
+      "title": "Kind",
+      "default": "pin"
+     },
+     "name": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name"
+     },
+     "address": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Address"
+     },
+     "x": {
+      "type": "number",
+      "maximum": 180.0,
+      "minimum": -180.0,
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "maximum": 90.0,
+      "minimum": -90.0,
+      "title": "Y"
+     },
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "label",
+     "name",
+     "x",
+     "y",
+     "id"
+    ],
+    "title": "PlaceOut"
    },
    "PlanIn": {
     "properties": {
@@ -915,6 +1374,120 @@
      "y"
     ],
     "title": "PointIn"
+   },
+   "StopIn": {
+    "properties": {
+     "name": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Name"
+     },
+     "address": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 200
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Address"
+     },
+     "x": {
+      "type": "number",
+      "maximum": 180.0,
+      "minimum": -180.0,
+      "title": "X"
+     },
+     "y": {
+      "type": "number",
+      "maximum": 90.0,
+      "minimum": -90.0,
+      "title": "Y"
+     },
+     "arrive_by": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Arrive By"
+     },
+     "stay_min": {
+      "type": "integer",
+      "maximum": 720.0,
+      "minimum": 0.0,
+      "title": "Stay Min",
+      "default": 0
+     }
+    },
+    "type": "object",
+    "required": [
+     "name",
+     "x",
+     "y"
+    ],
+    "title": "StopIn",
+    "description": "여러 동선의 한 지점. arrive_by: 이 지점까지 도착 마감, stay_min: 이 지점에서 머무는 시간."
+   },
+   "TripIn": {
+    "properties": {
+     "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+     },
+     "stops": {
+      "items": {
+       "$ref": "#/components/schemas/StopIn"
+      },
+      "type": "array",
+      "maxItems": 6,
+      "minItems": 2,
+      "title": "Stops"
+     },
+     "depart_after": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Depart After"
+     },
+     "budget": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 10000000.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Budget"
+     },
+     "priority": {
+      "type": "string",
+      "pattern": "^(cheapest|fastest|fewest_transfers)$",
+      "title": "Priority",
+      "default": "cheapest"
+     }
+    },
+    "type": "object",
+    "required": [
+     "date",
+     "stops"
+    ],
+    "title": "TripIn"
    },
    "TurnResult": {
     "properties": {

@@ -81,7 +81,29 @@
 이벤트 공통 필드: `session_id, run_id, seq, ts, agent(main|planner|worker|logger), type, node, payload, duration_ms`
 이벤트 종류: `run_start, run_end, node_start, node_end, llm_decision, plan_tasks, tool_call, tool_result, replan, worker_decision, verify, error`
 
-## 4. 메타
+## 4. 로그인 (`/api/auth`)
+| 경로 | 요청 | 응답 |
+|---|---|---|
+| `GET /api/auth/me` | - | `{user: {id, email, name, picture}\|null, auth_required, google_configured}` |
+| `GET /api/auth/google/login` | - | 302 → Google 동의 화면. `state`를 HttpOnly 쿠키에 저장(로그인 위조 방지). 설정 안 됨 503 |
+| `GET /api/auth/google/callback?code&state` | - | state 일치·id_token 검증·이메일 인증 확인 후 세션 쿠키(`rp_session`, JWT, 7일, HttpOnly·SameSite=Lax) 설정 → 302 `FRONTEND_URL`. 실패 400 |
+| `POST /api/auth/logout` | `{}` | 204, 세션 쿠키 삭제 |
+- `AUTH_REQUIRED=true`이면 `/api/auth/*`·`/api/config/status` 외 모든 API는 로그인하지 않으면 401. 데이터(계획·장소·로그·로컬 캘린더)는 로그인한 사용자 것만 보이고, 다른 사용자 것은 404.
+
+## 5. 내 장소 (`/api/places`)
+| 경로 | 요청 | 응답 |
+|---|---|---|
+| `GET /api/places` | - | `PlaceOut[]` |
+| `GET /api/places/search?q=` | 1~50자 | `[{name, address, x, y}]`(최대 5, 카카오 로컬) / 404 |
+| `POST /api/places` | `PlaceIn{label(1~20자), kind(home·school·work·pin), name, address?, x, y}` | 201 `PlaceOut` / 409 같은 이름 있음 |
+| `PUT /api/places/{id}` · `DELETE /api/places/{id}` | `PlaceIn` / - | `PlaceOut` / 204, 없으면 404 |
+
+## 6. 여러 동선 (`/api/trips/plan`)
+`POST` `TripIn{date, stops: StopIn[2~6]{name, address?, x, y, arrive_by?, stay_min(0~720)}, depart_after?, budget?, priority}`
+→ `{legs: [{index, from, to, depart_after, arrive_by, status: done·walk·no_option·skipped, cards, decision, excluded, reason}], total_fare, start_at, end_at, warnings, run_id, session_id, status}`.
+첫 구간의 출발 시각이나 첫 도착지 마감이 없으면 400. 앞 구간 도착 + 머무는 시간 = 다음 구간 출발 하한. LLM 없음, 실행 로그(세션 `trip-…`)에 기록.
+
+## 7. 메타
 
 | 메서드·경로 | 응답 |
 |---|---|
