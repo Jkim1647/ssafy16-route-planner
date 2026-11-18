@@ -1,0 +1,301 @@
+{
+ "summary": {
+  "id": "S8",
+  "title": "규정 질문(RAG)",
+  "expected": "약관 근거 문단과 출처",
+  "status": "done",
+  "intent": "terms_query",
+  "replans": 0,
+  "llm_calls": 1,
+  "tool_calls": 1,
+  "tools": [
+   "search_terms"
+  ],
+  "cards": [],
+  "excluded_sample": [],
+  "warnings": [],
+  "reply": "관련 규정을 찾았어요. 근거 문단과 출처를 확인해 주세요.\n- 1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시간전까지: 10%\n 4)출발3시간전경과후부터출발시각전까지: 20%\n 2.출발후\n 가.출발시각경과후20분까지: 30%(단,월～목요일은15%)\n 나.출발시각20분경과후 60분까지:40%\n 다.출발 (출처: korail_terms, p.14)\n- 6.승차권을위ㆍ변조하여사용하는경우:30배\n ② 철도공사는 제1항에 정한 부가운임 기준을 홈페이지에 게시하며\n명절기간등에는부가운임기준을최고30배범위내에서수수할수\n있습니다.<개정2024.07.18.>\n ③운임할인신분증또는증명서를제시하지못하여부가운임을지급\n한사람은승차한날로부터1년이내에다음각호를역(간이역및승\n차권판매대리점제외)에제출하고부가운임의환불을청구할수있습\n니 (출처: korail_terms, p.12)\n- # 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)\n\n출처: 대한민국 정책브리핑, 국토교통부 보도(2025.03.18) \"주말·명절 고속버스 취소 수수료 10%→15%·20%…'노쇼 방지'\"\nhttps://www.korea.kr/news/policyNewsView.do?newsId=148940659 — 텍스트 공공누리 제1유 (출처: 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행))",
+  "run_id": "81c1d288162d",
+  "session_id": "311afe65d9ef",
+  "anomaly": {
+   "verdict": "ok",
+   "rules": [],
+   "diagnosis": null
+  }
+ },
+ "result": {
+  "run_id": "81c1d288162d",
+  "session_id": "311afe65d9ef",
+  "reply": "관련 규정을 찾았어요. 근거 문단과 출처를 확인해 주세요.\n- 1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시간전까지: 10%\n 4)출발3시간전경과후부터출발시각전까지: 20%\n 2.출발후\n 가.출발시각경과후20분까지: 30%(단,월～목요일은15%)\n 나.출발시각20분경과후 60분까지:40%\n 다.출발 (출처: korail_terms, p.14)\n- 6.승차권을위ㆍ변조하여사용하는경우:30배\n ② 철도공사는 제1항에 정한 부가운임 기준을 홈페이지에 게시하며\n명절기간등에는부가운임기준을최고30배범위내에서수수할수\n있습니다.<개정2024.07.18.>\n ③운임할인신분증또는증명서를제시하지못하여부가운임을지급\n한사람은승차한날로부터1년이내에다음각호를역(간이역및승\n차권판매대리점제외)에제출하고부가운임의환불을청구할수있습\n니 (출처: korail_terms, p.12)\n- # 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)\n\n출처: 대한민국 정책브리핑, 국토교통부 보도(2025.03.18) \"주말·명절 고속버스 취소 수수료 10%→15%·20%…'노쇼 방지'\"\nhttps://www.korea.kr/news/policyNewsView.do?newsId=148940659 — 텍스트 공공누리 제1유 (출처: 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행))",
+  "cards": [
+   {
+    "type": "source",
+    "text": "1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시간전까지: 10%\n 4)출발3시간전경과후부터출발시각전까지: 20%\n 2.출발후\n 가.출발시각경과후20분까지: 30%(단,월～목요일은15%)\n 나.출발시각20분경과후 60분까지:40%\n 다.출발시각60분경과후도착역도착시각(열차가지연된경우지\n연된시간만큼을추가)전까지:70%\n 라.도착역도착시각(열차가지연된경우지연된시간만큼을추가)\n경과후: 100%\n ③삭제<개정2019.07.05.,2025.04.18.>\n ④운임ㆍ요금을지급하지않고승차권을발행받은사람(국가유공자,\n교환권,카드등)은승차구간의기준운임ㆍ요금을기준으로제2항,제\n3항각호에정한위약금을지급하고,차감한무임횟수복구또는교\n환권이나카드의재사용을청구할수있습니다.\n ⑤다음각호에해당하는사람은승무원에게확인(이하‘미승차확인\n증명’이라합니다)을받고제2항제2호에정한위약금을공제한잔액을",
+    "source": "korail_terms.pdf",
+    "title": "korail_terms",
+    "page": 14,
+    "distance": 0.4358
+   },
+   {
+    "type": "source",
+    "text": "6.승차권을위ㆍ변조하여사용하는경우:30배\n ② 철도공사는 제1항에 정한 부가운임 기준을 홈페이지에 게시하며\n명절기간등에는부가운임기준을최고30배범위내에서수수할수\n있습니다.<개정2024.07.18.>\n ③운임할인신분증또는증명서를제시하지못하여부가운임을지급\n한사람은승차한날로부터1년이내에다음각호를역(간이역및승\n차권판매대리점제외)에제출하고부가운임의환불을청구할수있습\n니다.\n 1.해당승차권\n 2.운임할인대상자임을확인할수있는신분증또는증명서\n 3.부가운임에대한영수증\n ④철도공사는제3항의부가운임의환불청구를받은경우정당한할\n인대상자임을확인하고별표에정한최저수수료를공제한잔액을환\n불합니다.\n제13조(승차권분실재발행등)①승차권을분실하는등소지하지않\n은사람은여행시작전에역에서재발행을청구할수있습니다.다만,\n다음각호에해당하는경우는제외합니다.<개정2024.07.18.>\n 1.좌석번호를지정하지않은승차권\n 2.분실한승차권이사용된경우\n 3.분실한승차권의유효기간이지난경우",
+    "source": "korail_terms.pdf",
+    "title": "korail_terms",
+    "page": 12,
+    "distance": 0.5234
+   },
+   {
+    "type": "source",
+    "text": "# 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)\n\n출처: 대한민국 정책브리핑, 국토교통부 보도(2025.03.18) \"주말·명절 고속버스 취소 수수료 10%→15%·20%…'노쇼 방지'\"\nhttps://www.korea.kr/news/policyNewsView.do?newsId=148940659 — 텍스트 공공누리 제1유형(출처표시)\n\n## 출발 전 취소 수수료\n정부가 고속버스 출발 전 승차권 취소 수수료에 대해 평일은 현 수준인 10%를 유지하지만, 수요가 많은 주말과 명절에는 각각 15%와 20%로 상향한다.\n현재 일괄적으로 적용한 10% 수수료는 평일(월~목)에만 10%로 하고, 주말(금~일, 공휴일) 15%, 그리고 명절(설·추석)에는 20%의 수수료를 부과한다.\n출발 전 최대 수수료 부과 시간도 출발 1시간 미만~출발 전에서 철도와 동일하게 출발 3시간 미만~출발 전으로 조정한다.\n\n## 출발 후 취소 수수료\n터미널에서 출발하고 나면 재판매가 불가능한 고속버스 특성을 고려해 출발 후 수수료는 현행 30%에서 50%로 올리고, 이후 2027년까지 70%로 단계적 상향할 계획이다.",
+    "source": "expbus_cancel_fee.md",
+    "title": "고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)",
+    "page": null,
+    "distance": 0.5235
+   }
+  ],
+  "excluded": [],
+  "undetermined": [],
+  "estimated": [],
+  "warnings": [],
+  "clarification": null,
+  "status": "done",
+  "intent": "terms_query",
+  "replan_count": 0,
+  "llm_calls": 1,
+  "events": [
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 1,
+    "ts": "2026-11-18T13:36:03.817",
+    "agent": "main",
+    "type": "run_start",
+    "node": null,
+    "payload": {
+     "message": "KTX 출발 30분 전에 승차권 반환하면 위약금 얼마야?",
+     "mode": "single"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 2,
+    "ts": "2026-11-18T13:36:03.821",
+    "agent": "main",
+    "type": "node_start",
+    "node": "analyze",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 3,
+    "ts": "2026-11-18T13:36:06.241",
+    "agent": "main",
+    "type": "llm_decision",
+    "node": "analyze",
+    "payload": {
+     "decision": "intent",
+     "value": "terms_query",
+     "reason": "KTX 승차권을 출발 30분 전에 반환할 때의 위약금 규정을 질문함",
+     "changes": {}
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 4,
+    "ts": "2026-11-18T13:36:06.246",
+    "agent": "main",
+    "type": "node_end",
+    "node": "analyze",
+    "payload": {
+     "intent": "terms_query",
+     "intent_reason": "KTX 승차권을 출발 30분 전에 반환할 때의 위약금 규정을 질문함",
+     "conditions": {
+      "origin": null,
+      "destination": null,
+      "date": null,
+      "arrive_by": null,
+      "depart_after": null,
+      "priority": "cheapest",
+      "modes": null,
+      "avoid": [],
+      "budget": null,
+      "buffer_min": 10
+     },
+     "missing": []
+    },
+    "duration_ms": 2421
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 5,
+    "ts": "2026-11-18T13:36:06.250",
+    "agent": "main",
+    "type": "node_start",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 6,
+    "ts": "2026-11-18T13:36:06.254",
+    "agent": "main",
+    "type": "plan_tasks",
+    "node": "plan",
+    "payload": {
+     "tasks": [
+      {
+       "id": "t1",
+       "tool": "search_terms",
+       "purpose": "운송약관·행동요령 문서 검색",
+       "when": null,
+       "fixed_args": [
+        "question"
+       ]
+      }
+     ],
+     "strategy": 0
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 7,
+    "ts": "2026-11-18T13:36:06.257",
+    "agent": "main",
+    "type": "node_end",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 8,
+    "ts": "2026-11-18T13:36:06.260",
+    "agent": "main",
+    "type": "node_start",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 9,
+    "ts": "2026-11-18T13:36:06.264",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t1",
+     "tool": "search_terms",
+     "args": {
+      "question": "KTX 출발 30분 전에 승차권 반환하면 위약금 얼마야?"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 10,
+    "ts": "2026-11-18T13:36:07.693",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t1",
+     "tool": "search_terms",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "chunks 4건",
+     "cached": false
+    },
+    "duration_ms": 1425
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 11,
+    "ts": "2026-11-18T13:36:07.700",
+    "agent": "main",
+    "type": "node_end",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": 1435
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 12,
+    "ts": "2026-11-18T13:36:07.707",
+    "agent": "main",
+    "type": "node_start",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 13,
+    "ts": "2026-11-18T13:36:07.713",
+    "agent": "main",
+    "type": "node_end",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": 0
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 14,
+    "ts": "2026-11-18T13:36:07.717",
+    "agent": "main",
+    "type": "node_start",
+    "node": "respond",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 15,
+    "ts": "2026-11-18T13:36:07.721",
+    "agent": "main",
+    "type": "node_end",
+    "node": "respond",
+    "payload": {
+     "status": "done"
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "311afe65d9ef",
+    "run_id": "81c1d288162d",
+    "seq": 16,
+    "ts": "2026-11-18T13:36:07.726",
+    "agent": "main",
+    "type": "run_end",
+    "node": null,
+    "payload": {
+     "status": "done",
+     "replan_count": 0,
+     "llm_calls": 1
+    },
+    "duration_ms": null
+   }
+  ]
+ }
+}

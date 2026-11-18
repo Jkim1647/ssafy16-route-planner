@@ -1,0 +1,83 @@
+# Agent 설계 문서
+
+## 1. 구성 한눈에 보기
+
+```
+사용자 ─ 화면(frontend) ─ FastAPI(/api/chat)
+                              │
+                              ▼
+            ┌─────────── 메인 Agent (LangGraph) ───────────┐
+            │ analyze → plan → execute → (verify) → judge │──→ respond
+            │              ▲                       │      │
+            │              └──── replan ◄──────────┘      │
+            └──────────────┬──────────────────────────────┘
+                           │ emit(event)   (구독자를 모름)
+                           ▼
+                     EventBus ──► 로깅 Agent(LLM 없음) ──► SQLite run_events
+                                        │ 실행 종료 후
+                                        ▼
+                               이상 징후 판정(규칙) ──warn만──► LLM 진단(분리 저장)
+```
+
+- 코드: `backend/agent/graph.py`(그래프·노드), `executor.py`(계획 템플릿·Tool 실행), `judge.py`(계산), `conditions.py`·`ko_time.py`(조건), `planner_worker.py`(Worker 규칙), `service.py`(실행 1턴), `backend/events/`(버스·로깅 Agent·판정)
+- 그래프 구조 출력: `docs/evidence/graph.mmd`
+
+## 2. 실행 단계와 단계별 입출력
+
+| 단계(노드) | 입력 | 하는 일 | 출력(상태) | LLM |
+|---|---|---|---|---|
+| `analyze` | 사용자 메시지, 직전 조건·카드(맥락) | 의도 분류(이유 포함), 조건 추출 → 형식 검사(`ko_time.fix_changes`로 날짜·시각 칸 정리) → 이전 조건에 바뀐 값만 병합 → 누락 검사 | `intent, intent_reason, conditions, missing, option_ref` | **1회** |
+| `clarify` | 누락 목록 | 출발지·날짜·시각 등 되묻기, 지난 마감은 다시 묻기 | `clarification` | 0 |
+| `plan` | 의도, 재계획 전략 | 의도별 작업 템플릿으로 Tool·순서·고정 인자 구성(등록된 Tool만) → `plan_tasks` 이벤트 | `tasks` | 0 |
+| `execute` | 조건, 전략, 이전 장소 결과 | 작업 순서대로 Tool 호출, 앞선 결과(좌표·역 ID)를 다음 입력으로, 실패는 기록 후 진행, 같은 입력 재사용 | 실행 문맥에 후보 옵션·날씨·일정 | 0 (PW 모드 Worker 예외 시 ≤2) |
+| `verify` (PW 모드) | 지금까지의 이벤트 | 로깅 Agent가 규칙 판정(중복·계획 외·과도 재계획) | `verify` 결과 | 0 |
+| `judge` | 후보 옵션, 조건, 일정, 날씨 | 계산·평가·정렬·경고, 판단 후 도로 돌발 1회 조회 | `cards, excluded, undetermined, estimated, warnings` | 0 |
+| `replan` | 판단 결과·Worker 요청·검증 결과 | 전략 1단계 올림, 사유·출처 기록 | `replan_count, strategy, replan_history` | 0 |
+| `respond` | 카드·조건 | 요약 문장 생성 → **숫자 검사**(카드에 없는 시각·금액이면 템플릿으로 대체) + 고정 안내 | `final_reply, last_cards` | **1회**(경로 응답일 때만) |
+| `action` | 카드 번호, 계획 | 계획 저장(겹침 알림)·캘린더 등록 | `final_reply` | 0 |
+
+요청당 LLM 호출: 경로 요청 2회, 사용법·되묻기·규정 질문·상한 도달 1회(GMS 사용량 절약 설계, 모델 `gpt-6-luna`).
+
+## 3. 제약 판단 계산식 (F3008)
+```
+출발해야 할 시각 = 열차 출발 − 승차 여유 10분 − 출발 구간(장소→역) 소요
+도착 시각       = 열차 도착 + 도착 구간(역→목적지) 소요
+총요금          = 출발 구간 + 열차 운임 + 도착 구간 (하나라도 모르면 '예산 판단 불가')
+통과            = 도착 ≤ 마감 − 여유(기본 10분) · 출발 ≥ 출발 하한(오늘이면 현재 시각)
+                  · 캘린더 일정과 [출발, 도착)이 겹치지 않음 · 총요금 ≤ 예산
+```
+- 같은 도시 안(직선 40km 미만): 열차 없이 대중교통·택시 경로가 옵션, 마감에서 역산해 출발 시각 제시.
+- 실제 좌석·실시간 지연은 확인할 수 없어 계산에 넣지 않고 응답에 고정 안내로 밝힌다.
+- 날씨·도로 돌발은 **경고**로만 쓴다(사용자가 "비 맞기 싫어"라고 하면 강수확률 60%↑·도보 10분↑ 옵션을 제외).
+- 정렬: 우선순위(최저가·최단 소요·환승 최소)별 대표 1개씩 최대 3장.
+
+## 4. 계획 수립과 재계획 판단 조건 (F3006·F3009)
+- 계획: `plan_trip`/`modify` → 장소→역→열차→구간→날씨→일정(→판단 후 돌발), `fact_query` → 장소·역·열차, `terms_query` → 규정 검색, `chat` → 계획 건너뜀.
+- 재계획 **하는** 조건: 통과 후보 0개 / (PW) Worker의 계획 변경 요청 / (PW) 검증 경고(중복·계획 외 호출, 실행당 1회).
+- 재계획 **안 하는** 조건: 핵심 Tool(장소·역·열차)의 키 오류·호출 한도·서버 오류, 장소 동명 모호, 조건 누락, 상한 도달.
+- 전략(순서): 1 거점 확장(근처 역 2→3곳) · 2 수단 확장(택시 구간·고속버스) · 3 전날 출발 후보. 상한 `MAX_REPLAN=3`.
+- 재사용: 실행 단위 캐시(같은 Tool·같은 입력은 다시 안 부름) + 외부 API 영구 캐시.
+
+## 5. 메인 Agent와 로깅 Agent의 관계·이벤트 흐름 (F3012~F3014, F3020)
+- 메인 Agent는 `Emitter.emit()`으로 이벤트를 발행할 뿐 구독자를 모른다. `EventBus.publish`는 구독자 예외를 삼켜 로깅 실패가 대화를 막지 않는다. `LOGGING_ENABLED=false`면 구독자 0명으로도 정상 동작(검증: `docs/evidence/no_logger.json`).
+- 이벤트: `run_start/run_end`, `node_start/node_end`(분석 종료에 의도·이유·조건), `llm_decision`(의도 판단, 응답 숫자 거부), `plan_tasks`(작업·고정 인자), `tool_call/tool_result`(입력·요약·캐시·소요 ms), `replan`(전략·사유·출처), `worker_decision`, `verify`, `error`.
+- 로깅 Agent: 받는 즉시 세션 단위로 발생 순서대로 SQLite에 append(LLM 미사용, 요약·가공 없음).
+- 이상 징후(F3020): 실행이 끝나면 규칙 판정(`DUPLICATE_CALL`·`UNPLANNED_CALL`·`EXCESSIVE_REPLAN`, 근거 없으면 `undetermined`) → `warn`일 때만 LLM이 3문장 이내 원인 진단, 판정과 분리 저장. 진단 실패해도 판정 유지.
+
+## 6. 대화 맥락(Memory) (F3010)
+- 보관: 세션별 조건(`conditions`), 직전 추천 카드(`last_cards`), 장소 검색 결과(`places`) — LangGraph `InMemorySaver`(thread_id = session_id).
+- 보관 안 함: Tool 원본 응답, 키, 오류 원문.
+- 갱신: 분석 결과의 "바뀐 필드만" 병합(`merge`), `None`은 지우기가 아님. 새 출발지·도착지가 모두 오면 새 계획으로 보고 이전 조건을 버린다.
+- 서버 재시작 시 대화 맥락은 사라지고 계획·실행 로그는 SQLite에 남는다.
+
+## 7. Planner·Worker 구조 (F3021, `AGENT_MODE=planner_worker`)
+
+| Agent | 역할 | LLM 호출 조건 | LLM 안 부르는 경우 |
+|---|---|---|---|
+| Planner (`analyze`·`plan`·`replan`) | 요청 분해, 작업 목록(고정 인자 표시), 재구성 | 의도·조건 분석 1회 | 계획 템플릿·재계획 전략은 규칙 |
+| Worker (`execute`) | 작업 목록대로 Tool 호출 | 고칠 인자가 있는 Tool(`find_stations`·`find_terminals` 반경)이 `NO_DATA`·`NOT_FOUND`·`BAD_ARGUMENT`일 때 retry/skip/request_replan 판단(재시도 ≤2) | 정상 경로(0회), 치명적 실패(키·한도·서버), 장소 모호, 고칠 인자 없는 실패(열차 없음 등) |
+| 로깅 (`verify` + 실행 종료 판정) | 수행 결과 검증, 이상 징후 판정 | `warn` 실행의 원인 진단 | 수집·저장·규칙 판정 |
+
+- 고정 인자(`FIXED_ARGS`): 장소 검색어, 좌표, 날짜, 예보 시각 등 사용자 조건에서 온 값 — Worker가 바꾸려 하면 판단을 무효(skip) 처리.
+- 메시지 형식: 작업 `{id, tool, purpose, when, fixed_args}`, Worker 판단 `{action, new_args, reason}`, 검증 `{verdict, rules}` — 모두 이벤트로 남아 로그에서 확인.
+- 비교 결과: `docs/비교결과.md` — 정상 경로 Worker LLM 0회, 실패 시 +0~1회, 재계획 횟수·결과는 모드와 무관하게 동일.

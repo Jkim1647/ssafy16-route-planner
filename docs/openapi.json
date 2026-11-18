@@ -1,0 +1,920 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "이동 플래너 API",
+  "description": "Agent 기반 이동 플래너 — 대화·계획 관리·실행 로그",
+  "version": "1.0"
+ },
+ "paths": {
+  "/api/chat": {
+   "post": {
+    "tags": [
+     "대화"
+    ],
+    "summary": "Chat",
+    "operationId": "chat_api_chat_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ChatIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TurnResult"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/plans": {
+   "get": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "List Plans",
+    "operationId": "list_plans_api_plans_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "items": {
+          "$ref": "#/components/schemas/PlanOut"
+         },
+         "type": "array",
+         "title": "Response List Plans Api Plans Get"
+        }
+       }
+      }
+     }
+    }
+   },
+   "post": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Create Plan",
+    "operationId": "create_plan_api_plans_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PlanIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlanSaveResult"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/plans/{plan_id}": {
+   "get": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Get Plan",
+    "operationId": "get_plan_api_plans__plan_id__get",
+    "parameters": [
+     {
+      "name": "plan_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Plan Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlanOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "put": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Update Plan",
+    "operationId": "update_plan_api_plans__plan_id__put",
+    "parameters": [
+     {
+      "name": "plan_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Plan Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/PlanUpdate"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/PlanSaveResult"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Delete Plan",
+    "operationId": "delete_plan_api_plans__plan_id__delete",
+    "parameters": [
+     {
+      "name": "plan_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Plan Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/plans/{plan_id}/calendar": {
+   "post": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Register Plan Calendar",
+    "description": "캘린더 등록(F3023). Tool과 같은 함수를 쓰며 계획 ID만 받는다.",
+    "operationId": "register_plan_calendar_api_plans__plan_id__calendar_post",
+    "parameters": [
+     {
+      "name": "plan_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Plan Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/logs": {
+   "get": {
+    "tags": [
+     "실행 로그"
+    ],
+    "summary": "List Logs",
+    "operationId": "list_logs_api_logs_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/logs/{session_id}": {
+   "get": {
+    "tags": [
+     "실행 로그"
+    ],
+    "summary": "Get Log",
+    "operationId": "get_log_api_logs__session_id__get",
+    "parameters": [
+     {
+      "name": "session_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Session Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "실행 로그"
+    ],
+    "summary": "Delete Log",
+    "operationId": "delete_log_api_logs__session_id__delete",
+    "parameters": [
+     {
+      "name": "session_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Session Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/runs/{run_id}/anomaly": {
+   "get": {
+    "tags": [
+     "실행 로그"
+    ],
+    "summary": "Get Anomaly",
+    "operationId": "get_anomaly_api_runs__run_id__anomaly_get",
+    "parameters": [
+     {
+      "name": "run_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Run Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/tools": {
+   "get": {
+    "tags": [
+     "메타"
+    ],
+    "summary": "Tools",
+    "operationId": "tools_api_tools_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/config/status": {
+   "get": {
+    "tags": [
+     "메타"
+    ],
+    "summary": "Config Status",
+    "description": "키는 설정 여부(boolean)만, 값은 절대 내보내지 않는다(NF3002).",
+    "operationId": "config_status_api_config_status_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "ChatIn": {
+    "properties": {
+     "message": {
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 1,
+      "title": "Message"
+     },
+     "session_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 40
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Session Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "message"
+    ],
+    "title": "ChatIn"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "PlanIn": {
+    "properties": {
+     "title": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Title"
+     },
+     "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+     },
+     "leave_at": {
+      "type": "string",
+      "title": "Leave At"
+     },
+     "arrive_at": {
+      "type": "string",
+      "title": "Arrive At"
+     },
+     "origin_name": {
+      "type": "string",
+      "minLength": 1,
+      "title": "Origin Name"
+     },
+     "destination_name": {
+      "type": "string",
+      "minLength": 1,
+      "title": "Destination Name"
+     },
+     "legs": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Legs",
+      "default": []
+     },
+     "total_fare": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Total Fare"
+     },
+     "source_run_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Run Id"
+     }
+    },
+    "type": "object",
+    "required": [
+     "title",
+     "date",
+     "leave_at",
+     "arrive_at",
+     "origin_name",
+     "destination_name"
+    ],
+    "title": "PlanIn"
+   },
+   "PlanOut": {
+    "properties": {
+     "title": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Title"
+     },
+     "date": {
+      "type": "string",
+      "format": "date",
+      "title": "Date"
+     },
+     "leave_at": {
+      "type": "string",
+      "title": "Leave At"
+     },
+     "arrive_at": {
+      "type": "string",
+      "title": "Arrive At"
+     },
+     "origin_name": {
+      "type": "string",
+      "minLength": 1,
+      "title": "Origin Name"
+     },
+     "destination_name": {
+      "type": "string",
+      "minLength": 1,
+      "title": "Destination Name"
+     },
+     "legs": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Legs",
+      "default": []
+     },
+     "total_fare": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Total Fare"
+     },
+     "source_run_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Source Run Id"
+     },
+     "id": {
+      "type": "integer",
+      "title": "Id"
+     },
+     "calendar_event_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Calendar Event Id"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Updated At"
+     }
+    },
+    "type": "object",
+    "required": [
+     "title",
+     "date",
+     "leave_at",
+     "arrive_at",
+     "origin_name",
+     "destination_name",
+     "id",
+     "created_at",
+     "updated_at"
+    ],
+    "title": "PlanOut"
+   },
+   "PlanSaveResult": {
+    "properties": {
+     "plan": {
+      "$ref": "#/components/schemas/PlanOut"
+     },
+     "overlaps": {
+      "items": {
+       "$ref": "#/components/schemas/PlanOut"
+      },
+      "type": "array",
+      "title": "Overlaps"
+     }
+    },
+    "type": "object",
+    "required": [
+     "plan",
+     "overlaps"
+    ],
+    "title": "PlanSaveResult"
+   },
+   "PlanUpdate": {
+    "properties": {
+     "title": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 100,
+        "minLength": 1
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Title"
+     },
+     "date": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Date"
+     },
+     "leave_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Leave At"
+     },
+     "arrive_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Arrive At"
+     },
+     "origin_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Origin Name"
+     },
+     "destination_name": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Destination Name"
+     }
+    },
+    "type": "object",
+    "title": "PlanUpdate"
+   },
+   "TurnResult": {
+    "properties": {
+     "run_id": {
+      "type": "string",
+      "title": "Run Id"
+     },
+     "session_id": {
+      "type": "string",
+      "title": "Session Id"
+     },
+     "reply": {
+      "type": "string",
+      "title": "Reply"
+     },
+     "cards": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Cards",
+      "default": []
+     },
+     "excluded": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Excluded",
+      "default": []
+     },
+     "undetermined": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Undetermined",
+      "default": []
+     },
+     "estimated": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Estimated",
+      "default": []
+     },
+     "warnings": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Warnings",
+      "default": []
+     },
+     "clarification": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Clarification"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "intent": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Intent"
+     },
+     "replan_count": {
+      "type": "integer",
+      "title": "Replan Count",
+      "default": 0
+     },
+     "llm_calls": {
+      "type": "integer",
+      "title": "Llm Calls",
+      "default": 0
+     },
+     "events": {
+      "items": {
+       "additionalProperties": true,
+       "type": "object"
+      },
+      "type": "array",
+      "title": "Events",
+      "default": []
+     }
+    },
+    "type": "object",
+    "required": [
+     "run_id",
+     "session_id",
+     "reply",
+     "status"
+    ],
+    "title": "TurnResult"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "ctx": {
+      "type": "object",
+      "title": "Context"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   }
+  }
+ }
+}

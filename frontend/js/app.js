@@ -105,6 +105,7 @@ async function loadPlans(notice) {
     const plans = await api("/plans");
     rows.replaceChildren(...plans.map(planRow));
     $("plans-empty").hidden = plans.length > 0;
+    $("plan-notice").hidden = true;  // 이전 오류 알림을 지운다
   } catch (e) {
     showNotice(e.message);
   }

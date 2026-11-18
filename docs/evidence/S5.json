@@ -1,0 +1,148 @@
+{
+ "summary": {
+  "id": "S5",
+  "title": "Tool이 필요 없는 요청",
+  "expected": "Tool 호출 0, 사용법 안내",
+  "status": "done",
+  "intent": "chat",
+  "replans": 0,
+  "llm_calls": 1,
+  "tool_calls": 0,
+  "tools": [],
+  "cards": [],
+  "excluded_sample": [],
+  "warnings": [],
+  "reply": "출발지·도착지와 '언제까지 도착' 또는 '언제부터 출발'을 알려 주세요. 예) \"토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하\". 도보·지하철·버스·KTX·택시를 이어 붙여 시간과 요금을 계산해 드려요.",
+  "run_id": "3750095c557e",
+  "session_id": "9c639cc57291",
+  "anomaly": {
+   "verdict": "undetermined",
+   "rules": [],
+   "diagnosis": null
+  }
+ },
+ "result": {
+  "run_id": "3750095c557e",
+  "session_id": "9c639cc57291",
+  "reply": "출발지·도착지와 '언제까지 도착' 또는 '언제부터 출발'을 알려 주세요. 예) \"토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하\". 도보·지하철·버스·KTX·택시를 이어 붙여 시간과 요금을 계산해 드려요.",
+  "cards": [],
+  "excluded": [],
+  "undetermined": [],
+  "estimated": [],
+  "warnings": [],
+  "clarification": null,
+  "status": "done",
+  "intent": "chat",
+  "replan_count": 0,
+  "llm_calls": 1,
+  "events": [
+   {
+    "session_id": "9c639cc57291",
+    "run_id": "3750095c557e",
+    "seq": 1,
+    "ts": "2026-11-18T13:35:58.175",
+    "agent": "main",
+    "type": "run_start",
+    "node": null,
+    "payload": {
+     "message": "안녕! 이거 어떻게 쓰는 거야?",
+     "mode": "single"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "9c639cc57291",
+    "run_id": "3750095c557e",
+    "seq": 2,
+    "ts": "2026-11-18T13:35:58.180",
+    "agent": "main",
+    "type": "node_start",
+    "node": "analyze",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "9c639cc57291",
+    "run_id": "3750095c557e",
+    "seq": 3,
+    "ts": "2026-11-18T13:36:00.635",
+    "agent": "main",
+    "type": "llm_decision",
+    "node": "analyze",
+    "payload": {
+     "decision": "intent",
+     "value": "chat",
+     "reason": "사용 방법을 묻는 인사입니다.",
+     "changes": {}
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "9c639cc57291",
+    "run_id": "3750095c557e",
+    "seq": 4,
+    "ts": "2026-11-18T13:36:00.642",
+    "agent": "main",
+    "type": "node_end",
+    "node": "analyze",
+    "payload": {
+     "intent": "chat",
+     "intent_reason": "사용 방법을 묻는 인사입니다.",
+     "conditions": {
+      "origin": null,
+      "destination": null,
+      "date": null,
+      "arrive_by": null,
+      "depart_after": null,
+      "priority": "cheapest",
+      "modes": null,
+      "avoid": [],
+      "budget": null,
+      "buffer_min": 10
+     },
+     "missing": []
+    },
+    "duration_ms": 2459
+   },
+   {
+    "session_id": "9c639cc57291",
+    "run_id": "3750095c557e",
+    "seq": 5,
+    "ts": "2026-11-18T13:36:00.648",
+    "agent": "main",
+    "type": "node_start",
+    "node": "respond",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "9c639cc57291",
+    "run_id": "3750095c557e",
+    "seq": 6,
+    "ts": "2026-11-18T13:36:00.651",
+    "agent": "main",
+    "type": "node_end",
+    "node": "respond",
+    "payload": {
+     "status": "done"
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "9c639cc57291",
+    "run_id": "3750095c557e",
+    "seq": 7,
+    "ts": "2026-11-18T13:36:00.655",
+    "agent": "main",
+    "type": "run_end",
+    "node": null,
+    "payload": {
+     "status": "done",
+     "replan_count": 0,
+     "llm_calls": 1
+    },
+    "duration_ms": null
+   }
+  ]
+ }
+}
