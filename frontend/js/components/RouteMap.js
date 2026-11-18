@@ -62,7 +62,7 @@ export default {
 
     onMounted(() => {
       if (typeof L === "undefined") { failed.value = true; return; }
-      map = L.map(box.value, { zoomControl: true, scrollWheelZoom: false }).setView([36.3, 127.4], 7);
+      map = L.map(box.value, { zoomControl: true, scrollWheelZoom: true, wheelPxPerZoomLevel: 90 }).setView([36.3, 127.4], 7);
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
