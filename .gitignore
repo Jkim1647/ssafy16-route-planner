@@ -1,0 +1,16 @@
+# secrets
+.env
+token.json
+credentials.json
+
+# local data
+data/app.db
+data/chroma/
+data/cache/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.superpowers/
