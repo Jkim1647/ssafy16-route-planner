@@ -86,12 +86,60 @@ python -m http.server 5500 --bind 127.0.0.1 --directory frontend   # 프론트 �
 
 ## 6. 구조
 ```
-backend/  main.py · api/routes.py · container.py · settings.py · schemas.py
-          agent/ (graph · executor · judge · conditions · ko_time · planner_worker · llm · service · prompts)
-          tools/ (base · registry · http · budget · kakao_local · stations · tago_train · tago_bus · odsay
-                  kakao_mobility · kma_weather · its_events · rag · calendar_tools)
-          events/ (bus · logger_agent · anomaly)   db/ (database · repositories)   calendar/ (local · google)
-frontend/ index.html · css/app.css · js/(api · render · app).js
-scripts/  check_apis · tools_demo(_extra) · smoke_run · run_scenarios · compare_modes · build_index
-data/docs/ 규정 원문(색인 대상)   tests/ (fixtures = 실제 응답 샘플)
+route-planner/
+├── backend/                     # FastAPI 백엔드
+│   ├── main.py                  # 앱 생성·CORS·오류 숨김
+│   ├── container.py             # 의존성 조립
+│   ├── settings.py              # .env 설정
+│   ├── schemas.py               # 요청·응답 형식(Pydantic)
+│   ├── api/
+│   │   └── routes.py            # 대화·계획·실행 로그·메타 API
+│   ├── agent/                   # 메인 Agent(LangGraph)
+│   │   ├── graph.py             # 분석→계획→실행→판단→(재계획)→응답 그래프
+│   │   ├── executor.py          # 작업 목록 실행·Tool 호출·결과 재사용
+│   │   ├── judge.py             # 출발·도착 시각 계산, 마감·예산·일정 판단
+│   │   ├── conditions.py        # 요청 조건·후속 요청 병합
+│   │   ├── ko_time.py           # 한국어 날짜·시각 보조 파서
+│   │   ├── planner_worker.py    # 심화: Planner·Worker
+│   │   ├── llm.py               # GMS LLM 호출
+│   │   ├── prompts.py
+│   │   ├── service.py           # 대화 1턴 실행
+│   │   └── state.py
+│   ├── tools/                   # Tool (공통 ok/fail 규약)
+│   │   ├── base.py · registry.py · http.py · budget.py · catalog_all.py
+│   │   ├── kakao_local.py       # 장소 검색
+│   │   ├── stations.py          # 근처 기차역
+│   │   ├── tago_train.py        # 열차 시간표·운임
+│   │   ├── tago_bus.py          # 고속버스 터미널·시간표
+│   │   ├── odsay.py             # 대중교통 구간
+│   │   ├── kakao_mobility.py    # 택시 구간
+│   │   ├── kma_weather.py       # 날씨
+│   │   ├── its_events.py        # 도로 돌발정보
+│   │   ├── rag.py               # 심화: 규정 검색(RAG)
+│   │   └── calendar_tools.py    # 심화: 캘린더 조회·등록
+│   ├── events/                  # 이벤트 발행·로깅 Agent·이상 징후
+│   │   ├── bus.py
+│   │   ├── logger_agent.py
+│   │   └── anomaly.py
+│   ├── db/                      # SQLite 저장소
+│   │   ├── database.py
+│   │   └── repositories.py
+│   └── calendar/                # 캘린더 구현체
+│       ├── base.py
+│       ├── local.py
+│       └── google.py
+├── frontend/                    # 화면(대화·이동 계획·실행 로그)
+│   ├── index.html
+│   ├── css/app.css
+│   └── js/
+│       ├── api.js
+│       ├── render.js
+│       └── app.js
+├── scripts/                     # 확인용 스크립트
+│   ├── check_apis.py · tools_demo.py · tools_demo_extra.py
+│   ├── smoke_run.py · run_scenarios.py · compare_modes.py
+│   └── build_index.py           # 규정 문서 색인
+├── data/docs/                   # 규정 원문(색인 대상)
+├── tests/                       # pytest (fixtures = 실제 응답 샘플)
+└── docs/                        # 산출물 문서·증거·스크린샷
 ```
