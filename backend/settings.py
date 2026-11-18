@@ -30,6 +30,7 @@ class Settings:
     GMS_API_KEY: str | None
     GMS_BASE_URL: str | None
     LLM_MODEL: str
+    LLM_REASONING_EFFORT: str | None
     EMBEDDING_MODEL: str
     KAKAO_REST_KEY: str | None
     ODSAY_API_KEY: str | None
@@ -61,7 +62,8 @@ def get_settings() -> Settings:
     return Settings(
         GMS_API_KEY=_str("GMS_API_KEY"),
         GMS_BASE_URL=_str("GMS_BASE_URL"),
-        LLM_MODEL=_str("LLM_MODEL", "gpt-5.4-mini"),
+        LLM_MODEL=_str("LLM_MODEL", "gpt-5-nano"),
+        LLM_REASONING_EFFORT=_str("LLM_REASONING_EFFORT", "minimal"),
         EMBEDDING_MODEL=_str("EMBEDDING_MODEL", "text-embedding-3-small"),
         KAKAO_REST_KEY=_str("KAKAO_REST_KEY"),
         ODSAY_API_KEY=_str("ODSAY_API_KEY"),
