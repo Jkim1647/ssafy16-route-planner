@@ -22,8 +22,8 @@ uvicorn backend.main:app --port 8000          # 백엔드 → http://127.0.0.1:8
 python -m http.server 5500 --bind 127.0.0.1 --directory frontend   # 프론트 → http://127.0.0.1:5500
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
-- 테스트: `pytest` (237개, 외부 API를 부르지 않음)
-- 확인용 스크립트: `scripts/tools_demo.py`(Tool 단독), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
+- 테스트: `pytest` (243개, 외부 API를 부르지 않음)
+- 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능
 
@@ -92,6 +92,6 @@ backend/  main.py · api/routes.py · container.py · settings.py · schemas.py
                   kakao_mobility · kma_weather · its_events · rag · calendar_tools)
           events/ (bus · logger_agent · anomaly)   db/ (database · repositories)   calendar/ (local · google)
 frontend/ index.html · css/app.css · js/(api · render · app).js
-scripts/  check_apis · tools_demo · smoke_run · run_scenarios · compare_modes · build_index
+scripts/  check_apis · tools_demo(_extra) · smoke_run · run_scenarios · compare_modes · build_index
 data/docs/ 규정 원문(색인 대상)   tests/ (fixtures = 실제 응답 샘플)
 ```

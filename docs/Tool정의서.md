@@ -56,6 +56,9 @@
 | 키 오류·서버 오류(핵심 Tool) | 재계획하지 않고 안내(같은 결과가 반복되므로) |
 | 열차 없음(일부 역 조합) | 사유 기록 후 나머지 조합으로 진행 |
 | Planner·Worker 모드 | 고칠 인자가 있는 Tool(`find_stations`·`find_terminals` 반경)만 Worker LLM이 재시도 판단, 나머지는 규칙으로 건너뜀 |
+| HTTP 200인데 결과 코드가 오류(TAGO·기상청·ITS) | 캐시 전에 실패(`INVALID_KEY`·`UPSTREAM_ERROR`)로 바꿔 캐시하지 않음 — 키를 고치면 바로 다시 조회 |
+| 캘린더 조회 실패 | 판단은 계속하고 모든 후보 카드에 "캘린더 조회 실패" 경고 |
+| 출발·도착 직선 700m 미만 | 경로 Tool을 부르지 않고 도보 안내(ODsay가 경로를 주지 않는 거리) |
 
 ## 5. 등록·확장 방법
 1. `backend/tools/<이름>.py`에 함수 작성 → `ok()`/`fail()` 반환, 외부 호출은 `default_budget().cached_call(api, args, ttl, fn)`으로 감싼다.

@@ -77,6 +77,8 @@ def _ts(v) -> str:
 
 
 def search_express_bus(dep_terminal_id: str, arr_terminal_id: str, date: str | None = None) -> dict:
+    if not dep_terminal_id or not arr_terminal_id:
+        return fail(BAD_ARGUMENT, "출발·도착 터미널 ID는 필수입니다.")
     try:
         day = dt.date.fromisoformat(date) if date else dt.date.today()
     except ValueError:

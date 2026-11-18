@@ -88,3 +88,8 @@ def test_backend_swap_same_shape(db, monkeypatch):
 def test_get_calendar_local(db):
     from backend.settings import get_settings
     assert get_calendar(get_settings()).name == "local"
+
+
+@pytest.mark.parametrize("bad", [0, -1, "abc", None])
+def test_register_bad_plan_id(db, bad):
+    assert register_calendar(bad)["error"]["code"] == "BAD_ARGUMENT"

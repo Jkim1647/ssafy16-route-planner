@@ -60,3 +60,9 @@ def test_rebuild_is_idempotent(docs, tmp_path):
     b = build_index(str(docs), str(tmp_path / "chroma"), fake_embed)
     assert a == b
     assert len(search_terms("위약금", k=10)["data"]["chunks"]) == a
+
+
+def test_search_without_gms_key_is_invalid_key(docs, tmp_path, monkeypatch):
+    build_index(str(docs), str(tmp_path / "chroma"), fake_embed)
+    monkeypatch.setenv("GMS_API_KEY", "")
+    assert search_terms("위약금")["error"]["code"] == "INVALID_KEY"

@@ -1,0 +1,40 @@
+
+== find_terminals ==
+  True  정상     → {'terminals': [{'terminal_id': 'NAEK530', 'name': '나주', 'x': 126.72149985434669, 'y': 35.03361935786683, 'distance_km': …
+  False 빈입력    → BAD_ARGUMENT — 입력값이 규약과 다릅니다.
+  False 키없음    → INVALID_KEY — KAKAO_REST_KEY가 설정되지 않았습니다.
+  False 결과없음   → NO_DATA — 근처에서 고속버스 터미널을 찾지 못했습니다.
+
+== search_express_bus ==
+  False 정상     → NO_DATA — 해당 날짜·구간의 고속버스가 없습니다.
+  False 빈입력    → BAD_ARGUMENT — 출발·도착 터미널 ID는 필수입니다.
+  False 키없음    → INVALID_KEY — DATA_GO_KR_KEY가 설정되지 않았습니다.
+  False 결과없음   → NO_DATA — 해당 날짜·구간의 고속버스가 없습니다.
+
+== get_road_events ==
+  True  정상     → {'realtime': True, 'events': [{'type': '교통사고', 'detail': '', 'description': '북문대로419번길', 'start': '2026-11-18T00:00', 'e…
+  False 빈입력    → BAD_ARGUMENT — bbox는 [minX, minY, maxX, maxY]여야 합니다.
+  False 키없음    → INVALID_KEY — ITS_API_KEY가 설정되지 않았습니다.
+  True  결과없음   → {'realtime': True, 'events': []}
+
+== search_terms ==
+  True  정상     → {'chunks': [{'text': '1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시…
+  False 빈입력    → BAD_ARGUMENT — question은 필수입니다.
+  False 키없음    → INVALID_KEY — GMS_API_KEY가 설정되지 않아 규정을 검색할 수 없습니다.
+  False 결과없음   → NO_INDEX — 아직 규정 문서를 색인하지 않았습니다.
+
+== register_calendar ==
+  True  정상     → {'event_id': 'local-1', 'backend': 'local'}
+  False 빈입력    → BAD_ARGUMENT — plan_id는 1 이상의 정수입니다.
+  -     키없음 → 해당 없음(로컬 서버 API 툴, 외부 키 불필요)
+  False 결과없음   → NOT_FOUND — 그런 이동 계획이 없습니다.
+
+== get_free_busy ==
+  True  정상     → {'backend': 'local', 'busy': [{'title': '이동: 첨단동 → 강남역(데모)', 'start': '2026-11-19T07:45', 'end': '2026-11-19T10:52'}]}
+  False 빈입력    → BAD_ARGUMENT — date는 YYYY-MM-DD 형식이어야 합니다.
+  -     키없음 → 해당 없음(로컬 서버 API 툴, 외부 키 불필요)
+  True  결과없음   → {'backend': 'local', 'busy': []}
+
+  (캘린더는 임시 로컬 DB로 실행 — Google 구현체도 같은 입출력, tests/calendar/test_calendar.py)
+
+오늘 외부 API 사용량: {'odsay': {'used': 9, 'limit': 30}, 'its': {'used': 4, 'limit': 100}}

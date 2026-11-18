@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 from typing import Callable
 
-from backend.tools.base import BAD_ARGUMENT, NO_INDEX, UPSTREAM_ERROR, Tool, fail, ok
+from backend.tools.base import BAD_ARGUMENT, INVALID_KEY, NO_INDEX, UPSTREAM_ERROR, Tool, fail, ok
 from backend.tools.registry import register
 
 COLLECTION = "terms"
@@ -84,6 +84,9 @@ def search_terms(question: str, k: int = 4) -> dict:
         col = chromadb.PersistentClient(path=path).get_collection(COLLECTION, embedding_function=None)
         if col.count() == 0:
             return fail(NO_INDEX, "아직 규정 문서를 색인하지 않았습니다.")
+        from backend.settings import get_settings
+        if not get_settings().GMS_API_KEY:  # 질문 임베딩에 GMS 키가 필요하다
+            return fail(INVALID_KEY, "GMS_API_KEY가 설정되지 않아 규정을 검색할 수 없습니다.")
         res = col.query(query_embeddings=get_embedder()([question]), n_results=min(k, col.count()))
     except ValueError:
         return fail(NO_INDEX, "아직 규정 문서를 색인하지 않았습니다.")

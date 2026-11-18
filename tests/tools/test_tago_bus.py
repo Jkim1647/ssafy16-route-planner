@@ -62,3 +62,8 @@ def test_find_terminals_matches(monkeypatch, term_cache):
 def test_find_terminals_none(monkeypatch, term_cache):
     route_get(monkeypatch, [(lambda u, p: KAKAO in u, {"documents": [], "meta": {}})])
     assert find_terminals(126.85, 35.2)["error"]["code"] == "NO_DATA"
+
+
+def test_bus_empty_ids_bad_argument():
+    from backend.tools.tago_bus import search_express_bus
+    assert search_express_bus("", "")["error"]["code"] == "BAD_ARGUMENT"

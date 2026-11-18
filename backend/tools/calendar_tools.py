@@ -28,8 +28,14 @@ def get_free_busy(date: str, days: int = 1) -> dict:
 
 
 def register_calendar(plan_id: int) -> dict:
+    try:
+        pid = int(plan_id)
+    except (TypeError, ValueError):
+        pid = 0
+    if pid <= 0:
+        return fail(BAD_ARGUMENT, "plan_id는 1 이상의 정수입니다.")
     s = get_settings()
-    plan = PlanRepo(s.DB_PATH).get(int(plan_id))
+    plan = PlanRepo(s.DB_PATH).get(pid)
     if plan is None:
         return fail(NOT_FOUND, "그런 이동 계획이 없습니다.")
     cal = get_calendar(s)
