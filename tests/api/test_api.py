@@ -62,6 +62,14 @@ def test_logs_list_detail_delete(client):
     assert client.get(f"/api/logs/{sid}").status_code == 404
 
 
+def test_anomaly_judged_after_chat(client):
+    client.llm.responses = [AnalyzeOut(intent="chat", intent_reason="인사", changes=Changes())]
+    run_id = client.post("/api/chat", json={"message": "안녕"}).json()["run_id"]
+    a = client.get(f"/api/runs/{run_id}/anomaly").json()
+    assert a["verdict"] == "undetermined" and a["diagnosis"] is None  # 계획·Tool 호출 근거 없음
+    assert client.llm.responses == []  # 판정에 LLM을 쓰지 않음
+
+
 def test_logs_no_put(client):
     assert client.put("/api/logs/abc", json={}).status_code == 405
 

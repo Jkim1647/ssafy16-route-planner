@@ -6,12 +6,14 @@
 from __future__ import annotations
 
 import datetime as dt
+import os
 import time
 from dataclasses import dataclass, field
 
 from backend.agent.conditions import Conditions
 from backend.agent.judge import (Busy, Option, Segment, build_intercity_options, build_intracity_options,
                                  is_intracity, segments_for)
+from backend.tools.budget import default_budget
 from backend.tools.registry import get_tool
 
 ODSAY_PER_RUN = 4  # 설계 19-3
@@ -139,6 +141,7 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
         places[key] = {"query": q, **p}
     ctx.places = places
     o, d = places["origin"], places["destination"]
+    _debug_force(ctx, conds, o)
     _weather(ctx, conds, o, d)
     _calendar(ctx, conds)
 
@@ -206,6 +209,16 @@ def _bus_trunk(ctx, errors, o, d, dates) -> None:
             opt.id = f"bus-{opt.id}"
             opt.basis.update({"dep_station": to["name"], "arr_station": td["name"]})
             ctx.options.append(opt)
+
+
+def _debug_force(ctx, conds, o) -> None:
+    """검증용(F3020 4.6): 이상 실행을 일부러 만든다. 기본값 꺼짐. 실제 호출을 하므로 판정이 정직하다."""
+    mode = os.getenv("DEBUG_FORCE", "").strip()
+    if mode == "duplicate":
+        with default_budget().no_cache():
+            call_tool(ctx, "t1", "search_places", {"query": conds.origin})
+    elif mode == "unplanned" and get_tool("get_weather"):
+        call_tool(ctx, "t99", "get_weather", {"lat": o["y"], "lon": o["x"], "at": f"{conds.date}T12:00"})
 
 
 def _intracity(ctx, conds, o, d, errors) -> dict:

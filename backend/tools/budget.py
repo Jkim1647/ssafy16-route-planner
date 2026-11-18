@@ -1,4 +1,5 @@
 """외부 API 영구 캐시 + 일일 쿼터(설계 19장). ODsay 하루 30회·ITS 월 100회를 지킨다."""
+import contextlib
 import datetime as dt
 import json
 import os
@@ -41,6 +42,15 @@ class ApiBudget:
     def _conn(self):
         return sqlite3.connect(self.db_path)
 
+    @contextlib.contextmanager
+    def no_cache(self):
+        """캐시를 읽지 않고 실제로 호출한다(이상 징후 검증용 중복 호출 재현에만 사용)."""
+        self._bypass = True
+        try:
+            yield
+        finally:
+            self._bypass = False
+
     def _used(self, c, api: str, day: dt.date) -> int:
         row = c.execute("SELECT used FROM api_quota WHERE day=? AND api=?", (day.isoformat(), api)).fetchone()
         return row[0] if row else 0
@@ -62,7 +72,8 @@ class ApiBudget:
         key = f"{api}:{normalize_args(args)}"
         now, day = time.time(), self.today()
         with self._conn() as c:
-            row = c.execute("SELECT value_json FROM api_cache WHERE key=? AND expires_at>?", (key, now)).fetchone()
+            row = None if getattr(self, "_bypass", False) else \
+                c.execute("SELECT value_json FROM api_cache WHERE key=? AND expires_at>?", (key, now)).fetchone()
             if row:
                 return {**json.loads(row[0]), "cached": True}
             if self._over_limit(c, api, day):

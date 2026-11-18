@@ -373,6 +373,18 @@ def test_bus_added_on_mode_expansion(env, monkeypatch):
     assert first_bus > first_replan
 
 
+@pytest.mark.parametrize("mode,rule", [("duplicate", "DUPLICATE_CALL"), ("unplanned", "UNPLANNED_CALL"),
+                                       ("replan", "EXCESSIVE_REPLAN")])
+def test_debug_force_creates_detectable_anomaly(env, monkeypatch, mode, rule):
+    from backend.events.anomaly import judge_run
+    world, llm, make, _ = env
+    monkeypatch.setenv("DEBUG_FORCE", mode)
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    r = judge_run(res.events, 3)
+    assert r["verdict"] == "warn" and rule in {f["rule"] for f in r["findings"]}
+
+
 def test_rate_limited_falls_back_to_taxi_no_replan(env):
     world, llm, make, _ = env
     world.transit = fail("RATE_LIMITED", "한도")

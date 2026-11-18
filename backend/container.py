@@ -10,6 +10,7 @@ from backend.agent.llm import get_llm
 from backend.agent.service import TurnResult, run_turn
 from backend.db.database import init_db
 from backend.db.repositories import AnomalyRepo, EventRepo, PlanRepo, RunRepo
+from backend.events.anomaly import evaluate_and_store
 from backend.events.bus import EventBus, build_bus
 from backend.settings import Settings, get_settings
 
@@ -35,6 +36,8 @@ class Container:
         deps = Deps(llm_factory=llm_factory, plan_repo=plans, settings=s)
         c = cls(settings=s, plans=plans, events=events, runs=RunRepo(s.DB_PATH), anomalies=AnomalyRepo(s.DB_PATH),
                 bus=build_bus(events, enabled=s.LOGGING_ENABLED), deps=deps, graph=build_graph(deps))
+        if s.LOGGING_ENABLED:  # 로깅 Agent의 평가: 실행이 끝나면 규칙 판정, 이상일 때만 LLM 진단(F3020)
+            c.after_run = lambda run_id: evaluate_and_store(run_id, c.events, c.anomalies, llm_factory, s.MAX_REPLAN)
         return c
 
     def chat(self, session_id: str | None, message: str) -> TurnResult:

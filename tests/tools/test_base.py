@@ -128,6 +128,19 @@ def test_budget_resets_next_day(budget):
     assert budget.usage()["odsay"]["used"] == 0
 
 
+def test_budget_no_cache_forces_real_call(budget):
+    calls = []
+
+    def fn():
+        calls.append(1)
+        return ok(1)
+    budget.cached_call("kakao", {"q": 1}, 60, fn)
+    with budget.no_cache():
+        r = budget.cached_call("kakao", {"q": 1}, 60, fn)
+    assert len(calls) == 2 and r["cached"] is False
+    assert budget.cached_call("kakao", {"q": 1}, 60, fn)["cached"] is True
+
+
 def test_budget_its_daily_soft_limit(budget):
     for i in range(4):
         budget.cached_call("its", {"i": i}, 0, lambda: ok(1))

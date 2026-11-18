@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import os
 import re
 import time
 from dataclasses import dataclass
@@ -211,6 +212,8 @@ def build_graph(deps: Deps):
             conds = conds.model_copy(update={"date": conds.date or deps.now().date(),
                                              "depart_after": conds.depart_after or "00:00", "arrive_by": None})
         opts = apply_warnings(ctx.options, ctx.weather, [], conds.avoid)
+        if os.getenv("DEBUG_FORCE", "").strip() == "replan" and state.get("replan_count", 0) < 2:
+            opts = []  # 검증용: 과도한 재계획을 일부러 만든다(F3020)
         j = evaluate(opts, conds, ctx.busy, deps.now())
         ranked = rank(j.passed, conds.priority)
         _road_events(ctx, ranked, conds)
