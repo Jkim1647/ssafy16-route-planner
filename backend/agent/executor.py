@@ -31,6 +31,12 @@ class RunCtx:
     places: dict = field(default_factory=dict)
     odsay_calls: int = 0
     calls: list[tuple[str, str]] = field(default_factory=list)  # (task_id, tool)
+    # Planner·Worker 모드(F3021)
+    mode: str = "single"
+    worker_llm: bool = True
+    max_retry: int = 2
+    llm_factory: object = None
+    replan_request: str | None = None
 
 
 # ---------------------------------------------------------------- 계획
@@ -55,9 +61,11 @@ TERMS_QUERY = [("t1", "search_terms", "운송약관·행동요령 문서 검색"
 
 
 def make_plan(intent: str) -> list[dict]:
+    from backend.agent.planner_worker import FIXED_ARGS
     template = {"plan_trip": PLAN_TRIP, "modify": PLAN_TRIP, "fact_query": FACT_QUERY,
                 "terms_query": TERMS_QUERY}.get(intent, [])
-    return [{"id": i, "tool": t, "purpose": p, "when": w} for i, t, p, w in template if get_tool(t) is not None]
+    return [{"id": i, "tool": t, "purpose": p, "when": w, "fixed_args": FIXED_ARGS.get(t, [])}
+            for i, t, p, w in template if get_tool(t) is not None]
 
 
 # ---------------------------------------------------------------- Tool 호출
@@ -74,8 +82,54 @@ def _summary(r: dict) -> str:
 
 
 def call_tool(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int | None = None) -> dict:
-    ctx.emitter.emit("tool_call", agent=ctx.agent, payload={"task_id": task_id, "tool": name, "args": args,
-                                                            **({"retry_of": retry_of} if retry_of else {})})
+    r, call_seq = _call_once(ctx, task_id, name, args, retry_of)
+    if ctx.mode == "planner_worker" and retry_of is None and not r.get("ok"):
+        r = _worker_on_failure(ctx, task_id, name, args, r, call_seq)
+    return r
+
+
+def _worker_on_failure(ctx: RunCtx, task_id: str, name: str, args: dict, r: dict, call_seq: int) -> dict:
+    """Worker 판단(F3021). 고칠 여지가 있는 실패에서만 LLM을 부른다."""
+    from backend.agent.planner_worker import RECOVERABLE, decide, violates_fixed
+    code = r["error"]["code"]
+    em = ctx.emitter
+    if code not in RECOVERABLE:
+        em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "report",
+                                                            "llm": False, "reason": "치명적 실패라 LLM 없이 보고"})
+        return r
+    if not ctx.worker_llm:
+        em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "skip",
+                                                            "llm": False, "reason": "WORKER_LLM=off"})
+        return r
+    schema = get_tool(name).parameters if get_tool(name) else {}
+    for _ in range(ctx.max_retry):
+        try:
+            d = decide(ctx.llm_factory(), ctx.counter, name, args, r["error"], schema)
+        except Exception:
+            em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "skip",
+                                                                "llm": True, "reason": "LLM 판단 실패"})
+            return r
+        action, reason = d.action, d.reason
+        bad = violates_fixed(name, d.new_args)
+        if action == "retry" and (bad or not d.new_args):
+            action, reason = "skip", f"고정 인자 변경 시도({', '.join(bad)}) → 무효" if bad else "바꿀 인자가 없음"
+        em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": action, "llm": True,
+                                                            "new_args": d.new_args, "reason": reason})
+        if action == "request_replan":
+            ctx.replan_request = reason
+            return r
+        if action != "retry":
+            return r
+        args = {**args, **d.new_args}
+        r, _ = _call_once(ctx, task_id, name, args, retry_of=call_seq)
+        if r.get("ok") or r["error"]["code"] not in RECOVERABLE:
+            return r
+    return r
+
+
+def _call_once(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int | None) -> tuple[dict, int]:
+    call = ctx.emitter.emit("tool_call", agent=ctx.agent, payload={"task_id": task_id, "tool": name, "args": args,
+                                                                   **({"retry_of": retry_of} if retry_of else {})})
     t0 = time.perf_counter()
     tool = get_tool(name)
     r = tool.run(**args) if tool else {"ok": False, "error": {"code": "NOT_FOUND", "message": f"{name} 없음"}}
@@ -86,7 +140,7 @@ def call_tool(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int | 
                               "code": None if r.get("ok") else r["error"]["code"],
                               "message": None if r.get("ok") else r["error"]["message"],
                               "summary": _summary(r), "cached": bool(r.get("cached"))})
-    return r
+    return r, call["seq"]
 
 
 def _err(errors: list, task_id: str, tool: str, r: dict, note: str = "") -> None:

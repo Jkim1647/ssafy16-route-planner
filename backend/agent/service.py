@@ -32,7 +32,8 @@ class TurnResult(BaseModel):
 
 RESET = {"tasks": [], "strategy": 0, "tool_errors": [], "replan_count": 0, "replan_history": [], "cards": [],
          "excluded": [], "undetermined": [], "estimated": [], "warnings": [], "clarification": None,
-         "final_reply": "", "status": "", "missing": [], "option_ref": None, "extra": {}}
+         "final_reply": "", "status": "", "missing": [], "option_ref": None, "extra": {},
+         "verify_rebuilt": False, "worker_replanned": False}
 
 
 def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
@@ -42,7 +43,9 @@ def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
     with _lock:
         em = Emitter(bus, session_id, run_id)
         counter = LLMCounter()
-        deps.ctx = RunCtx(emitter=em, counter=counter)
+        s = deps.settings
+        deps.ctx = RunCtx(emitter=em, counter=counter, mode=s.AGENT_MODE, worker_llm=s.WORKER_LLM,
+                          max_retry=s.WORKER_MAX_RETRY, llm_factory=deps.llm_factory)
         run_repo.start(run_id, session_id, message, deps.settings.AGENT_MODE)
         em.emit("run_start", payload={"message": message, "mode": deps.settings.AGENT_MODE})
         try:

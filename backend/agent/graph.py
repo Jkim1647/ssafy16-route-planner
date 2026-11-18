@@ -62,8 +62,8 @@ class Deps:
 
 # ---------------------------------------------------------------- 공용
 def _node(deps: Deps, name: str, fn):
-    agent = "planner" if deps.settings.AGENT_MODE == "planner_worker" and name in ("analyze", "plan", "replan") \
-        else "main"
+    pw_roles = {"analyze": "planner", "plan": "planner", "replan": "planner", "execute": "worker", "verify": "logger"}
+    agent = pw_roles.get(name, "main") if deps.settings.AGENT_MODE == "planner_worker" else "main"
 
     def wrapped(state: AgentState):
         em = deps.ctx.emitter
@@ -190,6 +190,7 @@ def build_graph(deps: Deps):
     def execute(state: AgentState):
         ctx = deps.ctx
         ctx.options.clear()
+        ctx.agent = "worker" if deps.settings.AGENT_MODE == "planner_worker" else "main"
         conds = _conds(state)
         intent = state["intent"]
         if intent == "terms_query":
@@ -241,15 +242,49 @@ def build_graph(deps: Deps):
             return "respond"
         return "replan"
 
+    def verify(state: AgentState):
+        """로깅 Agent의 검증(F3021): 지금까지의 실행 이벤트를 규칙으로 판정해 Planner에 넘긴다(LLM 없음)."""
+        from backend.events.anomaly import judge_run
+        r = judge_run(deps.ctx.emitter.events, deps.settings.MAX_REPLAN)
+        rules = sorted({f["rule"] for f in r["findings"]})
+        deps.ctx.emitter.emit("verify", agent="logger", node="verify", payload={"verdict": r["verdict"], "rules": rules})
+        return {"extra": {**(state.get("extra") or {}), "verify": r["verdict"], "verify_rules": rules}}
+
+    def route_execute(state: AgentState):
+        return "verify" if deps.settings.AGENT_MODE == "planner_worker" else "judge"
+
+    def route_verify(state: AgentState):
+        ex = state.get("extra") or {}
+        under_cap = state.get("replan_count", 0) < deps.settings.MAX_REPLAN
+        if deps.ctx.replan_request and not state.get("worker_replanned") and under_cap:
+            return "replan"
+        if ex.get("verify") == "warn" and {"DUPLICATE_CALL", "UNPLANNED_CALL"} & set(ex.get("verify_rules", [])) \
+                and not state.get("verify_rebuilt") and under_cap:
+            return "replan"
+        return "judge"
+
     def replan(state: AgentState):
         n = state.get("replan_count", 0) + 1
         strategy = state.get("strategy", 0) + 1
         names = {1: "거점 확장(근처 역 3곳까지)", 2: "수단 확장(택시 구간 포함)", 3: "전날 출발 후보 추가"}
-        reason = f"조건을 만족하는 후보 0개 (검토 {(state.get('extra') or {}).get('n_options', 0)}개)"
-        hist = (state.get("replan_history") or []) + [{"count": n, "strategy": names.get(strategy), "reason": reason}]
+        ex = state.get("extra") or {}
+        out = {}
+        if deps.ctx.replan_request and not state.get("worker_replanned"):
+            source, reason = "worker_request", f"Worker 계획 변경 요청: {deps.ctx.replan_request}"
+            deps.ctx.replan_request = None
+            out["worker_replanned"] = True
+        elif ex.get("verify") == "warn" and not state.get("verify_rebuilt") and \
+                {"DUPLICATE_CALL", "UNPLANNED_CALL"} & set(ex.get("verify_rules", [])):
+            source, reason = "verify", "로깅 Agent 검증 경고: " + ", ".join(ex.get("verify_rules", []))
+            out["verify_rebuilt"] = True
+        else:
+            source, reason = "no_option", f"조건을 만족하는 후보 0개 (검토 {ex.get('n_options', 0)}개)"
+        hist = (state.get("replan_history") or []) + [{"count": n, "strategy": names.get(strategy), "reason": reason,
+                                                       "source": source}]
         deps.ctx.emitter.emit("replan", agent="planner" if deps.settings.AGENT_MODE == "planner_worker" else "main",
-                              node="replan", payload={"count": n, "strategy": names.get(strategy), "reason": reason})
-        return {"replan_count": n, "strategy": strategy, "replan_history": hist}
+                              node="replan", payload={"count": n, "strategy": names.get(strategy), "reason": reason,
+                                                      "source": source})
+        return {"replan_count": n, "strategy": strategy, "replan_history": hist, **out}
 
     def respond(state: AgentState):
         if state.get("status") in ("clarify", "llm_unavailable"):
@@ -289,13 +324,15 @@ def build_graph(deps: Deps):
 
     g = StateGraph(AgentState)
     for name, fn in [("analyze", analyze), ("clarify", clarify), ("plan", plan), ("execute", execute),
-                     ("judge", judge), ("replan", replan), ("respond", respond), ("action", action)]:
+                     ("verify", verify), ("judge", judge), ("replan", replan), ("respond", respond),
+                     ("action", action)]:
         g.add_node(name, _node(deps, name, fn))
     g.add_edge(START, "analyze")
     g.add_conditional_edges("analyze", route_analyze, ["respond", "action", "clarify", "plan"])
     g.add_edge("clarify", END)
     g.add_edge("plan", "execute")
-    g.add_edge("execute", "judge")
+    g.add_conditional_edges("execute", route_execute, ["verify", "judge"])
+    g.add_conditional_edges("verify", route_verify, ["replan", "judge"])
     g.add_conditional_edges("judge", route_judge, ["respond", "replan"])
     g.add_edge("replan", "plan")
     g.add_edge("respond", END)

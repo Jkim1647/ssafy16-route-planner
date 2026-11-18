@@ -36,3 +36,5 @@ class AgentState(TypedDict, total=False):
     last_cards: list[dict]
     history: list[dict]
     extra: dict[str, Any]
+    verify_rebuilt: bool
+    worker_replanned: bool
