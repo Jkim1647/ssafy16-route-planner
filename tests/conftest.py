@@ -11,3 +11,13 @@ def no_network(monkeypatch):
 
     monkeypatch.setattr(requests, "get", _blocked)
     monkeypatch.setattr(requests, "post", _blocked)
+
+
+@pytest.fixture(autouse=True)
+def temp_budget(tmp_path):
+    """테스트마다 빈 캐시·쿼터 DB를 쓴다."""
+    from backend.tools.budget import ApiBudget, set_default_budget
+
+    set_default_budget(ApiBudget(str(tmp_path / "budget.db")))
+    yield
+    set_default_budget(None)
