@@ -158,7 +158,8 @@ export default {
         </div>
         <div v-if="panel === 'map'" class="side-body">
           <p v-if="store.selected" class="map-title">{{ store.selected.index }}. {{ store.selected.label }} · {{ store.selected.leave_at }} → {{ store.selected.arrive_at }}</p>
-          <RouteMap :points="mapPoints" :legs="store.selected ? store.selected.legs : []" :others="otherPoints" height="420px" />
+          <RouteMap :points="mapPoints" :legs="store.selected ? store.selected.legs : []" :others="otherPoints"
+                    height="max(420px, calc(100vh - 330px))" />
           <p v-if="!store.selected" class="hint">경로를 찾으면 출발지·역·도착지가 지도에 표시돼요. 카드를 누르면 그 경로를 크게 보여 줘요.</p>
         </div>
         <div v-else class="side-body">

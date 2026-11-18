@@ -4,7 +4,7 @@
 // - 열차·고속버스: 선로 좌표가 공개 API에 없어 출발역~도착역 직선
 // - 도보·좌표가 없는 구간: 앞뒤 지점을 잇는 점선
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
-import { POINT_LABEL } from "../format.js";
+import { POINT_LABEL, legColor } from "../format.js";
 
 const COLOR = { trunk: "#1f5f4a", bus: "#4f9a3a", subway: "#3d4fa1", taxi: "#c07a12", car: "#c07a12", walk: "#7d8783" };
 const GHOST = "#9aa5a0";   // 다른 후보
@@ -32,7 +32,7 @@ export function routePieces(points, legs) {
       cur = at.arr_station;
     } else if (leg.path && leg.path.length >= 2) {
       walk(leg.path[0]);
-      pieces.push({ kind: leg.mode, coords: leg.path });
+      pieces.push({ kind: leg.mode, color: legColor(leg), coords: leg.path });
       cur = leg.path[leg.path.length - 1];
       detailed = true;
     }
@@ -89,7 +89,7 @@ export default {
         const ll = pc.coords.map(([x, y]) => [y, x]);
         const style = pc.kind === "walk"
           ? { color: COLOR.walk, weight: 3, opacity: 0.9, dashArray: "4 6" }
-          : { color: COLOR[pc.kind] || COLOR.trunk, weight: pc.kind === "trunk" ? 5 : 4, opacity: 0.9 };
+          : { color: pc.color || COLOR[pc.kind] || COLOR.trunk, weight: pc.kind === "trunk" ? 5 : 4, opacity: 0.9 };
         L.polyline(ll, style).addTo(layer);
         ll.forEach((p) => all.push(p));
       }
@@ -132,9 +132,9 @@ export default {
       <div v-show="!failed && (points.length || others.length)" ref="box" class="map-box" :style="{ height }"
            role="img" :aria-label="points.map(p => p.name).join(' → ') || '경로 지도'"></div>
       <p class="map-legend">
-        <span class="lg trunk"></span>열차·고속버스 <span class="lg bus"></span>버스 <span class="lg subway"></span>지하철
-        <span class="lg taxi"></span>택시 <span class="lg walk"></span>도보
-        <span class="lg-note">· 버스·지하철은 정류장을, 택시는 도로를 따라 그렸고 열차는 역 사이 직선이에요</span>
+        <span class="lg trunk"></span>열차·고속버스 <span class="lg taxi"></span>택시 <span class="lg walk"></span>도보
+        <span class="lg-note">· 지하철은 노선 고유색, 버스는 종류별 색(간선 파랑·지선 초록·광역·급행 빨강)이에요.
+          버스·지하철은 정류장을, 택시는 도로를 따라 그렸고 열차는 역 사이 직선이에요</span>
       </p>
     </div>`,
 };

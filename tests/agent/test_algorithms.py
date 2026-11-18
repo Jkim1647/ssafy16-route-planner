@@ -40,9 +40,9 @@ def test_rank_adds_latest_departure_card():
 def test_risk_levels_from_slack_and_transfers():
     c = Conditions(origin="a", destination="b", date=D, arrive_by="14:00")
     roomy = risk_for(opt("x", "09:00", "13:00", 1), c)
-    assert roomy == {"level": "넉넉", "absorb_min": 60, "text": "60분 늦어져도 마감 안"}
+    assert roomy == {"level": "넉넉", "absorb_min": 60, "text": "60분까지 늦어져도 제시간 도착"}
     assert risk_for(opt("y", "09:00", "13:40", 1), c)["level"] == "보통"
-    assert risk_for(opt("w", "06:00", "07:36", 1), c)["text"] == "6시간 24분 늦어져도 마감 안"
+    assert risk_for(opt("w", "06:00", "07:36", 1), c)["text"] == "6시간 24분까지 늦어져도 제시간 도착"
     tight = risk_for(opt("z", "09:00", "13:50", 1, rides=5), c)
     assert tight["level"] == "빠듯" and "환승 4회" in tight["text"]
 

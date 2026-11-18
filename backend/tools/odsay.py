@@ -25,7 +25,9 @@ def _leg(s: dict) -> dict:
     mode = MODES.get(s.get("trafficType"), "walk")
     lane = (s.get("lane") or [{}])[0]
     name = lane.get("name") or lane.get("busNo") if mode != "walk" else None
-    return {"mode": mode, "name": name, "min": s.get("sectionTime"), "path": None if mode == "walk" else _stops(s)}
+    code = lane.get("type") if mode == "bus" else lane.get("subwayCode") if mode == "subway" else None
+    return {"mode": mode, "name": name, "min": s.get("sectionTime"), "path": None if mode == "walk" else _stops(s),
+            "line_code": code}
 
 
 def _path(p: dict) -> dict:
@@ -44,8 +46,8 @@ def get_transit_route(sx: float, sy: float, ex: float, ey: float) -> dict:
         return fail(INVALID_KEY, "ODSAY_API_KEY가 설정되지 않았습니다.")
     args = {"sx": sx, "sy": sy, "ex": ex, "ey": ey}
     params = {"SX": sx, "SY": sy, "EX": ex, "EY": ey}
-    # fmt 2: 정류장 좌표를 담는 형식. 예전 형식 캐시와 섞이지 않게 캐시 키만 구분(호출 한도는 같은 "odsay")
-    r = default_budget().cached_call("odsay", {**args, "fmt": 2}, TTL,
+    # fmt 3: 정류장 좌표·노선 코드를 담는 형식. 예전 형식 캐시와 섞이지 않게 캐시 키만 구분(호출 한도는 같은 "odsay")
+    r = default_budget().cached_call("odsay", {**args, "fmt": 3}, TTL,
                                      lambda: _call(params, key))
     return r
 

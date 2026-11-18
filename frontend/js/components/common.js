@@ -1,6 +1,6 @@
 // 여러 페이지에서 쓰는 작은 컴포넌트: 경로 카드, 수단 막대·아이콘 줄, 실행 과정 타임라인, 접는 목록.
 import { computed } from "vue";
-import { basisText, buildTrace, mins, shortLegName, won } from "../format.js";
+import { basisText, buildTrace, busTypeLabel, legColor, mins, shortLegName, textColor, won } from "../format.js";
 import ModeIcon from "./ModeIcon.js";
 
 // 구간을 소요 시간 비율대로 이어 붙인 색 막대. 짧은 구간도 보이도록 최소 너비를 둔다.
@@ -10,12 +10,12 @@ export const RouteBar = {
   props: { legs: { type: Array, default: () => [] } },
   setup(props) {
     const total = computed(() => props.legs.reduce((s, l) => s + (l.minutes || 0), 0) || 1);
-    return { total };
+    return { total, legColor };
   },
   template: `
     <div class="route-bar" aria-hidden="true">
       <span v-for="(l, i) in legs" :key="i" class="seg" :class="l.mode"
-            :style="{ flexGrow: Math.max(l.minutes || 1, 1) }" :title="(l.name || l.mode) + ' ' + (l.minutes ?? '?') + '분'">
+            :style="{ flexGrow: Math.max(l.minutes || 1, 1), background: legColor(l) }" :title="(l.name || l.mode) + ' ' + (l.minutes ?? '?') + '분'">
         <ModeIcon v-if="(l.minutes || 0) / total >= 0.1" :mode="l.mode" :size="12" />
         <span v-if="(l.minutes || 0) / total >= 0.16" class="seg-min">{{ l.minutes }}분</span>
       </span>
@@ -27,13 +27,13 @@ export const LegSteps = {
   name: "LegSteps",
   components: { ModeIcon },
   props: { legs: { type: Array, default: () => [] } },
-  setup() { return { shortLegName }; },
+  setup() { return { shortLegName, legColor, textColor, busTypeLabel }; },
   template: `
     <ol class="leg-steps" aria-label="구간 순서">
       <li v-for="(l, i) in legs" :key="i" :class="l.mode">
-        <span class="step-icon"><ModeIcon :mode="l.mode" :size="14" /></span>
+        <span class="step-icon" :style="{ background: legColor(l) }"><ModeIcon :mode="l.mode" :size="14" /></span>
         <span v-if="l.mode === 'walk'" class="step-min">{{ l.minutes ?? '?' }}분</span>
-        <span v-else class="step-name">{{ shortLegName(l) }}<span class="step-min"> {{ l.minutes ?? '?' }}분</span></span>
+        <span v-else class="step-name" :style="{ color: textColor(legColor(l)) }" :title="busTypeLabel(l) ? busTypeLabel(l) + ' 버스' : null"><span v-if="busTypeLabel(l)" class="bus-type">{{ busTypeLabel(l) }}</span>{{ shortLegName(l) }}<span class="step-min"> {{ l.minutes ?? '?' }}분</span></span>
       </li>
     </ol>`,
 };

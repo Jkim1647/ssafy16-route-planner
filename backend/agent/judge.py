@@ -29,6 +29,7 @@ class Leg:
     fare: int | None
     source: str
     path: list | None = None  # 지도 동선 좌표 [[x, y], ...] (정류장·도로). 열차·도보는 없음
+    line_code: int | None = None  # 노선 구분(ODsay 버스 종류 코드 또는 지하철 노선 코드) — 화면 색
 
 
 @dataclass
@@ -93,7 +94,8 @@ def is_intracity(ox: float, oy: float, dx: float, dy: float, same_station: bool)
 
 
 def _transit_segment(path: dict) -> Segment:
-    legs = [Leg(lg["mode"], lg.get("name"), lg.get("min"), None, "odsay", lg.get("path")) for lg in path.get("legs", [])]
+    legs = [Leg(lg["mode"], lg.get("name"), lg.get("min"), None, "odsay", lg.get("path"), lg.get("line_code"))
+            for lg in path.get("legs", [])]
     return Segment("transit", path.get("total_min"), path.get("fare"), legs)
 
 
@@ -261,7 +263,7 @@ def risk_for(o: Option, conds: Conditions) -> dict | None:
     many = o.transfers >= 4
     level = "넉넉" if slack >= 30 and not many else "보통" if slack >= 15 else "빠듯"
     late = f"{slack}분" if slack < 90 else _dur(slack)  # 짧으면 분, 길면 "6시간 24분"
-    text = f"{late} 늦어져도 마감 안" + (f" · 환승 {o.transfers}회라 연결 지연 주의" if many else "")
+    text = f"{late}까지 늦어져도 제시간 도착" + (f" · 환승 {o.transfers}회라 연결 지연 주의" if many else "")
     return {"level": level, "absorb_min": slack, "text": text}
 
 

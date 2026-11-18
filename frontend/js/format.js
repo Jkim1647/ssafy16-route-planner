@@ -77,3 +77,48 @@ export function buildTrace(events) {
 
 export const elapsedMs = (events) =>
   !events || events.length < 2 ? 0 : new Date(events[events.length - 1].ts) - new Date(events[0].ts);
+
+// ---------------------------------------------------------------- 노선 색
+// 지하철은 노선 고유색(이름으로 구분), 버스는 종류별 색(ODsay 버스 종류 코드). 모르면 수단 기본색.
+const SUBWAY_SPECIAL = [
+  [/신분당/, "#D4003B"], [/수인|분당/, "#F5A200"], [/경의|중앙/, "#77C4A3"], [/공항/, "#0090D2"], [/경춘/, "#0C8E72"],
+  [/우이/, "#B0CE18"], [/신림/, "#6789CA"], [/서해/, "#8FC31F"], [/김포/, "#A17E46"], [/GTX/, "#9A6292"],
+  [/인천\s*1/, "#7CA8D5"], [/인천\s*2/, "#ED8B00"], [/의정부/, "#FDA600"], [/에버라인|용인/, "#509F22"], [/경강/, "#0054A6"],
+];
+const SUBWAY_REGION = {
+  광주: { 1: "#009088" }, 부산: { 1: "#F06A00", 2: "#81BF48", 3: "#BB8C00", 4: "#217DCB" },
+  대구: { 1: "#D93F5C", 2: "#00AA80", 3: "#FFB100" }, 대전: { 1: "#007448" },
+};
+const SUBWAY_SEOUL = { 1: "#0052A4", 2: "#00A84D", 3: "#EF7C1C", 4: "#00A5DE", 5: "#996CAC", 6: "#CD7C2F",
+  7: "#747F00", 8: "#E6186C", 9: "#BDB092" };
+const BUS_TYPE = { 11: ["간선", "#3D5BAB"], 12: ["지선", "#5BB025"], 13: ["순환", "#F2B70A"], 14: ["광역", "#E60012"],
+  15: ["급행", "#E60012"], 26: ["급행간선", "#E60012"], 4: ["직행좌석", "#E60012"], 3: ["마을", "#79C142"],
+  5: ["공항", "#00A0E9"], 6: ["간선급행", "#3D5BAB"], 1: ["일반", "#009CDA"], 2: ["좌석", "#009CDA"] };
+export const MODE_COLOR = { walk: "#aab3af", bus: "#4f9a3a", subway: "#3d4fa1", train: "#1f5f4a", taxi: "#c07a12", car: "#c07a12" };
+
+function subwayColor(name) {
+  const n = name || "";
+  for (const [re, c] of SUBWAY_SPECIAL) if (re.test(n)) return c;  // 신분당을 분당보다 먼저 검사
+  const num = (n.match(/(\d)\s*호선/) || [])[1];
+  if (!num) return null;
+  const region = Object.keys(SUBWAY_REGION).find((r) => n.includes(r));
+  return region ? SUBWAY_REGION[region][num] || null : SUBWAY_SEOUL[num] || null;
+}
+
+export function legColor(leg) {
+  if (!leg) return MODE_COLOR.walk;
+  if (leg.mode === "subway") return subwayColor(leg.name) || MODE_COLOR.subway;
+  if (leg.mode === "bus" && leg.source !== "tago_bus") return (BUS_TYPE[leg.line_code] || [])[1] || MODE_COLOR.bus;
+  return MODE_COLOR[leg.mode] || MODE_COLOR.train;
+}
+
+export const busTypeLabel = (leg) => (leg && leg.mode === "bus" ? (BUS_TYPE[leg.line_code] || [])[0] || null : null);
+
+// 밝은 노선색(노랑 등)을 글자에 쓸 때 흰 바탕에서 읽히도록 어둡게
+export function textColor(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  if (0.299 * r + 0.587 * g + 0.114 * b < 150) return hex;
+  const k = 0.62;
+  return `rgb(${Math.round(r * k)}, ${Math.round(g * k)}, ${Math.round(b * k)})`;
+}

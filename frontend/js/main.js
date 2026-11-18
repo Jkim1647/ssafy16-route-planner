@@ -1,11 +1,12 @@
 // 앱 시작: 라우터(주소별 페이지)와 상단바·상태 배너·알림.
-import { createApp, computed, onMounted } from "vue";
+import { createApp, computed, onMounted, ref } from "vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 import { loadStatus, store } from "./store.js";
 import ChatPage from "./pages/ChatPage.js";
 import PlansPage from "./pages/PlansPage.js";
 import PlanDetailPage from "./pages/PlanDetailPage.js";
 import { LogDetailPage, LogsPage } from "./pages/LogsPage.js";
+import IntroGuide, { introHiddenToday } from "./components/IntroGuide.js";
 
 const NotFound = {
   template: `<section class="page empty-state"><p>없는 페이지예요.</p><router-link to="/" class="button">대화로 가기</router-link></section>`,
@@ -27,7 +28,9 @@ router.afterEach((to) => {
 });
 
 const App = {
+  components: { IntroGuide },
   setup() {
+    const introOpen = ref(!introHiddenToday());
     const missing = computed(() => (store.status ? Object.entries(store.status.keys).filter(([, v]) => !v).map(([k]) => k) : []));
     const quota = computed(() => {
       const q = store.status?.quota || {};
@@ -36,7 +39,7 @@ const App = {
         : "";
     });
     onMounted(loadStatus);
-    return { store, missing, quota };
+    return { store, missing, quota, introOpen };
   },
   template: `
     <a href="#main" class="skip">본문으로 건너뛰기</a>
@@ -49,12 +52,14 @@ const App = {
         <router-link to="/" exact-active-class="active">대화</router-link>
         <router-link to="/plans" active-class="active">이동 계획</router-link>
         <router-link to="/logs" active-class="active">실행 로그</router-link>
+        <button type="button" class="nav-intro" @click="introOpen = true">소개</button>
       </nav>
     </header>
     <div v-if="store.statusError" class="banner">{{ store.statusError }}</div>
     <div v-else-if="missing.length" class="banner">API 키가 설정되지 않았어요: {{ missing.join(', ') }} — .env 파일을 확인해 주세요.</div>
     <div class="quota" aria-live="polite">{{ quota }}</div>
     <main id="main" tabindex="-1"><router-view /></main>
+    <IntroGuide :open="introOpen" @close="introOpen = false" />
     <div class="toasts" aria-live="polite">
       <div v-for="t in store.toasts" :key="t.id" class="toast" :class="t.kind">
         {{ t.text }} <router-link v-if="t.link" :to="t.link.to">{{ t.link.text }}</router-link>

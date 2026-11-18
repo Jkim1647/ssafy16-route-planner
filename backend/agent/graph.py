@@ -93,7 +93,7 @@ def card(o: Option, i: int) -> dict:
             "arrive_date": o.arrive_at.date().isoformat() if o.arrive_at else None,
             "total_fare": o.total_fare, "total_min": o.total_min, "transfers": o.transfers,
             "legs": [{"mode": lg.mode, "name": lg.name, "minutes": lg.minutes, "fare": lg.fare, "source": lg.source,
-                      "path": lg.path} for lg in o.legs],
+                      "path": lg.path, "line_code": lg.line_code} for lg in o.legs],
             "warnings": list(o.warnings), "estimated": o.estimated, "points": list(o.points),
             "basis": {k: v for k, v in o.basis.items() if k != "rain_block"}}
 

@@ -30,3 +30,22 @@ def test_card_legs_keep_paths(env):
     card = make()("x").cards[0]
     bus = next(lg for lg in card["legs"] if lg["mode"] == "bus")
     assert bus["path"] == [[126.8, 35.2], [126.81, 35.19]]
+
+
+def test_transit_legs_carry_line_code(monkeypatch):
+    route_get(monkeypatch, [(lambda u, p: "odsay" in u, load("odsay"))])
+    legs = get_transit_route(126.79, 35.13, 126.84, 35.23)["data"]["paths"][0]["legs"]
+    bus = next(lg for lg in legs if lg["mode"] == "bus")
+    assert bus["name"] == "1002" and bus["line_code"] == 15  # ODsay 버스 종류: 15 급행
+    assert all(lg["line_code"] is None for lg in legs if lg["mode"] == "walk")
+
+
+def test_card_legs_keep_line_code(env):
+    world, llm, make, _ = env
+    world.transit = ok({"paths": [{"total_min": 30, "fare": 1500, "transfers": 0, "walk_min": 5, "legs": [
+        {"mode": "walk", "name": None, "min": 5, "path": None, "line_code": None},
+        {"mode": "subway", "name": "수도권 3호선", "min": 25, "path": None, "line_code": 3}]}]})
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    card = make()("x").cards[0]
+    sub = next(lg for lg in card["legs"] if lg["mode"] == "subway")
+    assert sub["line_code"] == 3

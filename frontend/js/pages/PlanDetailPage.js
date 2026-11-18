@@ -2,7 +2,7 @@
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { api } from "../api.js";
-import { dateLabel, legLabel, mins, won, POINT_LABEL } from "../format.js";
+import { busTypeLabel, dateLabel, legColor, legLabel, mins, won, POINT_LABEL } from "../format.js";
 import { toast } from "../store.js";
 import RouteMap from "../components/RouteMap.js";
 import ModeIcon from "../components/ModeIcon.js";
@@ -80,7 +80,7 @@ export default {
     }
 
     return { plan, error, editing, form, busy, notice, confirmDelete, totalMin, startEdit, saveEdit, addCalendar, remove,
-      dateLabel, legLabel, mins, won, POINT_LABEL };
+      dateLabel, legLabel, mins, won, POINT_LABEL, legColor, busTypeLabel };
   },
   template: `
     <section class="page">
@@ -129,8 +129,8 @@ export default {
             <RouteBar class="detail-bar" :legs="plan.legs" />
             <ol class="leg-timeline">
               <li v-for="(l, i) in plan.legs" :key="i" :class="l.mode">
-                <span class="step-icon"><ModeIcon :mode="l.mode" :size="14" /></span>
-                <span class="leg-name">{{ legLabel(l) }}</span>
+                <span class="step-icon" :style="{ background: legColor(l) }"><ModeIcon :mode="l.mode" :size="14" /></span>
+                <span class="leg-name"><span v-if="busTypeLabel(l)" class="bus-type">{{ busTypeLabel(l) }}</span>{{ legLabel(l) }}</span>
                 <span class="leg-min">{{ l.minutes ?? '?' }}분</span>
                 <span v-if="l.fare != null" class="leg-fare">{{ won(l.fare) }}</span>
               </li>
