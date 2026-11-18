@@ -19,6 +19,11 @@ def fake_keys(monkeypatch):
     for k in ("KAKAO_REST_KEY", "ODSAY_API_KEY", "DATA_GO_KR_KEY", "ITS_API_KEY", "GMS_API_KEY"):
         monkeypatch.setenv(k, "test-key")
     monkeypatch.setenv("QUOTA_USE_RESERVE", "false")
+    # 로컬 .env의 로그인 설정에 테스트가 좌우되지 않게 기본값(로그인 끔)으로. 필요한 테스트가 직접 켠다.
+    monkeypatch.setenv("AUTH_REQUIRED", "false")
+    for k in ("JWT_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REDIRECT_URI", "FRONTEND_URL",
+              "CALENDAR_OWNER_EMAIL"):
+        monkeypatch.setenv(k, "")  # 빈 값 → 설정 기본값
 
 
 @pytest.fixture(autouse=True)
