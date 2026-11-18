@@ -20,9 +20,9 @@ class LocalCalendar:
                             (title, start.isoformat(timespec="minutes"), end.isoformat(timespec="minutes"), plan_id))
             return f"local-{cur.lastrowid}"
 
-    def get_free_busy(self, day: dt.date) -> list[Busy]:
+    def get_free_busy(self, day: dt.date, days: int = 1) -> list[Busy]:
         lo = dt.datetime.combine(day, dt.time.min).isoformat(timespec="minutes")
-        hi = dt.datetime.combine(day + dt.timedelta(days=1), dt.time.min).isoformat(timespec="minutes")
+        hi = dt.datetime.combine(day + dt.timedelta(days=days), dt.time.min).isoformat(timespec="minutes")
         with connect(self.db) as c:
             rows = c.execute('SELECT title, start, "end" FROM local_calendar WHERE start < ? AND "end" > ? ORDER BY start',
                              (hi, lo)).fetchall()

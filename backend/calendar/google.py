@@ -38,9 +38,9 @@ class GoogleCalendar:
             self.token_path.write_text(creds.to_json(), encoding="utf-8")
         return build("calendar", "v3", credentials=creds, cache_discovery=False)
 
-    def get_free_busy(self, day: dt.date) -> list[Busy]:
+    def get_free_busy(self, day: dt.date, days: int = 1) -> list[Busy]:
         lo = dt.datetime.combine(day, dt.time.min).isoformat() + "+09:00"
-        hi = dt.datetime.combine(day + dt.timedelta(days=1), dt.time.min).isoformat() + "+09:00"
+        hi = dt.datetime.combine(day + dt.timedelta(days=days), dt.time.min).isoformat() + "+09:00"
         res = self._service().freebusy().query(body={"timeMin": lo, "timeMax": hi, "timeZone": TZ,
                                                      "items": [{"id": self.calendar_id}]}).execute()
         busy = res["calendars"][self.calendar_id]["busy"]

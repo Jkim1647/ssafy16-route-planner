@@ -12,14 +12,16 @@ def _hm(t: dt.datetime) -> str:
     return t.isoformat(timespec="minutes")
 
 
-def get_free_busy(date: str) -> dict:
+def get_free_busy(date: str, days: int = 1) -> dict:
     try:
         day = dt.date.fromisoformat(date)
     except (TypeError, ValueError):
         return fail(BAD_ARGUMENT, "date는 YYYY-MM-DD 형식이어야 합니다.")
+    if not isinstance(days, int) or not 1 <= days <= 3:
+        return fail(BAD_ARGUMENT, "days는 1~3 사이 정수입니다.")
     cal = get_calendar(get_settings())
     try:
-        busy = cal.get_free_busy(day)
+        busy = cal.get_free_busy(day, days)
     except Exception:
         return fail(UPSTREAM_ERROR, "캘린더를 조회하지 못했습니다.")
     return ok({"backend": cal.name, "busy": [{"title": b.title, "start": _hm(b.start), "end": _hm(b.end)} for b in busy]})
@@ -42,7 +44,8 @@ def register_calendar(plan_id: int) -> dict:
 register(Tool(
     name="get_free_busy",
     description="이동하는 날짜에 사용자의 기존 일정(바쁜 시간대)을 확인해, 이동 시간과 겹치는 경로를 걸러낼 때 부른다.",
-    parameters={"type": "object", "properties": {"date": {"type": "string", "description": "YYYY-MM-DD"}},
+    parameters={"type": "object", "properties": {"date": {"type": "string", "description": "YYYY-MM-DD"},
+                                                 "days": {"type": "integer", "description": "조회 일수 1~3(자정 넘김·전날 출발)"}},
                 "required": ["date"]},
     func=get_free_busy, kind="local"))
 register(Tool(

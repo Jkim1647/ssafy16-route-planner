@@ -31,6 +31,12 @@ def _place(d: dict) -> dict:
             "x": float(d["x"]), "y": float(d["y"]), "place_url": d.get("place_url")}
 
 
+def _first(s: str | None) -> str:
+    """첫 단어(시·도 또는 이름 머리). 빈 값이면 빈 문자열."""
+    parts = (s or "").split()
+    return parts[0] if parts else ""
+
+
 def search_places(query: str, near_x: float | None = None, near_y: float | None = None) -> dict:
     if not query or not query.strip():
         return fail(BAD_ARGUMENT, "query는 필수입니다.")
@@ -44,13 +50,13 @@ def search_places(query: str, near_x: float | None = None, near_y: float | None 
     if not docs:
         return fail(NO_DATA, f"'{query}' 장소를 찾지 못했습니다.")
     if near_x is None:
-        head = docs[0]["place_name"].split()[0]
-        same = [d for d in docs if d["place_name"].split()[0] == head]
-        regions = {d.get("address_name", "").split()[0] for d in same}
+        head = _first(docs[0].get("place_name"))
+        same = [d for d in docs if _first(d.get("place_name")) == head]
+        regions = {_first(d.get("address_name")) for d in same} - {""}
         if len(regions) > 1:  # 같은 이름이 서로 다른 시·도에 있으면 임의로 고르지 않는다
             seen, cands = set(), []
             for d in same:
-                reg = d.get("address_name", "").split()[0]
+                reg = _first(d.get("address_name"))
                 if reg not in seen:
                     seen.add(reg)
                     cands.append(f"{d['place_name']}({d.get('address_name')})")

@@ -19,7 +19,8 @@ from pydantic import BaseModel, Field
 from backend.agent import prompts
 from backend.agent.conditions import Conditions, merge, missing_fields
 from backend.agent.ko_time import fix_changes
-from backend.agent.executor import FATAL, RunCtx, call_tool, make_plan, run_fact_query, run_plan_trip
+from backend.agent.executor import (FATAL, RunCtx, call_tool, make_plan, prev_day_ok, run_fact_query,
+                                   run_plan_trip)
 from backend.agent.judge import ROAD_MODES, Option, apply_warnings, evaluate, rank
 from backend.agent.llm import LLMUnavailable, structured
 from backend.agent.state import AgentState
@@ -194,6 +195,7 @@ def build_graph(deps: Deps):
         ctx = deps.ctx
         ctx.options.clear()
         ctx.agent = "worker" if deps.settings.AGENT_MODE == "planner_worker" else "main"
+        ctx.today = deps.now().date()
         conds = _conds(state)
         intent = state["intent"]
         if intent == "terms_query":
@@ -209,7 +211,7 @@ def build_graph(deps: Deps):
             return out
         res = run_plan_trip(ctx, conds, state.get("strategy", 0), state.get("places") or {})
         out = {"tool_errors": (state.get("tool_errors") or []) + res["errors"], "places": ctx.places,
-               "extra": {"fatal": res["fatal"], "kind": res.get("kind")}}
+               "extra": {"fatal": res["fatal"], "kind": res.get("kind"), "walk_m": res.get("walk_m")}}
         if res.get("clarify"):
             out.update({"clarification": res["clarify"], "final_reply": res["clarify"], "status": "clarify"})
         return out
@@ -218,6 +220,8 @@ def build_graph(deps: Deps):
         ctx = deps.ctx
         conds = _conds(state)
         opts = apply_warnings(ctx.options, ctx.weather, [], conds.avoid)
+        for o in opts:  # 캘린더 조회 실패처럼 모든 후보에 해당하는 안내
+            o.warnings = o.warnings + [n for n in dict.fromkeys(ctx.notes) if n not in o.warnings]
         if os.getenv("DEBUG_FORCE", "").strip() == "replan" and state.get("replan_count", 0) < 2:
             opts = []  # 검증용: 과도한 재계획을 일부러 만든다(F3020)
         j = evaluate(opts, conds, ctx.busy, deps.now())
@@ -243,6 +247,8 @@ def build_graph(deps: Deps):
             return "respond"
         if state.get("replan_count", 0) >= deps.settings.MAX_REPLAN:
             return "respond"
+        if state.get("strategy", 0) >= 2 and not prev_day_ok(_conds(state), deps.now().date()):
+            return "respond"  # 남은 전략(전날 출발)이 의미 없으면 재계획하지 않는다
         return "replan"
 
     def verify(state: AgentState):
@@ -256,6 +262,8 @@ def build_graph(deps: Deps):
     def route_execute(state: AgentState):
         if state.get("intent") in ("terms_query", "fact_query"):
             return "respond"  # 판단(마감·예산 계산)이 필요 없는 질문
+        if (state.get("extra") or {}).get("walk_m") is not None:
+            return "respond"  # 걸어갈 거리
         return "verify" if deps.settings.AGENT_MODE == "planner_worker" else "judge"
 
     def route_verify(state: AgentState):
@@ -301,6 +309,10 @@ def build_graph(deps: Deps):
             return _terms_reply(state)
         if intent == "fact_query":
             return _fact_reply(state)
+        walk_m = (state.get("extra") or {}).get("walk_m")
+        if walk_m is not None:
+            return {"final_reply": f"출발지와 도착지가 직선거리 약 {walk_m}m로 가까워 걸어서 이동하시면 돼요. "
+                                   "이 거리는 대중교통 경로 검색 대상이 아니에요.", "status": "done", "last_cards": []}
         cards = state.get("cards") or []
         conds = _conds(state)
         errors = state.get("tool_errors") or []
@@ -444,6 +456,7 @@ def _register(state, deps) -> dict:
     if not plans:
         return {"final_reply": "먼저 이동 계획을 저장해 주세요.", "status": "clarify"}
     latest = max(plans, key=lambda p: p.id)
+    deps.ctx.emitter.emit("plan_tasks", node="action", payload={"tasks": make_plan("register_calendar"), "strategy": 0})
     r = call_tool(deps.ctx, "t1", "register_calendar", {"plan_id": latest.id})
     if r["ok"]:
         return {"final_reply": f"'{latest.title}' 계획을 캘린더에 등록했어요.", "status": "done"}

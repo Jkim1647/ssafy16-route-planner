@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import threading
 import uuid
+from collections import OrderedDict
 
 from pydantic import BaseModel
 
@@ -11,6 +12,17 @@ from backend.agent.llm import LLMCounter
 from backend.events.bus import Emitter
 
 _lock = threading.Lock()  # 그래프 문맥(deps.ctx)이 실행 1회분이라 직렬 실행
+MAX_SESSIONS = 200  # 대화 맥락을 메모리에 유지할 최근 세션 수
+_sessions: OrderedDict[str, None] = OrderedDict()
+
+
+def _touch(graph, session_id: str) -> None:
+    """최근 사용 세션 순서를 갱신하고, 오래된 세션의 대화 상태는 메모리에서 지운다(실행 로그는 DB에 남음)."""
+    _sessions[session_id] = None
+    _sessions.move_to_end(session_id)
+    while len(_sessions) > MAX_SESSIONS:
+        old, _ = _sessions.popitem(last=False)
+        graph.checkpointer.delete_thread(old)
 
 
 class TurnResult(BaseModel):
@@ -58,11 +70,12 @@ def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
         em.emit("run_end", payload={"status": status, "replan_count": st.get("replan_count", 0),
                                     "llm_calls": counter.count})
         run_repo.finish(run_id, status, st.get("replan_count", 0), counter.count)
-        if after_run:
-            after_run(run_id)
-        return TurnResult(run_id=run_id, session_id=session_id, reply=st.get("final_reply", ""),
-                          cards=st.get("cards") or [], excluded=st.get("excluded") or [],
-                          undetermined=st.get("undetermined") or [], estimated=st.get("estimated") or [],
-                          warnings=st.get("warnings") or [], clarification=st.get("clarification"),
-                          status=status, intent=st.get("intent"), replan_count=st.get("replan_count", 0),
-                          llm_calls=counter.count, events=list(em.events))
+        _touch(graph, session_id)
+    if after_run:  # 이상 징후 진단(LLM)은 느릴 수 있어 잠금 밖에서 — 다른 요청을 막지 않는다
+        after_run(run_id)
+    return TurnResult(run_id=run_id, session_id=session_id, reply=st.get("final_reply", ""),
+                      cards=st.get("cards") or [], excluded=st.get("excluded") or [],
+                      undetermined=st.get("undetermined") or [], estimated=st.get("estimated") or [],
+                      warnings=st.get("warnings") or [], clarification=st.get("clarification"),
+                      status=status, intent=st.get("intent"), replan_count=st.get("replan_count", 0),
+                      llm_calls=counter.count, events=list(em.events))

@@ -44,11 +44,14 @@ class PlanRepo:
 
     def find_overlaps(self, date: dt.date, leave_at: str, arrive_at: str, exclude_id: int | None = None) -> list[PlanOut]:
         s, e = _span(leave_at, arrive_at)
+        # 자정을 넘기는 계획이 있어 전날·다음 날 계획도 날짜 차이(분)를 반영해 비교한다
+        days = [(date + dt.timedelta(days=k)).isoformat() for k in (-1, 0, 1)]
         with connect(self.db) as c:
-            rows = c.execute("SELECT * FROM plans WHERE date=? AND id IS NOT ?", (date.isoformat(), exclude_id)).fetchall()
+            rows = c.execute("SELECT * FROM plans WHERE date IN (?,?,?) AND id IS NOT ?", (*days, exclude_id)).fetchall()
         out = []
         for r in rows:
-            s2, e2 = _span(r["leave_at"], r["arrive_at"])
+            shift = (dt.date.fromisoformat(r["date"]) - date).days * 1440
+            s2, e2 = (v + shift for v in _span(r["leave_at"], r["arrive_at"]))
             if s < e2 and s2 < e:
                 out.append(self._row(r))
         return out

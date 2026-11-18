@@ -14,8 +14,11 @@ _PM_WORDS = ("오후", "저녁", "밤")
 def _parse_date(text: str, today: dt.date) -> dt.date | None:
     m = re.search(r"(\d{1,2})월\s*(\d{1,2})일", text)
     if m:
-        d = dt.date(today.year, int(m.group(1)), int(m.group(2)))
-        return d if d >= today else dt.date(today.year + 1, d.month, d.day)
+        try:
+            d = dt.date(today.year, int(m.group(1)), int(m.group(2)))
+            return d if d >= today else dt.date(today.year + 1, d.month, d.day)
+        except ValueError:  # "2월 30일"처럼 없는 날짜는 읽지 않는다(되묻기로 감)
+            return None
     for word, plus in (("모레", 2), ("내일", 1), ("오늘", 0)):
         if word in text:
             return today + dt.timedelta(days=plus)
@@ -35,17 +38,20 @@ def _parse_time(text: str) -> tuple[str, str] | None:
     if m:
         h, mi, tail = int(m.group(1)), int(m.group(2)), text[m.end():m.end() + 8]
     else:
-        m = re.search(r"(오전|오후|저녁|밤|아침|새벽)?\s*(\d{1,2})시\s*(?:(\d{1,2})분|(반))?", text)
+        # "3시간"은 시각이 아니라 기간이다
+        m = re.search(r"(오전|오후|저녁|밤|아침|새벽)?\s*(\d{1,2})시(?!간)\s*(?:(\d{1,2})분|(반))?", text)
         if not m:
             return None
         h = int(m.group(2))
         mi = int(m.group(3)) if m.group(3) else (30 if m.group(4) else 0)
+        if m.group(1) in ("밤", "저녁", "새벽") and h == 12:
+            return None  # 자정인지 정오인지 날짜까지 바뀌는 표현이라 추측하지 않는다
         if m.group(1) in _PM_WORDS and h < 12:
             h += 12
         tail = text[m.end():m.end() + 8]
     if not (0 <= h <= 23 and 0 <= mi <= 59):
         return None
-    kind = "depart" if re.match(r"\s*(이후|부터|에\s*출발|넘어서)", tail) else "arrive"
+    kind = "depart" if re.match(r"\s*(이후|부터|에?\s*출발|넘어서)", tail) else "arrive"
     return f"{h:02d}:{mi:02d}", kind
 
 

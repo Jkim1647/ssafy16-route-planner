@@ -73,7 +73,7 @@ def test_backend_swap_same_shape(db, monkeypatch):
     class FakeGoogle:
         name = "google"
 
-        def get_free_busy(self, day):
+        def get_free_busy(self, day, days=1):
             from backend.agent.judge import Busy
             return [Busy("일정", dt.datetime(2026, 11, 21, 9), dt.datetime(2026, 11, 21, 10))]
 

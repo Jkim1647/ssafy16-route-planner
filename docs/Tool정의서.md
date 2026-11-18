@@ -40,7 +40,7 @@
 | 이름 | 언제 쓰는지 | 입력 | 출력 | 구현 |
 |---|---|---|---|---|
 | `search_terms` (F3022) | 환불 위약금·지연 보상처럼 시간표 API로 알 수 없는 규정 | `question`, `k?=4` | `chunks[{text, source, title, page, distance}]`, 색인 없으면 `NO_INDEX` | Chroma `data/chroma` + GMS 임베딩 |
-| `get_free_busy` (F3023) | 이동 날짜의 기존 일정 확인 | `date` | `{backend, busy[{title, start, end}]}` | `LocalCalendar` / `GoogleCalendar`(freeBusy) |
+| `get_free_busy` (F3023) | 이동 날짜의 기존 일정 확인(자정 넘김·전날 출발이면 여러 날) | `date`, `days`(1~3, 기본 1) | `{backend, busy[{title, start, end}]}` | `LocalCalendar` / `GoogleCalendar`(freeBusy) |
 | `register_calendar` (F3023) | 저장한 계획을 캘린더에 등록 | `plan_id` **만** | `{event_id, backend}` | 제목·시각은 서버가 저장소에서 읽음 |
 
 ## 3. Tool 사이 값 전달

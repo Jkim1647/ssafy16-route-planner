@@ -15,8 +15,10 @@ from backend.agent.judge import (Busy, Option, Segment, build_intercity_options,
                                  is_intracity, segments_for)
 from backend.tools.budget import default_budget, normalize_args
 from backend.tools.registry import get_tool
+from backend.tools.stations import haversine_km
 
 ODSAY_PER_RUN = 4  # 설계 19-3
+WALK_KM = 0.7  # ODsay가 경로를 주지 않는 거리(-98: 700m 이내) — 걸어갈 거리로 안내
 FATAL = {"INVALID_KEY", "RATE_LIMITED", "UPSTREAM_ERROR", "BAD_ARGUMENT"}
 
 
@@ -40,6 +42,8 @@ class RunCtx:
     # 실행 단위 결과 재사용(F3009): 재계획 때 같은 Tool·같은 입력은 다시 부르지 않는다
     reuse: dict = field(default_factory=dict)
     no_reuse: bool = False
+    today: dt.date | None = None  # 오늘 날짜(그래프가 설정). 전날 출발 전략이 의미 있는지 판단
+    notes: list[str] = field(default_factory=list)  # 모든 후보에 붙일 안내(예: 캘린더 조회 실패)
 
 
 # ---------------------------------------------------------------- 계획
@@ -61,12 +65,13 @@ PLAN_TRIP = [
 ]
 FACT_QUERY = PLAN_TRIP[:5]
 TERMS_QUERY = [("t1", "search_terms", "운송약관·행동요령 문서 검색", None)]
+REGISTER = [("t1", "register_calendar", "최근 저장한 이동 계획을 캘린더에 등록", None)]
 
 
 def make_plan(intent: str) -> list[dict]:
     from backend.agent.planner_worker import FIXED_ARGS
     template = {"plan_trip": PLAN_TRIP, "modify": PLAN_TRIP, "fact_query": FACT_QUERY,
-                "terms_query": TERMS_QUERY}.get(intent, [])
+                "terms_query": TERMS_QUERY, "register_calendar": REGISTER}.get(intent, [])
     return [{"id": i, "tool": t, "purpose": p, "when": w, "fixed_args": FIXED_ARGS.get(t, [])}
             for i, t, p, w in template if get_tool(t) is not None]
 
@@ -256,9 +261,12 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
         places[key] = {"query": q, **p}
     ctx.places = places
     o, d = places["origin"], places["destination"]
+    km = haversine_km(o["x"], o["y"], d["x"], d["y"])
+    if km < WALK_KM:  # 재계획해도 결과가 없으므로 바로 도보 안내
+        return {"errors": errors, "fatal": True, "clarify": None, "kind": "walk", "walk_m": int(km * 1000)}
     _debug_force(ctx, conds, o)
     _weather(ctx, conds, o, d)
-    _calendar(ctx, conds)
+    _calendar(ctx, conds, prev_day_ok(conds, ctx.today) and strategy >= 3)
 
     if is_intracity(o["x"], o["y"], d["x"], d["y"], same_station=False):
         return _intracity(ctx, conds, o, d, errors)
@@ -274,7 +282,8 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
     if st["origin"][0]["station_id"] == st["destination"][0]["station_id"]:
         return _intracity(ctx, conds, o, d, errors)
 
-    dates = [conds.date] + ([conds.date - dt.timedelta(days=1)] if strategy >= 3 and conds.arrive_by else [])
+    dates = [conds.date] + ([conds.date - dt.timedelta(days=1)]
+                            if strategy >= 3 and prev_day_ok(conds, ctx.today) else [])
     want_taxi = strategy >= 2
     access = {s["station_id"]: _segment(ctx, errors, "t6", "t7", o["x"], o["y"], s["x"], s["y"], want_taxi)
               for s in st["origin"]}
@@ -366,10 +375,22 @@ def _weather(ctx, conds, o, d) -> None:
         ctx.weather[key] = r["data"] if r["ok"] else None
 
 
-def _calendar(ctx, conds) -> None:
+def prev_day_ok(conds: Conditions, today: dt.date | None) -> bool:
+    """전날 출발 후보가 의미 있는가: 도착 마감이 있고, 전날이 이미 지나지 않았을 때만."""
+    return bool(conds.arrive_by) and (today is None or conds.date - dt.timedelta(days=1) >= today)
+
+
+def _calendar(ctx, conds, prev_day: bool) -> None:
+    """이동이 걸칠 수 있는 날짜(전날 출발·자정 넘김 포함)의 일정을 한 번에 조회."""
     if get_tool("get_free_busy") is None:
         return
-    r = call_tool(ctx, "t11", "get_free_busy", {"date": conds.date.isoformat()})
+    start = conds.date - dt.timedelta(days=1) if prev_day else conds.date
+    overnight = bool(conds.arrive_by and conds.depart_after and conds.arrive_by <= conds.depart_after)
+    days = 1 + prev_day + overnight
+    args = {"date": start.isoformat(), **({"days": days} if days > 1 else {})}
+    r = call_tool(ctx, "t11", "get_free_busy", args)
     if r["ok"]:
         ctx.busy = [Busy(b["title"], dt.datetime.fromisoformat(b["start"]), dt.datetime.fromisoformat(b["end"]))
                     for b in r["data"]["busy"]]
+    else:
+        ctx.notes.append("캘린더 조회 실패 — 기존 일정과 겹치는지 확인하지 못했어요")
