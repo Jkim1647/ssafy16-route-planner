@@ -119,8 +119,9 @@ def build_intercity_options(trains: list[dict], access: list[Segment], egress: l
     opts = []
     for t in trains:
         dep, arr = dt.datetime.fromisoformat(t["dep_at"]), dt.datetime.fromisoformat(t["arr_at"])
-        train_leg = Leg("train", f"{t.get('grade')} {t.get('train_no')}", int((arr - dep).total_seconds() // 60),
-                        t.get("fare"), "tago_train")
+        is_bus = t.get("kind") == "bus"
+        train_leg = Leg("bus" if is_bus else "train", f"{t.get('grade')} {t.get('train_no')}",
+                        int((arr - dep).total_seconds() // 60), t.get("fare"), "tago_bus" if is_bus else "tago_train")
         for a in access:
             for e in egress:
                 leave = dep - dt.timedelta(minutes=BOARD_BUFFER_MIN + a.minutes) if a.minutes is not None else None

@@ -44,6 +44,9 @@ PLAN_TRIP = [
     ("t9", "get_car_route", "같은 도시 안 택시", "intracity"),
     ("t10", "get_weather", "출발·도착 지점 강수확률", None),
     ("t11", "get_free_busy", "그날 캘린더 일정", None),
+    ("t12", "get_road_events", "최종 후보 도로 구간 돌발정보(판단 후 1회)", None),
+    ("t13", "find_terminals", "고속버스 터미널(재계획 수단 확장)", "intercity"),
+    ("t14", "search_express_bus", "고속버스 시간표·요금(재계획 수단 확장)", "intercity"),
 ]
 FACT_QUERY = PLAN_TRIP[:5]
 TERMS_QUERY = [("t1", "search_terms", "운송약관·행동요령 문서 검색", None)]
@@ -174,7 +177,35 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
                     opt.id = f"{so['name']}-{sd['name']}-{opt.id}"
                     opt.basis.update({"dep_station": so["name"], "arr_station": sd["name"]})
                     ctx.options.append(opt)
+    if strategy >= 2:
+        _bus_trunk(ctx, errors, o, d, dates)
     return {"errors": errors, "fatal": fatal_trains and not ctx.options, "clarify": None, "kind": "intercity"}
+
+
+def _bus_trunk(ctx, errors, o, d, dates) -> None:
+    """수단 확장(재계획 2단계): 고속버스를 간선 후보로 추가. 터미널 구간은 택시 기준(ODsay 상한 보호)."""
+    if get_tool("find_terminals") is None or get_tool("search_express_bus") is None:
+        return
+    term = {}
+    for key, pl in (("origin", o), ("destination", d)):
+        r = call_tool(ctx, "t13", "find_terminals", {"x": pl["x"], "y": pl["y"]})
+        if not r["ok"]:
+            _err(errors, "t13", "find_terminals", r)
+            return
+        term[key] = r["data"]["terminals"][0]
+    to, td = term["origin"], term["destination"]
+    access = _segment(ctx, errors, "t6", "t7", o["x"], o["y"], to["x"], to["y"], True)
+    egress = _segment(ctx, errors, "t6", "t7", td["x"], td["y"], d["x"], d["y"], True)
+    for day in dates:
+        r = call_tool(ctx, "t14", "search_express_bus", {"dep_terminal_id": to["terminal_id"],
+                                                         "arr_terminal_id": td["terminal_id"], "date": day.isoformat()})
+        if not r["ok"]:
+            _err(errors, "t14", "search_express_bus", r, f"{to['name']}→{td['name']}")
+            continue
+        for opt in build_intercity_options(r["data"]["buses"], access, egress):
+            opt.id = f"bus-{opt.id}"
+            opt.basis.update({"dep_station": to["name"], "arr_station": td["name"]})
+            ctx.options.append(opt)
 
 
 def _intracity(ctx, conds, o, d, errors) -> dict:

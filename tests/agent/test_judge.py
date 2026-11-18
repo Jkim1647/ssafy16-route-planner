@@ -39,6 +39,13 @@ def test_leave_and_arrive_formula():
     assert o.basis["board_buffer_min"] == 10
 
 
+def test_bus_trunk_leg_mode():
+    bus = {**train("07:00", "11:00", fare=30000, no="R1-0700"), "grade": "고속버스 우등", "kind": "bus"}
+    [o] = build_intercity_options([bus], [transit(20)], [transit(25)])
+    trunk = [lg for lg in o.legs if lg.source == "tago_bus"]
+    assert trunk and trunk[0].mode == "bus" and trunk[0].name == "고속버스 우등 R1-0700"
+
+
 def test_arrive_by_with_buffer():
     [o] = build_intercity_options([train("07:02", "09:00")], [transit(20)], [transit(25)])
     j = evaluate([o], cond(arrive_by="09:30"), [], NOW)

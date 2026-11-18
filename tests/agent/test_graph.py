@@ -311,6 +311,68 @@ def test_analyze_fixes_date_in_time_field(env):
     assert res.cards
 
 
+def _add_its(world, monkeypatch, events):
+    calls = []
+
+    def its(bbox, date):
+        calls.append(bbox)
+        return ok({"realtime": False, "events": events})
+    tools = dict(registry._TOOLS)
+    tools["get_road_events"] = Tool("get_road_events", "d", {"type": "object", "properties": {}}, its, "external")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    return calls
+
+
+def test_its_called_once_after_judge(env, monkeypatch):
+    world, llm, make, _ = env
+    calls = _add_its(world, monkeypatch, [{"type": "공사", "description": "국도22호선 시설물보수작업"}])
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    assert len(calls) == 1
+    seq = [e["node"] or e["payload"].get("tool") for e in res.events if e["type"] in ("node_start", "tool_call")]
+    assert seq.index("get_road_events") > seq.index("judge")
+    assert any("공사" in w for w in res.cards[0]["warnings"])  # 출발 구간에 버스가 있음
+
+
+def test_its_not_called_without_road_legs(env, monkeypatch):
+    world, llm, make, _ = env
+    world.transit = ok({"paths": [{"total_min": 15, "fare": 1500, "transfers": 0, "walk_min": 3,
+                                   "legs": [{"mode": "walk", "name": None, "min": 3},
+                                            {"mode": "subway", "name": "1호선", "min": 12}]}]})
+    calls = _add_its(world, monkeypatch, [])
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    make()("x")
+    assert calls == []
+
+
+def test_bus_added_on_mode_expansion(env, monkeypatch):
+    world, llm, make, _ = env
+    world.trains = [tr("13:00", "15:00")]  # 열차는 항상 마감 초과
+    tools = dict(registry._TOOLS)
+    bus_calls = []
+
+    def terminals(x, y, radius_km=15):
+        tid = "T_GJ" if y < 36 else "T_SE"
+        return ok({"terminals": [{"terminal_id": tid, "name": tid, "x": x, "y": y, "distance_km": 3}]})
+
+    def buses(dep_terminal_id, arr_terminal_id, date=None):
+        bus_calls.append(date)
+        return ok({"buses": [{"train_no": "R1-0800", "grade": "고속버스 우등", "dep_at": f"{DAY}T08:00",
+                              "arr_at": f"{DAY}T12:00", "fare": 30000, "kind": "bus"}], "estimated": False})
+    for n, f in (("find_terminals", terminals), ("search_express_bus", buses)):
+        tools[n] = Tool(n, n, {"type": "object", "properties": {}}, f, "external")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    assert res.replan_count == 2 and res.cards
+    assert any(lg["source"] == "tago_bus" for lg in res.cards[0]["legs"])
+    assert bus_calls  # 수단 확장(재계획 2) 전에는 부르지 않음
+    first_replan = next(i for i, e in enumerate(res.events) if e["type"] == "replan")
+    first_bus = next(i for i, e in enumerate(res.events)
+                     if e["type"] == "tool_call" and e["payload"]["tool"] == "search_express_bus")
+    assert first_bus > first_replan
+
+
 def test_rate_limited_falls_back_to_taxi_no_replan(env):
     world, llm, make, _ = env
     world.transit = fail("RATE_LIMITED", "한도")

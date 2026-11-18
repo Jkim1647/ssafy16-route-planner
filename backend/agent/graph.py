@@ -19,7 +19,7 @@ from backend.agent import prompts
 from backend.agent.conditions import Conditions, merge, missing_fields
 from backend.agent.ko_time import fix_changes
 from backend.agent.executor import FATAL, RunCtx, call_tool, make_plan, run_plan_trip
-from backend.agent.judge import Option, apply_warnings, evaluate, rank
+from backend.agent.judge import ROAD_MODES, Option, apply_warnings, evaluate, rank
 from backend.agent.llm import LLMUnavailable, structured
 from backend.agent.state import AgentState
 from backend.schemas import PlanIn
@@ -213,6 +213,7 @@ def build_graph(deps: Deps):
         opts = apply_warnings(ctx.options, ctx.weather, [], conds.avoid)
         j = evaluate(opts, conds, ctx.busy, deps.now())
         ranked = rank(j.passed, conds.priority)
+        _road_events(ctx, ranked, conds)
         cards = [card(o, i + 1) for i, o in enumerate(ranked)]
         excluded = [{"summary": _brief(o), "reason": r} for o, r in j.excluded][:8]
         undetermined = [{"summary": _brief(o), "reason": r} for o, r in j.undetermined][:5]
@@ -300,6 +301,21 @@ def build_graph(deps: Deps):
 
 
 # ---------------------------------------------------------------- 응답 보조
+def _road_events(ctx: RunCtx, ranked: list[Option], conds: Conditions) -> None:
+    """판단이 끝난 최종 후보에 도로 구간이 있을 때만, 출발지 주변(약 5km) 돌발정보를 실행당 1회 조회(설계 19-5)."""
+    origin = (ctx.places or {}).get("origin")
+    if not ranked or origin is None or get_tool("get_road_events") is None:
+        return
+    if not any(leg.mode in ROAD_MODES for o in ranked for leg in o.legs):
+        return
+    m = 0.05
+    r = call_tool(ctx, "t12", "get_road_events",
+                  {"bbox": [origin["x"] - m, origin["y"] - m, origin["x"] + m, origin["y"] + m],
+                   "date": conds.date.isoformat()})
+    if r["ok"] and r["data"]["events"]:
+        apply_warnings(ranked, {}, r["data"]["events"], [])
+
+
 def _no_option_reply(state, errors, max_replan) -> str:
     keys = [e for e in errors if e["code"] in ("INVALID_KEY",)]
     if keys:
