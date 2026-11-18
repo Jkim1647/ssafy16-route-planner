@@ -18,7 +18,17 @@ export const store = reactive({
   status: null,            // /config/status
   statusError: "",
   toasts: [],
+  auth: null,              // /auth/me {user, auth_required, google_configured}
+  places: [],              // 저장한 장소(대화 입력 도우미·여러 동선에서 사용)
 });
+
+export async function loadMe() {
+  try { store.auth = await api("/auth/me"); } catch { store.auth = { user: null, auth_required: false, google_configured: false }; }
+}
+
+export async function loadPlaces() {
+  try { store.places = await api("/places"); } catch { store.places = []; }
+}
 
 export function setSession(id) {
   store.sessionId = id;

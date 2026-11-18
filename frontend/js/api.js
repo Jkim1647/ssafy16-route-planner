@@ -18,6 +18,7 @@ export async function api(path, options = {}) {
   try {
     res = await fetch(API_BASE + path, {
       headers: { "Content-Type": "application/json" },
+      credentials: "include",  // 로그인 세션 쿠키(HttpOnly)를 함께 보낸다
       ...options,
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
@@ -29,7 +30,10 @@ export async function api(path, options = {}) {
   if (!res.ok) {
     const d = data.detail;
     const msg = typeof d === "string" ? d : Array.isArray(d) ? "입력값을 확인해 주세요." : "요청을 처리하지 못했어요.";
-    throw new Error(msg);
+    const err = new Error(msg);
+    err.status = res.status;
+    if (res.status === 401) window.dispatchEvent(new CustomEvent("rp:unauthorized"));
+    throw err;
   }
   return data;
 }

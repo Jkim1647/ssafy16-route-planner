@@ -97,13 +97,18 @@ export default {
         (d.undetermined ? ` · 판단 불가 ${d.undetermined}` : "");
     }
 
+    function insertPlace(label) {  // 저장한 장소 이름을 입력창에 넣는다(대화에서 그 이름으로 좌표를 씀)
+      input.value = (input.value ? input.value.trimEnd() + " " : "") + label;
+      nextTick(() => inputEl.value && inputEl.value.focus());
+    }
+
     function select(card) { store.selected = card; panel.value = "map"; }
     function newChat() { resetChat(); panel.value = "trace"; }
 
     onBeforeUnmount(() => clearInterval(timer));
     scrollDown();
     return { store, input, inputEl, list, panel, seconds, savingKey, EXAMPLES, mapPoints, otherPoints,
-      send, save, select, newChat, decisionText };
+      send, save, select, newChat, decisionText, insertPlace };
   },
   template: `
     <section class="chat-page">
@@ -142,6 +147,10 @@ export default {
         <div v-if="store.messages.length <= 1 && !store.sending" class="examples" data-tour="examples">
           <span class="hint">이렇게 물어보세요</span>
           <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>
+        </div>
+        <div v-if="store.places.length" class="saved-chips" aria-label="내 장소 넣기">
+          <span class="hint">내 장소</span>
+          <button v-for="p in store.places" :key="p.id" type="button" class="chip" @click="insertPlace(p.label)">{{ p.label }}</button>
         </div>
         <form class="composer" @submit.prevent="send()" data-tour="ask">
           <label for="chat-input" class="sr-only">메시지</label>
