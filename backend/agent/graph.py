@@ -21,7 +21,7 @@ from backend.agent.conditions import Conditions, merge, missing_fields
 from backend.agent.ko_time import fix_changes
 from backend.agent.executor import (FATAL, RunCtx, call_tool, make_plan, prev_day_ok, run_fact_query,
                                    run_plan_trip)
-from backend.agent.judge import ROAD_MODES, Option, apply_warnings, evaluate, rank
+from backend.agent.judge import ROAD_MODES, Option, apply_warnings, checks_for, evaluate, exclusion_kind, rank
 from backend.agent.llm import LLMUnavailable, structured
 from backend.agent.state import AgentState
 from backend.schemas import PlanIn
@@ -228,12 +228,20 @@ def build_graph(deps: Deps):
         ranked = rank(j.passed, conds.priority)
         _road_events(ctx, ranked, conds)
         cards = [card(o, i + 1) for i, o in enumerate(ranked)]
+        for c, o in zip(cards, ranked):  # 판단 결과: 마감 여유·예산 남은 금액·일정 겹침 여부
+            c["checks"] = checks_for(o, conds, ctx.busy, ctx.calendar_checked)
+        by: dict[str, int] = {}
+        for _, r in j.excluded:
+            by[exclusion_kind(r)] = by.get(exclusion_kind(r), 0) + 1
+        decision = {"checked": len(opts), "passed": len(j.passed), "excluded_by": by,
+                    "undetermined": len(j.undetermined), "estimated": len(j.estimated)}
         excluded = [{"summary": _brief(o), "reason": r} for o, r in j.excluded][:8]
         undetermined = [{"summary": _brief(o), "reason": r} for o, r in j.undetermined][:5]
         warnings = sorted({w for o in ranked for w in o.warnings})
         return {"cards": cards, "excluded": excluded, "undetermined": undetermined,
                 "estimated": [{"summary": _brief(o)} for o in j.estimated][:5], "warnings": warnings,
-                "extra": {**(state.get("extra") or {}), "n_options": len(opts), "n_passed": len(j.passed)}}
+                "extra": {**(state.get("extra") or {}), "n_options": len(opts), "n_passed": len(j.passed),
+                          "decision": decision}}
 
     def route_judge(state: AgentState):
         if state.get("intent") == "terms_query" or state.get("status") == "clarify":

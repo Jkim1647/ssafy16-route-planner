@@ -22,6 +22,8 @@
 | `cards` | object[] | 추천 경로 카드(최대 3) 또는 규정 근거(`type: "source"`) |
 | `cards[].legs` | object[] | `{mode, name, minutes, fare, source}` — 도보·지하철·버스·열차·택시 구간 |
 | `cards[].basis` | object | 판단 근거: 열차 출발·도착, 승차 여유 10분, 역까지/목적지까지 분·요금, 라벨 |
+| `cards[].checks` | object[] | 판단 결과 `{kind: deadline·depart·budget·calendar, text}` — 예: "마감 14:00까지 여유 36분", "예산 60,000원 중 16,800원 남음", "그날 일정 1건과 안 겹침" |
+| `decision` | object\|null | 판단 요약 `{checked, passed, excluded_by: {마감·예산·일정·출발 시각·날씨: 개수}, undetermined, estimated}` |
 | `cards[].points` | object[] | 지도용 지점 `{kind: origin·dep_station·arr_station·destination, name, x, y}` — Tool 결과(장소·역·터미널) 좌표 |
 | `excluded` | object[] | `{summary, reason}` 제외 후보와 사유(예: "도착 15:40 > 마감 13:50") |
 | `undetermined` | object[] | 판단하지 않은 후보(운임·소요시간 확인 불가) |

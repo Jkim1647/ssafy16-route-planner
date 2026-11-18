@@ -62,6 +62,9 @@ export const RouteCard = {
           <span class="fare">{{ won(card.total_fare) }}</span>
         </div>
       </div>
+      <ul v-if="card.checks && card.checks.length" class="checks" aria-label="조건 판단 결과">
+        <li v-for="c in card.checks" :key="c.kind" :class="c.kind"><span class="ok-mark" aria-hidden="true">✓</span>{{ c.text }}</li>
+      </ul>
       <RouteBar :legs="card.legs" />
       <LegSteps :legs="card.legs" />
       <p v-for="w in card.warnings" :key="w" class="warn">⚠ {{ w }}</p>

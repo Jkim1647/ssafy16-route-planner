@@ -34,6 +34,7 @@ class TurnResult(BaseModel):
     undetermined: list[dict] = []
     estimated: list[dict] = []
     warnings: list[str] = []
+    decision: dict | None = None  # 판단 요약 {checked, passed, excluded_by, undetermined, estimated}
     clarification: str | None = None
     status: str
     intent: str | None = None
@@ -78,4 +79,5 @@ def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
                       undetermined=st.get("undetermined") or [], estimated=st.get("estimated") or [],
                       warnings=st.get("warnings") or [], clarification=st.get("clarification"),
                       status=status, intent=st.get("intent"), replan_count=st.get("replan_count", 0),
-                      llm_calls=counter.count, events=list(em.events))
+                      llm_calls=counter.count, events=list(em.events),
+                      decision=(st.get("extra") or {}).get("decision"))

@@ -44,6 +44,7 @@ class RunCtx:
     no_reuse: bool = False
     today: dt.date | None = None  # 오늘 날짜(그래프가 설정). 전날 출발 전략이 의미 있는지 판단
     notes: list[str] = field(default_factory=list)  # 모든 후보에 붙일 안내(예: 캘린더 조회 실패)
+    calendar_checked: bool = False  # 캘린더를 실제로 조회해 판단에 반영했는가
 
 
 # ---------------------------------------------------------------- 계획
@@ -403,5 +404,6 @@ def _calendar(ctx, conds, prev_day: bool) -> None:
     if r["ok"]:
         ctx.busy = [Busy(b["title"], dt.datetime.fromisoformat(b["start"]), dt.datetime.fromisoformat(b["end"]))
                     for b in r["data"]["busy"]]
+        ctx.calendar_checked = True
     else:
         ctx.notes.append("캘린더 조회 실패 — 기존 일정과 겹치는지 확인하지 못했어요")

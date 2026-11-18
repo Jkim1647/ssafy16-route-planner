@@ -152,6 +152,19 @@ main { padding: 12px 24px 32px; outline: none; }
 .taxi .step-name { color: var(--m-taxi); }
 .step-min { color: var(--muted); font-weight: 400; font-size: 12px; }
 .step-name .step-min { margin-left: 3px; }
+.checks { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 13px; }
+.checks li { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); }
+.ok-mark { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center;
+  background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 700; }
+.decision { font-size: 13px; color: var(--muted); margin: 2px 0 4px; padding: 6px 8px; border-left: 3px solid var(--accent);
+  background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
+.intro { margin-top: 10px; padding: 12px 14px; background: var(--accent-soft); border-radius: 10px; }
+.intro h3 { font-size: 14px; color: var(--accent); margin-bottom: 8px; }
+.intro ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+.intro li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.intro li strong { font-size: 13px; }
+.intro li span { color: var(--muted); }
+@media (max-width: 600px) { .intro ul { grid-template-columns: 1fr; } }
 .basis-box { margin-top: 8px; font-size: 12px; color: var(--muted); }
 .basis-box summary { cursor: pointer; width: fit-content; }
 .basis { display: block; font-size: 12px; color: var(--muted); margin: 4px 0; }

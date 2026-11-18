@@ -202,6 +202,35 @@ def evaluate(options: list[Option], conds: Conditions, busy: list[Busy], now: dt
     return j
 
 
+def _dur(m: int) -> str:
+    return f"{m // 60}시간 {m % 60}분" if m >= 60 else f"{m}분"
+
+
+def checks_for(o: Option, conds: Conditions, busy: list[Busy], calendar_checked: bool) -> list[dict]:
+    """통과한 후보가 사용자 조건을 어떻게 만족하는지(판단 결과). 계산에 쓴 값만 쓴다."""
+    out = []
+    if conds.arrive_by and o.arrive_at:
+        overnight = bool(conds.depart_after and conds.arrive_by <= conds.depart_after)
+        deadline = dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.arrive_by)) + dt.timedelta(days=overnight)
+        slack = int((deadline - o.arrive_at).total_seconds() // 60)
+        out.append({"kind": "deadline", "text": f"마감 {conds.arrive_by}까지 여유 {_dur(slack)}"})
+    if conds.depart_after:
+        out.append({"kind": "depart", "text": f"{conds.depart_after} 이후 출발"})
+    if conds.budget is not None and o.total_fare is not None:
+        out.append({"kind": "budget", "text": f"예산 {conds.budget:,}원 중 {conds.budget - o.total_fare:,}원 남음"})
+    if calendar_checked:
+        out.append({"kind": "calendar", "text": f"그날 일정 {len(busy)}건과 안 겹침" if busy else "그날 일정 없음"})
+    return out
+
+
+_EXCLUSION_KINDS = (("도착", "마감"), ("총 ", "예산"), ("캘린더", "일정"), ("출발", "출발 시각"), ("강수", "날씨"))
+
+
+def exclusion_kind(reason: str) -> str:
+    """제외 사유 문장(evaluate가 만든 것)을 요약용 분류로."""
+    return next((k for prefix, k in _EXCLUSION_KINDS if reason.startswith(prefix)), "기타")
+
+
 _KEYS = {
     "cheapest": ("최저가", lambda o: (o.total_fare if o.total_fare is not None else 10**9, o.total_min or 0)),
     "fastest": ("최단 소요", lambda o: (o.total_min or 10**9, o.total_fare or 10**9)),

@@ -48,7 +48,7 @@ export default {
         setSession(r.session_id);
         const cond = r.events.find((e) => e.type === "node_end" && e.node === "analyze")?.payload?.conditions || null;
         const cards = r.cards.filter((c) => c.leave_at);
-        store.messages.push({ role: "agent", text: r.reply, cards, conds: cond,
+        store.messages.push({ role: "agent", text: r.reply, cards, conds: cond, decision: r.decision,
           sources: r.cards.filter((c) => c.type === "source"), excluded: r.excluded, undetermined: r.undetermined,
           estimated: r.estimated });
         store.lastEvents = r.events;
@@ -86,13 +86,23 @@ export default {
       }
     }
 
+    // 판단 요약: "후보 12개 검토 → 3개 통과 · 마감 초과 4 · 예산 초과 5 제외"
+    function decisionText(d) {
+      if (!d || !d.checked) return "";
+      const LABEL = { 마감: "마감 초과", 예산: "예산 초과", 일정: "일정 겹침", "출발 시각": "출발 시각 전", 날씨: "비 회피" };
+      const why = Object.entries(d.excluded_by || {}).sort((a, b) => b[1] - a[1])
+        .map(([k, n]) => `${LABEL[k] || k} ${n}`).join(" · ");
+      return `후보 ${d.checked}개 검토 → ${d.passed}개 조건 통과` + (why ? ` · 제외: ${why}` : "") +
+        (d.undetermined ? ` · 판단 불가 ${d.undetermined}` : "");
+    }
+
     function select(card) { store.selected = card; panel.value = "map"; }
     function newChat() { resetChat(); panel.value = "trace"; }
 
     onBeforeUnmount(() => clearInterval(timer));
     scrollDown();
     return { store, input, inputEl, list, panel, seconds, savingKey, EXAMPLES, mapPoints, otherPoints,
-      send, save, select, newChat };
+      send, save, select, newChat, decisionText };
   },
   template: `
     <section class="chat-page">
@@ -104,6 +114,7 @@ export default {
         <div ref="list" class="messages" aria-live="polite">
           <div v-for="(m, i) in store.messages" :key="i" class="msg" :class="[m.role, { error: m.error }]">
             <p>{{ m.text }}</p>
+            <p v-if="decisionText(m.decision)" class="decision">{{ decisionText(m.decision) }}</p>
             <template v-if="m.cards && m.cards.length">
               <RouteCard v-for="c in m.cards" :key="c.index + c.leave_at" :card="c" :selected="c === store.selected"
                          :saving="savingKey === c.index + c.leave_at" @select="select" @save="save($event, m.conds)" />
@@ -118,6 +129,15 @@ export default {
             <p class="hint">조건 분석 → 시간표·구간 조회 → 마감·예산·일정 판단 순서로 진행해요. 보통 5~15초 걸려요.</p>
           </div>
         </div>
+        <section v-if="store.messages.length <= 1 && !store.sending" class="intro" aria-label="이 서비스가 하는 일">
+          <h3>길찾기 앱이 해 주지 않는 것을 계산해요</h3>
+          <ul>
+            <li><strong>조건을 한 번에</strong><span>도착 마감·예산·내 캘린더 일정을 함께 따져 맞는 경로만 남겨요.</span></li>
+            <li><strong>나갈 시각을 거꾸로</strong><span>문 앞에서 문 앞까지 이어 붙여 몇 시에 나서야 하는지 알려 줘요.</span></li>
+            <li><strong>고른 이유와 뺀 이유</strong><span>마감까지 여유·남는 예산을 보여 주고, 맞는 게 없으면 다시 찾아요.</span></li>
+            <li><strong>지어내지 않아요</strong><span>시간표·요금은 공공·지도 API로 확인한 값만 쓰고, 좌석·지연은 확인 불가로 밝혀요.</span></li>
+          </ul>
+        </section>
         <div v-if="store.messages.length <= 1 && !store.sending" class="examples">
           <span class="hint">이렇게 물어보세요</span>
           <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>

@@ -838,6 +838,18 @@
       "title": "Warnings",
       "default": []
      },
+     "decision": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Decision"
+     },
      "clarification": {
       "anyOf": [
        {
