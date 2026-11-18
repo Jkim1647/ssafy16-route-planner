@@ -1,7 +1,7 @@
-// 첫 방문 소개(단계별 넘김). "오늘 하루 보지 않기"는 브라우저에 오늘 날짜만 기억한다(저장 불가 환경이면 매번 보임).
-import { computed, onBeforeUnmount, onMounted, ref, watch, nextTick } from "vue";
-import ModeIcon from "./ModeIcon.js";
-import { RouteBar } from "./common.js";
+// 첫 방문 안내(코치마크): 화면을 어둡게 하고 실제 요소를 하나씩 비추며 그 옆에 설명을 띄운다.
+// "오늘 하루 보지 않기"는 브라우저에 오늘 날짜만 기억한다(저장 불가 환경이면 매번 보임).
+// 대상은 템플릿의 data-tour 속성으로 찾고, 화면에 없는 대상(대화 시작 뒤 사라진 예시 등)은 건너뛴다.
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 
 const KEY = "rp.introHiddenOn";
 const today = () => new Date().toLocaleDateString("sv-SE");  // YYYY-MM-DD(로컬 날짜)
@@ -13,108 +13,105 @@ function hideToday() {
   try { localStorage.setItem(KEY, today()); } catch { /* 저장 불가 환경 */ }
 }
 
-// 소개용 예시 구간(실제 조회 결과 형태와 같은 모양)
-const SAMPLE_LEGS = [
-  { mode: "walk", minutes: 8 }, { mode: "bus", name: "1002", minutes: 29, line_code: 15 }, { mode: "walk", minutes: 2 },
-  { mode: "train", name: "KTX-산천", minutes: 117, source: "tago_train" }, { mode: "walk", minutes: 6 },
-  { mode: "subway", name: "수도권 수인.분당선", minutes: 12 }, { mode: "walk", minutes: 2 },
-  { mode: "subway", name: "수도권 2호선", minutes: 3 }, { mode: "walk", minutes: 1 },
-];
-
 const STEPS = [
-  { title: "말하듯이 조건을 한 번에", body: "어디서 어디로, 언제까지, 얼마 이하로. 회의·약속 같은 내 일정도 함께 따져요.", art: "ask" },
-  { title: "도착 시각에서 거꾸로 계산해요", body: "문 앞에서 문 앞까지 버스·열차·지하철을 이어 붙여, 몇 시에 집을 나서야 하는지 알려 줘요.", art: "timeline" },
-  { title: "고른 이유와 뺀 이유를 보여 줘요", body: "마감까지 여유, 남는 예산, 일정 겹침 여부를 경로마다 표시하고, 맞는 게 없으면 다시 찾아요.", art: "checks" },
-  { title: "지도로 확인하고 계획으로 저장", body: "노선 색으로 동선을 보고, 고른 경로를 이동 계획으로 저장해 캘린더에 넣을 수 있어요.", art: "map" },
-  { title: "확인한 값만 써요", body: "시간표·요금은 공공·지도 API로 확인한 값만 쓰고, 좌석·실시간 지연처럼 확인할 수 없는 건 그렇다고 밝혀요.", art: "trust" },
+  { target: "ask", title: "조건을 말하듯이 입력해요",
+    body: "어디서 어디로, 언제까지(또는 언제부터), 얼마 이하로. 예: \"토요일 2시까지 첨단동에서 강남역, 6만원 이하\"" },
+  { target: "examples", title: "처음이라면 예시를 눌러 보세요", body: "예시 질문을 누르면 바로 경로를 찾아요. 규정(환불 위약금) 질문도 할 수 있어요." },
+  { target: "why", title: "길찾기 앱과 다른 점", body: "도착 마감·예산·내 캘린더 일정을 함께 따지고, 도착 시각에서 거꾸로 나갈 시각을 계산해요." },
+  { target: "side", title: "지도와 실행 과정", body: "찾은 경로는 노선 색으로 지도에 그려요. '실행 과정'에서는 Agent가 어떤 순서로 무엇을 조회하고 판단했는지 볼 수 있어요." },
+  { target: "plans", title: "고른 경로는 이동 계획으로", body: "경로 카드의 '이 경로로 저장'으로 저장하고, 여기서 수정·삭제·캘린더 등록을 해요. 겹치는 계획은 알려 줘요." },
+  { target: "logs", title: "판단 기록과 이상 징후", body: "요청마다 단계·Tool 호출·재계획이 기록되고, 반복 호출이나 과도한 재계획은 이상 징후로 표시돼요." },
+  { target: "quota", title: "외부 API 사용량", body: "무료 한도가 작은 API(대중교통 하루 30회 등)는 사용량을 보여 주고 한도 안에서만 불러요." },
+  { target: "help", title: "언제든 다시 보기", body: "이 안내는 '소개' 버튼으로 다시 볼 수 있어요." },
 ];
 
 export default {
   name: "IntroGuide",
-  components: { ModeIcon, RouteBar },
   props: { open: Boolean },
   emits: ["close"],
   setup(props, { emit }) {
+    const steps = ref([]);    // 지금 화면에 있는 대상만
     const i = ref(0);
+    const rect = ref(null);
+    const tip = ref(null);
+    const tipPos = ref({ top: 0, left: 0, place: "below" });
     const dontShow = ref(false);
-    const dialog = ref(null);
-    const step = computed(() => STEPS[i.value]);
-    const last = computed(() => i.value === STEPS.length - 1);
+    const step = computed(() => steps.value[i.value]);
+    const last = computed(() => i.value === steps.value.length - 1);
 
+    const el = (s) => document.querySelector(`[data-tour="${s.target}"]`);
+    const visible = (e) => e && e.offsetParent !== null && e.getBoundingClientRect().width > 0;
+
+    async function measure() {
+      if (!props.open || !step.value) return;
+      const e = el(step.value);
+      if (!visible(e)) return;
+      const r = e.getBoundingClientRect();
+      rect.value = { top: r.top - 6, left: r.left - 6, width: r.width + 12, height: r.height + 12 };
+      await nextTick();
+      const tw = tip.value ? tip.value.offsetWidth : 320, th = tip.value ? tip.value.offsetHeight : 160;
+      const below = r.bottom + 14 + th < window.innerHeight;
+      const place = below ? "below" : r.top - 14 - th > 0 ? "above" : "below";
+      const top = place === "below" ? r.bottom + 14 : r.top - 14 - th;
+      const left = Math.min(Math.max(12, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 12);
+      tipPos.value = { top: Math.max(12, top), left, place, arrow: Math.min(Math.max(16, r.left + r.width / 2 - left), tw - 16) };
+    }
+    async function go(n) {
+      i.value = n;
+      const e = step.value && el(step.value);
+      if (e) e.scrollIntoView({ block: "center", behavior: "instant" });
+      await nextTick();
+      requestAnimationFrame(measure);
+    }
+    function start() {
+      steps.value = STEPS.filter((s) => visible(el(s)));
+      if (!steps.value.length) { emit("close"); return; }
+      go(0);
+    }
     function close() {
       if (dontShow.value) hideToday();
+      rect.value = null;
       emit("close");
     }
-    function next() { last.value ? close() : i.value++; }
-    function prev() { if (i.value > 0) i.value--; }
+    const next = () => (last.value ? close() : go(i.value + 1));
+    const prev = () => i.value > 0 && go(i.value - 1);
     function onKey(e) {
       if (!props.open) return;
       if (e.key === "Escape") close();
       else if (e.key === "ArrowRight") next();
       else if (e.key === "ArrowLeft") prev();
     }
-    watch(() => props.open, (v) => { if (v) { i.value = 0; nextTick(() => dialog.value && dialog.value.focus()); } });
-    onMounted(() => { window.addEventListener("keydown", onKey); if (props.open) nextTick(() => dialog.value && dialog.value.focus()); });
-    onBeforeUnmount(() => window.removeEventListener("keydown", onKey));
-    return { i, step, last, dontShow, dialog, STEPS, SAMPLE_LEGS, next, prev, close };
+    const onResize = () => requestAnimationFrame(measure);
+
+    watch(() => props.open, (v) => { if (v) setTimeout(start, 300); });  // 페이지가 그려진 뒤 대상 측정
+    onMounted(() => {
+      window.addEventListener("keydown", onKey);
+      window.addEventListener("resize", onResize);
+      window.addEventListener("scroll", onResize, true);
+      if (props.open) setTimeout(start, 400);
+    });
+    onBeforeUnmount(() => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("scroll", onResize, true);
+    });
+    return { steps, i, step, last, rect, tip, tipPos, dontShow, next, prev, close };
   },
   template: `
-    <div v-if="open" class="intro-backdrop" @click.self="close">
-      <section ref="dialog" class="intro-dialog" role="dialog" aria-modal="true" aria-labelledby="intro-title" tabindex="-1">
-        <header class="intro-head">
-          <span class="intro-count">{{ i + 1 }} / {{ STEPS.length }}</span>
-          <button type="button" class="ghost small" @click="close" aria-label="소개 닫기">건너뛰기</button>
-        </header>
-
-        <div class="intro-art" aria-hidden="true">
-          <span class="art-label">예시 화면</span>
-          <template v-if="step.art === 'ask'">
-            <div class="art-bubble">토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하</div>
-            <div class="art-tags"><span>마감 14:00</span><span>예산 60,000원</span><span>내 일정 확인</span></div>
-          </template>
-          <template v-else-if="step.art === 'timeline'">
-            <div class="art-times"><b>09:42</b> 출발 <span>→</span> <b>13:24</b> 도착 <em>마감 14:00</em></div>
-            <RouteBar :legs="SAMPLE_LEGS" />
-            <div class="art-modes"><ModeIcon mode="walk" :size="18" /><ModeIcon mode="bus" :size="18" /><ModeIcon mode="train" :size="18" /><ModeIcon mode="subway" :size="18" /></div>
-          </template>
-          <template v-else-if="step.art === 'checks'">
-            <ul class="checks art-checks">
-              <li><span class="ok-mark">✓</span>마감 14:00까지 여유 36분</li>
-              <li><span class="ok-mark">✓</span>예산 60,000원 중 16,800원 남음</li>
-              <li><span class="ok-mark">✓</span>그날 일정 1건과 안 겹침</li>
-            </ul>
-            <p class="decision">후보 71개 검토 → 6개 조건 통과 · 제외: 마감 초과 47 · 일정 겹침 18</p>
-          </template>
-          <template v-else-if="step.art === 'map'">
-            <svg viewBox="0 0 320 140" class="art-map">
-              <rect width="320" height="140" rx="10" fill="#eef1ee"/>
-              <polyline points="30,115 60,100 80,80" fill="none" stroke="#E60012" stroke-width="4"/>
-              <line x1="80" y1="80" x2="230" y2="35" stroke="#1f5f4a" stroke-width="6"/>
-              <polyline points="230,35 255,45 265,60" fill="none" stroke="#F5A200" stroke-width="4"/>
-              <polyline points="265,60 285,55 295,40" fill="none" stroke="#00A84D" stroke-width="4"/>
-              <circle cx="30" cy="115" r="7" fill="#3d4fa1"/><circle cx="295" cy="40" r="7" fill="#a1302b"/>
-            </svg>
-            <div class="art-tags"><span>저장</span><span>캘린더 등록</span><span>겹치는 계획 알림</span></div>
-          </template>
-          <template v-else>
-            <div class="art-trust"><span>공공데이터·지도 API</span><span class="arrow">→</span><span>규칙 계산</span><span class="arrow">→</span><span>LLM은 이해·설명만</span></div>
-            <p class="hint">좌석 잔여·실시간 지연: 확인 불가로 안내</p>
-          </template>
-        </div>
-
-        <h2 id="intro-title">{{ step.title }}</h2>
-        <p class="intro-body">{{ step.body }}</p>
-
-        <div class="intro-dots" role="tablist" aria-label="소개 단계">
-          <button v-for="(s, n) in STEPS" :key="n" type="button" role="tab" :aria-selected="n === i"
-                  :aria-label="(n + 1) + '단계: ' + s.title" :class="{ on: n === i }" @click="i = n"></button>
-        </div>
-
-        <footer class="intro-foot">
+    <div v-if="open && rect && step" class="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+      <div class="tour-block" @click="close"></div>
+      <div class="tour-spot" :style="{ top: rect.top + 'px', left: rect.left + 'px', width: rect.width + 'px', height: rect.height + 'px' }"></div>
+      <section ref="tip" class="tour-tip" :class="tipPos.place" :style="{ top: tipPos.top + 'px', left: tipPos.left + 'px' }">
+        <span class="tour-arrow" :style="{ left: tipPos.arrow + 'px' }" aria-hidden="true"></span>
+        <p class="tour-count">{{ i + 1 }} / {{ steps.length }}</p>
+        <h2 id="tour-title">{{ step.title }}</h2>
+        <p class="tour-body">{{ step.body }}</p>
+        <footer class="tour-foot">
           <label class="check"><input type="checkbox" v-model="dontShow"> 오늘 하루 보지 않기</label>
           <div class="actions">
-            <button type="button" class="ghost" :disabled="i === 0" @click="prev">이전</button>
-            <button type="button" @click="next">{{ last ? '시작하기' : '다음' }}</button>
+            <button type="button" class="ghost small" @click="close">건너뛰기</button>
+            <button v-if="i > 0" type="button" class="ghost small" @click="prev">이전</button>
+            <button type="button" class="small" @click="next">{{ last ? '시작하기' : '다음' }}</button>
           </div>
         </footer>
       </section>

@@ -130,7 +130,7 @@ export default {
             <p class="hint">조건 분석 → 시간표·구간 조회 → 마감·예산·일정 판단 순서로 진행해요. 보통 5~15초 걸려요.</p>
           </div>
         </div>
-        <section v-if="store.messages.length <= 1 && !store.sending" class="intro" aria-label="이 서비스가 하는 일">
+        <section v-if="store.messages.length <= 1 && !store.sending" class="intro" aria-label="이 서비스가 하는 일" data-tour="why">
           <h3>길찾기 앱이 해 주지 않는 것을 계산해요</h3>
           <ul>
             <li><strong>조건을 한 번에</strong><span>도착 마감·예산·내 캘린더 일정을 함께 따져 맞는 경로만 남겨요.</span></li>
@@ -139,18 +139,18 @@ export default {
             <li><strong>지어내지 않아요</strong><span>시간표·요금은 공공·지도 API로 확인한 값만 쓰고, 좌석·지연은 확인 불가로 밝혀요.</span></li>
           </ul>
         </section>
-        <div v-if="store.messages.length <= 1 && !store.sending" class="examples">
+        <div v-if="store.messages.length <= 1 && !store.sending" class="examples" data-tour="examples">
           <span class="hint">이렇게 물어보세요</span>
           <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>
         </div>
-        <form class="composer" @submit.prevent="send()">
+        <form class="composer" @submit.prevent="send()" data-tour="ask">
           <label for="chat-input" class="sr-only">메시지</label>
           <input id="chat-input" ref="inputEl" v-model="input" autocomplete="off" maxlength="500" :disabled="store.sending"
                  placeholder="예) 내일 오후 6시까지 용산역에서 광주송정역, 환승 적게">
           <button type="submit" :disabled="store.sending || !input.trim()">보내기</button>
         </form>
       </div>
-      <aside class="side-col">
+      <aside class="side-col" data-tour="side">
         <div class="segmented" role="tablist" aria-label="오른쪽 보기">
           <button type="button" role="tab" :aria-selected="panel === 'map'" :class="{ active: panel === 'map' }" @click="panel = 'map'">지도</button>
           <button type="button" role="tab" :aria-selected="panel === 'trace'" :class="{ active: panel === 'trace' }" @click="panel = 'trace'">실행 과정</button>

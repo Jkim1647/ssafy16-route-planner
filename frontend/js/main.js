@@ -30,7 +30,13 @@ router.afterEach((to) => {
 const App = {
   components: { IntroGuide },
   setup() {
-    const introOpen = ref(!introHiddenToday());
+    const introOpen = ref(!introHiddenToday() && (location.hash === "" || location.hash === "#/"));
+    // 안내는 대화 화면의 요소를 비추므로, 다른 페이지에서 누르면 대화 화면으로 옮긴 뒤 연다
+    async function openIntro() {
+      if (router.currentRoute.value.path !== "/") await router.push("/");
+      introOpen.value = false;
+      setTimeout(() => (introOpen.value = true), 0);
+    }
     const missing = computed(() => (store.status ? Object.entries(store.status.keys).filter(([, v]) => !v).map(([k]) => k) : []));
     const quota = computed(() => {
       const q = store.status?.quota || {};
@@ -39,7 +45,7 @@ const App = {
         : "";
     });
     onMounted(loadStatus);
-    return { store, missing, quota, introOpen };
+    return { store, missing, quota, introOpen, openIntro };
   },
   template: `
     <a href="#main" class="skip">본문으로 건너뛰기</a>
@@ -50,14 +56,14 @@ const App = {
       </router-link>
       <nav class="nav" aria-label="주 메뉴">
         <router-link to="/" exact-active-class="active">대화</router-link>
-        <router-link to="/plans" active-class="active">이동 계획</router-link>
-        <router-link to="/logs" active-class="active">실행 로그</router-link>
-        <button type="button" class="nav-intro" @click="introOpen = true">소개</button>
+        <router-link to="/plans" active-class="active" data-tour="plans">이동 계획</router-link>
+        <router-link to="/logs" active-class="active" data-tour="logs">실행 로그</router-link>
+        <button type="button" class="nav-intro" data-tour="help" @click="openIntro">소개</button>
       </nav>
     </header>
     <div v-if="store.statusError" class="banner">{{ store.statusError }}</div>
     <div v-else-if="missing.length" class="banner">API 키가 설정되지 않았어요: {{ missing.join(', ') }} — .env 파일을 확인해 주세요.</div>
-    <div class="quota" aria-live="polite">{{ quota }}</div>
+    <div class="quota" aria-live="polite"><span data-tour="quota">{{ quota }}</span></div>
     <main id="main" tabindex="-1"><router-view /></main>
     <IntroGuide :open="introOpen" @close="introOpen = false" />
     <div class="toasts" aria-live="polite">
