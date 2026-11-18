@@ -86,6 +86,8 @@ def list_logs(request: Request):
 @router.get("/logs/{session_id}", tags=["실행 로그"])
 def get_log(session_id: str, request: Request):
     c = _c(request)
+    if not c.events.owns_session(session_id):
+        raise HTTPException(404, "그런 실행 로그가 없습니다.")
     events = c.events.get_session(session_id)
     if not events:
         raise HTTPException(404, "그런 실행 로그가 없습니다.")
@@ -96,13 +98,17 @@ def get_log(session_id: str, request: Request):
 
 @router.delete("/logs/{session_id}", status_code=204, tags=["실행 로그"])
 def delete_log(session_id: str, request: Request):
-    if not _c(request).events.delete_session(session_id):
+    if not _c(request).events.owns_session(session_id) or not _c(request).events.delete_session(session_id):
         raise HTTPException(404, "그런 실행 로그가 없습니다.")
     return Response(status_code=204)
 
 
 @router.get("/runs/{run_id}/anomaly", tags=["실행 로그"])
 def get_anomaly(run_id: str, request: Request):
+    from backend.auth.context import current_user_id
+    run = _c(request).runs.get(run_id)
+    if run is None or run.get("user_id", "local") != current_user_id():
+        raise HTTPException(404, "그런 실행이 없습니다.")
     a = _c(request).anomalies.get(run_id)
     if a is None:
         raise HTTPException(404, "판정 결과가 없습니다.")

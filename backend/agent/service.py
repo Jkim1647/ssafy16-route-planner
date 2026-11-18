@@ -8,6 +8,7 @@ from collections import OrderedDict
 from pydantic import BaseModel
 
 from backend.agent.executor import RunCtx
+from backend.auth.context import current_user_id
 from backend.agent.llm import LLMCounter
 from backend.events.bus import Emitter
 
@@ -63,7 +64,7 @@ def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
         em.emit("run_start", payload={"message": message, "mode": deps.settings.AGENT_MODE})
         try:
             st = graph.invoke({**RESET, "session_id": session_id, "run_id": run_id, "user_message": message},
-                              config={"configurable": {"thread_id": session_id}})
+                              config={"configurable": {"thread_id": f"{current_user_id()}:{session_id}"}})
             status = st.get("status") or "done"
         except Exception as e:  # 그래프 오류도 응답으로 바꾼다(NF3003); 원문은 화면에 내보내지 않는다
             em.emit("error", payload={"type": type(e).__name__})
@@ -71,7 +72,7 @@ def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
         em.emit("run_end", payload={"status": status, "replan_count": st.get("replan_count", 0),
                                     "llm_calls": counter.count})
         run_repo.finish(run_id, status, st.get("replan_count", 0), counter.count)
-        _touch(graph, session_id)
+        _touch(graph, f"{current_user_id()}:{session_id}")  # 대화 상태 키와 같은 형식
     if after_run:  # 이상 징후 진단(LLM)은 느릴 수 있어 잠금 밖에서 — 다른 요청을 막지 않는다
         after_run(run_id)
     return TurnResult(run_id=run_id, session_id=session_id, reply=st.get("final_reply", ""),

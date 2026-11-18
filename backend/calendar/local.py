@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 
 from backend.agent.judge import Busy
+from backend.auth.context import current_user_id
 from backend.calendar.base import plan_span
 from backend.db.database import connect
 
@@ -16,16 +17,17 @@ class LocalCalendar:
 
     def add(self, title: str, start: dt.datetime, end: dt.datetime, plan_id: int | None = None) -> str:
         with connect(self.db) as c:
-            cur = c.execute('INSERT INTO local_calendar(title, start, "end", plan_id) VALUES(?,?,?,?)',
-                            (title, start.isoformat(timespec="minutes"), end.isoformat(timespec="minutes"), plan_id))
+            cur = c.execute('INSERT INTO local_calendar(title, start, "end", plan_id, user_id) VALUES(?,?,?,?,?)',
+                            (title, start.isoformat(timespec="minutes"), end.isoformat(timespec="minutes"), plan_id,
+                             current_user_id()))
             return f"local-{cur.lastrowid}"
 
     def get_free_busy(self, day: dt.date, days: int = 1) -> list[Busy]:
         lo = dt.datetime.combine(day, dt.time.min).isoformat(timespec="minutes")
         hi = dt.datetime.combine(day + dt.timedelta(days=days), dt.time.min).isoformat(timespec="minutes")
         with connect(self.db) as c:
-            rows = c.execute('SELECT title, start, "end" FROM local_calendar WHERE start < ? AND "end" > ? ORDER BY start',
-                             (hi, lo)).fetchall()
+            rows = c.execute('SELECT title, start, "end" FROM local_calendar WHERE start < ? AND "end" > ? AND user_id=? '
+                             'ORDER BY start', (hi, lo, current_user_id())).fetchall()
         return [Busy(r["title"], dt.datetime.fromisoformat(r["start"]), dt.datetime.fromisoformat(r["end"])) for r in rows]
 
     def create_event(self, plan) -> str:

@@ -22,8 +22,17 @@ def plan_span(plan) -> tuple[dt.datetime, dt.datetime]:
     return start, end if end > start else end + dt.timedelta(days=1)
 
 
+def _may_use_google(settings) -> bool:
+    """실제 Google 캘린더(서버의 token.json 한 계정)는 그 소유자만. 로그인을 끈 모드의 local 사용자는 소유자로 본다."""
+    from backend.auth.context import current_email, current_user_id
+    if current_user_id() == "local":
+        return True
+    owner = (settings.CALENDAR_OWNER_EMAIL or "").strip().lower()
+    return bool(owner) and (current_email() or "").lower() == owner
+
+
 def get_calendar(settings) -> CalendarBackend:
-    if settings.CALENDAR_BACKEND == "google":
+    if settings.CALENDAR_BACKEND == "google" and _may_use_google(settings):
         from backend.calendar.google import GoogleCalendar
         return GoogleCalendar(settings.GOOGLE_CALENDAR_ID)
     from backend.calendar.local import LocalCalendar

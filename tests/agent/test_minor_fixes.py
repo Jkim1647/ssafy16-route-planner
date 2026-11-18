@@ -138,8 +138,8 @@ def test_old_sessions_evicted(env, monkeypatch):
     for sid in ("a", "b", "c"):
         llm.responses = [A("chat")]
         service.run_turn(graph, deps, bus, runs, sid, "안녕")
-    assert graph.checkpointer.get_tuple({"configurable": {"thread_id": "a"}}) is None
-    assert graph.checkpointer.get_tuple({"configurable": {"thread_id": "c"}}) is not None
+    assert graph.checkpointer.get_tuple({"configurable": {"thread_id": "local:a"}}) is None  # 사용자:세션 키
+    assert graph.checkpointer.get_tuple({"configurable": {"thread_id": "local:c"}}) is not None
 
 
 # M10. 장소 이름·주소가 비어 있어도 죽지 않음

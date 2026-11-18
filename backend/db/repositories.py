@@ -4,6 +4,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 
+from backend.auth.context import current_user_id
 from backend.db.database import connect
 from backend.schemas import PlanIn, PlanOut, PlanSaveResult, PlanUpdate
 
@@ -35,12 +36,13 @@ class PlanRepo:
 
     def get(self, plan_id: int) -> PlanOut | None:
         with connect(self.db) as c:
-            r = c.execute("SELECT * FROM plans WHERE id=?", (plan_id,)).fetchone()
+            r = c.execute("SELECT * FROM plans WHERE id=? AND user_id=?", (plan_id, current_user_id())).fetchone()
         return self._row(r) if r else None
 
     def list(self) -> list[PlanOut]:
         with connect(self.db) as c:
-            rows = c.execute("SELECT * FROM plans ORDER BY date, leave_at, id").fetchall()
+            rows = c.execute("SELECT * FROM plans WHERE user_id=? ORDER BY date, leave_at, id",
+                             (current_user_id(),)).fetchall()
         return [self._row(r) for r in rows]
 
     def find_overlaps(self, date: dt.date, leave_at: str, arrive_at: str, exclude_id: int | None = None) -> list[PlanOut]:
@@ -48,7 +50,8 @@ class PlanRepo:
         # 자정을 넘기는 계획이 있어 전날·다음 날 계획도 날짜 차이(분)를 반영해 비교한다
         days = [(date + dt.timedelta(days=k)).isoformat() for k in (-1, 0, 1)]
         with connect(self.db) as c:
-            rows = c.execute("SELECT * FROM plans WHERE date IN (?,?,?) AND id IS NOT ?", (*days, exclude_id)).fetchall()
+            rows = c.execute("SELECT * FROM plans WHERE date IN (?,?,?) AND id IS NOT ? AND user_id=?",
+                             (*days, exclude_id, current_user_id())).fetchall()
         out = []
         for r in rows:
             shift = (dt.date.fromisoformat(r["date"]) - date).days * 1440
@@ -63,10 +66,10 @@ class PlanRepo:
         with connect(self.db) as c:
             cur = c.execute(
                 "INSERT INTO plans(title,date,leave_at,arrive_at,origin_name,destination_name,legs_json,total_fare,"
-                "source_run_id,created_at,updated_at,points_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)",
+                "source_run_id,created_at,updated_at,points_json,user_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (p.title, p.date.isoformat(), p.leave_at, p.arrive_at, p.origin_name, p.destination_name,
                  json.dumps([lg.model_dump() for lg in p.legs], ensure_ascii=False), p.total_fare, p.source_run_id,
-                 now, now, json.dumps([pt.model_dump() for pt in p.points], ensure_ascii=False)))
+                 now, now, json.dumps([pt.model_dump() for pt in p.points], ensure_ascii=False), current_user_id()))
             new_id = cur.lastrowid
         return PlanSaveResult(plan=self.get(new_id), overlaps=overlaps)
 
@@ -81,18 +84,19 @@ class PlanRepo:
             cols = ", ".join(f"{k}=?" for k in changes)
             vals = [v.isoformat() if isinstance(v, dt.date) else v for v in changes.values()]
             with connect(self.db) as c:
-                c.execute(f"UPDATE plans SET {cols}, updated_at=? WHERE id=?", (*vals, _now(), plan_id))
+                c.execute(f"UPDATE plans SET {cols}, updated_at=? WHERE id=? AND user_id=?",
+                          (*vals, _now(), plan_id, current_user_id()))
         updated = self.get(plan_id)
         return PlanSaveResult(plan=updated, overlaps=self.find_overlaps(updated.date, updated.leave_at,
                                                                           updated.arrive_at, exclude_id=plan_id))
 
     def delete(self, plan_id: int) -> bool:
         with connect(self.db) as c:
-            return c.execute("DELETE FROM plans WHERE id=?", (plan_id,)).rowcount > 0
+            return c.execute("DELETE FROM plans WHERE id=? AND user_id=?", (plan_id, current_user_id())).rowcount > 0
 
     def set_calendar_event(self, plan_id: int, event_id: str) -> None:
         with connect(self.db) as c:
-            c.execute("UPDATE plans SET calendar_event_id=? WHERE id=?", (event_id, plan_id))
+            c.execute("UPDATE plans SET calendar_event_id=? WHERE id=? AND user_id=?", (event_id, plan_id, current_user_id()))
 
 
 class EventRepo:
@@ -134,8 +138,20 @@ class EventRepo:
                 "(SELECT COUNT(*) FROM anomaly_reports a JOIN runs r ON r.run_id=a.run_id "
                 " WHERE r.session_id=e.session_id AND a.verdict='warn') AS warn_count, "
                 "(SELECT user_message FROM runs r WHERE r.session_id=e.session_id ORDER BY started_at LIMIT 1) AS first_message "
-                "FROM run_events e GROUP BY e.session_id ORDER BY last_ts DESC").fetchall()
+                "FROM run_events e WHERE e.session_id IN (SELECT session_id FROM runs WHERE user_id=?) "
+                "GROUP BY e.session_id ORDER BY last_ts DESC", (current_user_id(),)).fetchall()
         return [dict(r) for r in rows]
+
+    def owns_session(self, session_id: str) -> bool:
+        """현재 사용자의 실행이 있는 세션인가(다른 사용자의 로그는 없는 것처럼 다룬다)."""
+        with connect(self.db) as c:
+            return c.execute("SELECT 1 FROM runs WHERE session_id=? AND user_id=? LIMIT 1",
+                             (session_id, current_user_id())).fetchone() is not None
+
+    def session_owner(self, session_id: str) -> str | None:
+        with connect(self.db) as c:
+            r = c.execute("SELECT user_id FROM runs WHERE session_id=? LIMIT 1", (session_id,)).fetchone()
+        return r[0] if r else None
 
     def delete_session(self, session_id: str) -> bool:
         with connect(self.db) as c:
@@ -154,8 +170,8 @@ class RunRepo:
 
     def start(self, run_id: str, session_id: str, user_message: str, mode: str) -> None:
         with connect(self.db) as c:
-            c.execute("INSERT OR REPLACE INTO runs(run_id,session_id,user_message,mode,status,started_at) "
-                      "VALUES(?,?,?,?,'running',?)", (run_id, session_id, user_message, mode, _now()))
+            c.execute("INSERT OR REPLACE INTO runs(run_id,session_id,user_message,mode,status,started_at,user_id) "
+                      "VALUES(?,?,?,?,'running',?,?)", (run_id, session_id, user_message, mode, _now(), current_user_id()))
 
     def finish(self, run_id: str, status: str, replan_count: int, llm_calls: int) -> None:
         with connect(self.db) as c:
@@ -165,6 +181,26 @@ class RunRepo:
     def get(self, run_id: str) -> dict | None:
         with connect(self.db) as c:
             r = c.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone()
+        return dict(r) if r else None
+
+
+class UserRepo:
+    """로그인한 사용자(Google 계정). id는 "google:<sub>"."""
+
+    def __init__(self, db_path: str):
+        self.db = db_path
+
+    def upsert(self, user_id: str, email: str | None, name: str | None, picture: str | None) -> None:
+        now = _now()
+        with connect(self.db) as c:
+            c.execute("INSERT INTO users(id,email,name,picture,created_at,last_login) VALUES(?,?,?,?,?,?) "
+                      "ON CONFLICT(id) DO UPDATE SET email=excluded.email, name=excluded.name, "
+                      "picture=excluded.picture, last_login=excluded.last_login",
+                      (user_id, email, name, picture, now, now))
+
+    def get(self, user_id: str) -> dict | None:
+        with connect(self.db) as c:
+            r = c.execute("SELECT id, email, name, picture FROM users WHERE id=?", (user_id,)).fetchone()
         return dict(r) if r else None
 
 

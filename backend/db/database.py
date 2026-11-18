@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS run_events(
 CREATE INDEX IF NOT EXISTS idx_events_session ON run_events(session_id, run_id, seq);
 CREATE TABLE IF NOT EXISTS anomaly_reports(
   run_id TEXT PRIMARY KEY, verdict TEXT NOT NULL, findings_json TEXT NOT NULL, diagnosis TEXT, created_at TEXT);
+CREATE TABLE IF NOT EXISTS users(
+  id TEXT PRIMARY KEY, email TEXT, name TEXT, picture TEXT, created_at TEXT NOT NULL, last_login TEXT);
 CREATE TABLE IF NOT EXISTS local_calendar(
   id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, start TEXT NOT NULL, "end" TEXT NOT NULL, plan_id INTEGER);
 """
@@ -37,3 +39,7 @@ def init_db(path: str) -> None:
         cols = {r[1] for r in c.execute("PRAGMA table_info(plans)")}
         if "points_json" not in cols:
             c.execute("ALTER TABLE plans ADD COLUMN points_json TEXT NOT NULL DEFAULT '[]'")
+        # 로그인 도입 전 데이터는 이 컴퓨터 사용자("local") 것으로 둔다
+        for table in ("plans", "runs", "local_calendar"):
+            if "user_id" not in {r[1] for r in c.execute(f"PRAGMA table_info({table})")}:
+                c.execute(f"ALTER TABLE {table} ADD COLUMN user_id TEXT NOT NULL DEFAULT 'local'")

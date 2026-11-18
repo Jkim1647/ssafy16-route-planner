@@ -51,6 +51,14 @@ class Settings:
     ITS_DAILY_SOFT: int
     DB_PATH: str
     CHROMA_DIR: str
+    # 로그인(Google OIDC + JWT). AUTH_REQUIRED=false면 로그인 없이 이 컴퓨터 사용자 한 명("local")
+    AUTH_REQUIRED: bool = False
+    JWT_SECRET: str | None = None
+    GOOGLE_CLIENT_ID: str | None = None
+    GOOGLE_CLIENT_SECRET: str | None = None
+    GOOGLE_REDIRECT_URI: str = "http://127.0.0.1:8000/api/auth/google/callback"
+    FRONTEND_URL: str = "http://127.0.0.1:5500/"
+    CALENDAR_OWNER_EMAIL: str | None = None  # 실제 Google 캘린더(token.json)를 쓸 수 있는 계정
 
     def key_status(self) -> dict[str, bool]:
         """키 이름 → 설정 여부. 값은 절대 포함하지 않는다(NF3002)."""
@@ -84,4 +92,11 @@ def get_settings() -> Settings:
         ITS_DAILY_SOFT=_int("ITS_DAILY_SOFT", 4),
         DB_PATH=_str("DB_PATH", str(ROOT / "data" / "app.db")),
         CHROMA_DIR=_str("CHROMA_DIR", str(ROOT / "data" / "chroma")),
+        AUTH_REQUIRED=_bool("AUTH_REQUIRED", False),
+        JWT_SECRET=_str("JWT_SECRET"),
+        GOOGLE_CLIENT_ID=_str("GOOGLE_CLIENT_ID"),
+        GOOGLE_CLIENT_SECRET=_str("GOOGLE_CLIENT_SECRET"),
+        GOOGLE_REDIRECT_URI=_str("GOOGLE_REDIRECT_URI", "http://127.0.0.1:8000/api/auth/google/callback"),
+        FRONTEND_URL=_str("FRONTEND_URL", "http://127.0.0.1:5500/"),
+        CALENDAR_OWNER_EMAIL=_str("CALENDAR_OWNER_EMAIL"),
     )

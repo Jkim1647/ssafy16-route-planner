@@ -89,6 +89,8 @@ def test_events_ordered_by_seq(db):
 
 def test_sessions_isolated(db):
     repo = EventRepo(db)
+    RunRepo(db).start("ra", "A", "a", "single")  # 목록은 소유자가 기록된 실행이 있는 세션만
+    RunRepo(db).start("rb", "B", "b", "single")
     repo.append(ev("A", "ra", 1))
     repo.append(ev("B", "rb", 1))
     assert {e["session_id"] for e in repo.get_session("A")} == {"A"}
