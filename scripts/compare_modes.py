@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 from backend.settings import get_settings  # noqa: E402
 
 get_settings()
+os.environ["CALENDAR_BACKEND"] = "local"  # 실제 일정에 따라 결과가 달라지지 않게(재현 가능한 실험)
 import backend.tools.catalog_all  # noqa: E402,F401
 from backend.agent.graph import Deps, build_graph  # noqa: E402
 from backend.agent.llm import get_llm  # noqa: E402
