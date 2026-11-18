@@ -16,10 +16,16 @@ BASE = "https://apis.data.go.kr/1613000/ExpBusInfo"
 ROOT = Path(__file__).resolve().parents[2]
 CACHE_PATH = ROOT / "data" / "cache" / "terminals.json"
 NOISE = ("종합", "고속", "시외", "버스", "터미널", "·")
+ALIASES = {"서울": "서울경부"}  # 카카오 "서울고속버스터미널(경부)" → TAGO "서울경부"
+PAGES, PAGE_SIZE = 3, 15  # 카카오 키워드 검색 기본 15건/쪽
+MAX_TERMINALS = 4  # 센트럴시티처럼 한 곳에 ID가 둘인 터미널이 있어 넉넉히
+BRANDS = ("유스퀘어",)  # 카카오 장소명 앞에 붙는 운영사 이름(유스퀘어광주종합버스터미널 → 광주)
 
 
 def normalize_terminal(name: str) -> str:
     s = re.sub(r"\(.*?\)", "", name or "").strip()
+    for w in BRANDS:
+        s = s.replace(w, "").strip()
     s = s.split()[0] if s else ""
     for w in NOISE:
         s = s.replace(w, "")
@@ -54,12 +60,22 @@ def find_terminals(x: float, y: float, radius_km: float = 15) -> dict:
     index = load_terminal_index()
     if index is None:
         return fail(INVALID_KEY, "DATA_GO_KR_KEY가 없어 터미널 목록을 받을 수 없습니다.")
-    r = keyword_search({"query": "고속버스터미널", "x": x, "y": y, "radius": int(radius_km * 1000), "sort": "distance"})
-    if not r["ok"]:
-        return r
+    docs = []
+    # 터미널 근처 가게("…고속터미널점")가 앞쪽을 채우므로 3쪽까지 보고 버스터미널 분류만 남긴다.
+    for page in range(1, PAGES + 1):
+        r = keyword_search({"query": "버스터미널", "x": x, "y": y, "radius": int(radius_km * 1000),
+                            "sort": "distance", "page": page})
+        if not r["ok"]:
+            if page == 1:
+                return r
+            break
+        docs += [d for d in r["data"] if "버스터미널" in (d.get("category_name") or "")]
+        if len(r["data"]) < PAGE_SIZE:
+            break
     found, seen = [], set()
-    for d in r["data"]:
-        for t in index.get(normalize_terminal(d.get("place_name", "")), []):
+    for d in docs:
+        key = normalize_terminal(d.get("place_name", ""))
+        for t in index.get(ALIASES.get(key, key), []):
             if t["terminal_id"] in seen:
                 continue
             seen.add(t["terminal_id"])
@@ -67,7 +83,7 @@ def find_terminals(x: float, y: float, radius_km: float = 15) -> dict:
             found.append({**t, "x": tx, "y": ty, "distance_km": round(haversine_km(x, y, tx, ty), 2)})
     if not found:
         return fail(NO_DATA, "근처에서 고속버스 터미널을 찾지 못했습니다.")
-    return ok({"terminals": sorted(found, key=lambda t: t["distance_km"])[:2]})
+    return ok({"terminals": sorted(found, key=lambda t: t["distance_km"])[:MAX_TERMINALS]})
 
 
 def _ts(v) -> str:

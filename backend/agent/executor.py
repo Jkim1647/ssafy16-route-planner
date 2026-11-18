@@ -64,6 +64,7 @@ PLAN_TRIP = [
     ("t12", "get_road_events", "최종 후보 도로 구간 돌발정보(판단 후 1회)", None),
     ("t13", "find_terminals", "고속버스 터미널(재계획 수단 확장)", "intercity"),
     ("t14", "search_express_bus", "고속버스 시간표·요금(재계획 수단 확장)", "intercity"),
+    ("t15", "get_festivals", "도착지 근처 그날 행사(혼잡 참고)", None),
 ]
 FACT_QUERY = PLAN_TRIP[:5]
 TERMS_QUERY = [("t1", "search_terms", "운송약관·행동요령 문서 검색", None)]
@@ -294,6 +295,7 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
     _debug_force(ctx, conds, o)
     _weather(ctx, conds, o, d)
     _calendar(ctx, conds, prev_day_ok(conds, ctx.today) and strategy >= 3)
+    _festivals(ctx, conds, d)
 
     if is_intracity(o["x"], o["y"], d["x"], d["y"], same_station=False):
         return _intracity(ctx, conds, o, d, errors)
@@ -338,6 +340,9 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
     return {"errors": errors, "fatal": fatal_trains and not ctx.options, "clarify": None, "kind": "intercity"}
 
 
+MAX_TERMINAL_PAIRS = 4  # 고속버스 노선 조회 상한(TAGO 호출 보호)
+
+
 def _bus_trunk(ctx, errors, o, d, dates) -> None:
     """수단 확장(재계획 2단계): 고속버스를 간선 후보로 추가. 터미널 구간은 택시 기준(ODsay 상한 보호)."""
     if get_tool("find_terminals") is None or get_tool("search_express_bus") is None:
@@ -348,13 +353,27 @@ def _bus_trunk(ctx, errors, o, d, dates) -> None:
         if not r["ok"]:
             _err(errors, "t13", "find_terminals", r)
             return
-        term[key] = r["data"]["terminals"][0]
-    to, td = term["origin"], term["destination"]
+        term[key] = r["data"]["terminals"]
+
+    def buses(to, td, day):
+        return call_tool(ctx, "t14", "search_express_bus", {"dep_terminal_id": to["terminal_id"],
+                                                           "arr_terminal_id": td["terminal_id"], "date": day.isoformat()})
+    # 가장 가까운 터미널끼리 노선이 없을 수 있다(강남 → 서울남부엔 광주행 없음, 센트럴시티엔 있음).
+    # 첫 날짜로 가까운 쌍부터 보고 노선이 있는 첫 쌍을 쓴다.
+    pairs = [(a, b) for a in term["origin"] for b in term["destination"]][:MAX_TERMINAL_PAIRS]
+    first = None
+    for to, td in pairs:
+        first = buses(to, td, dates[0])
+        if first["ok"]:
+            break
+    if not first or not first["ok"]:
+        if first:
+            _err(errors, "t14", "search_express_bus", first, f"터미널 {len(pairs)}쌍 모두")
+        return
     access = _segment(ctx, errors, "t6", "t7", o["x"], o["y"], to["x"], to["y"], True)
     egress = _segment(ctx, errors, "t6", "t7", td["x"], td["y"], d["x"], d["y"], True)
-    for day in dates:
-        r = call_tool(ctx, "t14", "search_express_bus", {"dep_terminal_id": to["terminal_id"],
-                                                         "arr_terminal_id": td["terminal_id"], "date": day.isoformat()})
+    for i, day in enumerate(dates):
+        r = first if i == 0 else buses(to, td, day)
         if not r["ok"]:
             _err(errors, "t14", "search_express_bus", r, f"{to['name']}→{td['name']}")
             continue
@@ -406,6 +425,16 @@ def _weather(ctx, conds, o, d) -> None:
     for key, pl in (("origin", o), ("destination", d)):
         r = call_tool(ctx, "t10", "get_weather", {"lat": pl["y"], "lon": pl["x"], "at": _at(conds)})
         ctx.weather[key] = r["data"] if r["ok"] else None
+
+
+def _festivals(ctx, conds, d) -> None:
+    """도착지 근처 행사는 참고 안내만 한다(후보를 거르지 않음). 조회 실패는 안내 없이 넘어간다."""
+    if get_tool("get_festivals") is None:
+        return
+    r = call_tool(ctx, "t15", "get_festivals", {"x": d["x"], "y": d["y"], "date": conds.date.isoformat()})
+    for f in (r["data"]["festivals"] if r["ok"] else [])[:2]:
+        period = f"{f['start'][5:].replace('-', '.')}~{f['end'][5:].replace('-', '.')}"
+        ctx.notes.append(f"참고: 도착지 {f['distance_km']}km 거리에서 '{f['title']}'({period}) 행사 중 — 주변이 붐빌 수 있어요")
 
 
 def prev_day_ok(conds: Conditions, today: dt.date | None) -> bool:

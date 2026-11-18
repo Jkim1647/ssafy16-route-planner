@@ -32,8 +32,9 @@
 | `get_car_route` | 택시·자동차 시간·요금, 대중교통 실패·한도 시 대체 | `sx, sy, ex, ey` | `{duration_min, distance_km, taxi_fare, toll, bbox, path}` — `path`: 도로 좌표 `[[x, y], …]`(최대 120점으로 줄임) | 카카오 모빌리티 길찾기 |
 | `get_weather` **(F3004)** | 이동 시각 강수확률(도보 구간 주의) | `lat, lon, at` | `{at, forecast_at, pop, pty, temp}` (3시간 간격 예보는 ±3시간 내 가장 가까운 시각) | 기상청 단기예보 |
 | `get_road_events` | 최종 후보 도로 구간 주변 공사·사고 | `bbox[4]`, `date` | `{realtime, events[{type, detail, description, start, end, x, y}]}` (미래 날짜는 기간이 그날을 포함하는 것만) | ITS 돌발정보 |
-| `find_terminals` | 고속버스 대안이 필요할 때 근처 터미널 ID | `x, y` | `terminals[{terminal_id, name, x, y, distance_km}]` | 카카오 로컬 + TAGO 터미널 목록 |
+| `find_terminals` | 고속버스 대안이 필요할 때 근처 터미널 ID | `x, y` | `terminals[{terminal_id, name, x, y, distance_km}]` | 카카오 로컬(3쪽까지, 버스터미널 분류만) + TAGO 터미널 목록, 가까운 순 최대 4. 고속버스 조회는 가까운 터미널 쌍부터 노선 있는 첫 쌍(최대 4쌍) |
 | `search_express_bus` | 두 터미널 사이 고속버스 시각·요금(재계획 수단 확장) | `dep_terminal_id, arr_terminal_id, date?` | `{buses[{train_no, grade, dep_at, arr_at, fare, kind:"bus"}]}` | TAGO 고속버스 `/ExpBusInfo` |
+| `get_festivals` | 이동하는 날 도착지 근처 축제·행사(혼잡 참고 안내, 후보는 거르지 않음) | `x, y, date, radius_km?=1` | `festivals[{title, start, end, address, x, y, distance_km}]` (가까운 순 최대 3, 31일 넘게 하는 상설 공연 제외) | 한국관광공사 TourAPI `KorService2/searchFestival2`(그날 진행 중 전체를 받아 거리로 거름, 6시간 캐시) |
 
 ### 로컬 서버 API 툴
 

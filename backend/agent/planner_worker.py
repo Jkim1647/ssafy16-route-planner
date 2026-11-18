@@ -22,6 +22,7 @@ FIXED_ARGS = {
     "get_transit_route": ["sx", "sy", "ex", "ey"], "get_car_route": ["sx", "sy", "ex", "ey"],
     "get_weather": ["lat", "lon", "at"], "find_terminals": ["x", "y"], "search_express_bus": ["date"],
     "get_free_busy": ["date"], "get_road_events": ["date"], "search_terms": ["question"],
+    "get_festivals": ["x", "y", "date"],
 }
 
 PROMPT = """너는 이동 플래너의 Worker다. Tool 호출이 실패했다. 인자를 고쳐 같은 Tool을 다시 부를지(retry),

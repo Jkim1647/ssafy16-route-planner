@@ -387,6 +387,70 @@ def test_bus_added_on_mode_expansion(env, monkeypatch):
     assert first_bus > first_replan
 
 
+def _add_festivals(monkeypatch, result):
+    tools = dict(registry._TOOLS)
+    calls = []
+
+    def festivals(x, y, date, radius_km=1.0):
+        calls.append((x, y, date))
+        return result
+    tools["get_festivals"] = Tool("get_festivals", "f", {"type": "object", "properties": {}}, festivals, "external")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    return calls
+
+
+def test_festival_near_destination_warns(env, monkeypatch):
+    world, llm, make, _ = env
+    calls = _add_festivals(monkeypatch, ok({"festivals": [
+        {"title": "강남 페스티벌", "start": "2026-11-18", "end": "2026-11-22", "address": "강남", "x": 1, "y": 2,
+         "distance_km": 0.4}]}))
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    assert calls and calls[0][2] == DAY  # 도착지 좌표·이동 날짜로 조회
+    plan = next(e for e in res.events if e["type"] == "plan_tasks")
+    assert "get_festivals" in [t["tool"] for t in plan["payload"]["tasks"]]
+    assert res.cards and all(any("강남 페스티벌" in w for w in c["warnings"]) for c in res.cards)
+
+
+def test_festival_failure_is_silent(env, monkeypatch):
+    from backend.tools.base import UPSTREAM_ERROR, fail
+    world, llm, make, _ = env
+    _add_festivals(monkeypatch, fail(UPSTREAM_ERROR, "x"))
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    assert res.cards and not any("행사" in w for c in res.cards for w in c["warnings"])
+
+
+def test_bus_tries_next_terminal_when_nearest_has_none(env, monkeypatch):
+    # 실사용 점검: 강남 최근접은 서울남부인데 광주행이 없고, 센트럴시티에는 있다
+    from backend.tools.base import NO_DATA, fail
+    world, llm, make, _ = env
+    world.trains = [tr("13:00", "15:00")]
+    tools = dict(registry._TOOLS)
+    pairs = []
+
+    def terminals(x, y, radius_km=15):
+        if y < 36:
+            return ok({"terminals": [{"terminal_id": "T_GJ", "name": "광주", "x": x, "y": y, "distance_km": 1}]})
+        return ok({"terminals": [{"terminal_id": "T_NAMBU", "name": "서울남부", "x": x, "y": y, "distance_km": 1},
+                                 {"terminal_id": "T_CENTRAL", "name": "센트럴시티", "x": x, "y": y, "distance_km": 2}]})
+
+    def buses(dep_terminal_id, arr_terminal_id, date=None):
+        pairs.append((dep_terminal_id, arr_terminal_id))
+        if "T_CENTRAL" not in (dep_terminal_id, arr_terminal_id):
+            return fail(NO_DATA, "없음")
+        return ok({"buses": [{"train_no": "R1-0800", "grade": "고속버스 우등", "dep_at": f"{DAY}T08:00",
+                              "arr_at": f"{DAY}T12:00", "fare": 30000, "kind": "bus"}], "estimated": False})
+    for n, f in (("find_terminals", terminals), ("search_express_bus", buses)):
+        tools[n] = Tool(n, n, {"type": "object", "properties": {}}, f, "external")
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    bus_cards = [c for c in res.cards if any(lg["source"] == "tago_bus" for lg in c["legs"])]
+    assert bus_cards and "센트럴시티" in (bus_cards[0]["basis"]["dep_station"], bus_cards[0]["basis"]["arr_station"])
+    assert len(set(pairs)) == 2  # 없는 쌍은 한 번만 보고 다음 터미널로
+
+
 @pytest.mark.parametrize("mode,rule", [("duplicate", "DUPLICATE_CALL"), ("unplanned", "UNPLANNED_CALL"),
                                        ("replan", "EXCESSIVE_REPLAN")])
 def test_debug_force_creates_detectable_anomaly(env, monkeypatch, mode, rule):
