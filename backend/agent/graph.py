@@ -79,6 +79,14 @@ def _node(deps: Deps, name: str, fn):
     return wrapped
 
 
+def _saved_labels(deps) -> list[str]:
+    from backend.db.repositories import PlaceRepo
+    try:
+        return [p.label for p in PlaceRepo(deps.plan_repo.db).list()]
+    except Exception:  # 장소 목록을 못 읽어도 분석은 계속
+        return []
+
+
 def _conds(state) -> Conditions:
     return Conditions(**(state.get("conditions") or {}))
 
@@ -141,7 +149,8 @@ def build_graph(deps: Deps):
                  for c in (state.get("last_cards") or [])]
         msgs = [("system", prompts.ANALYZE.format(today=now.date().isoformat(), weekday=WEEKDAY[now.weekday()],
                                                   conditions=json.dumps(prev, ensure_ascii=False),
-                                                  cards=json.dumps(cards, ensure_ascii=False))),
+                                                  cards=json.dumps(cards, ensure_ascii=False),
+                                                  saved=", ".join(_saved_labels(deps)) or "없음")),
                 ("user", state["user_message"])]
         try:
             out: AnalyzeOut = structured(deps.llm_factory(), AnalyzeOut, msgs, deps.ctx.counter)

@@ -6,7 +6,7 @@ import json
 
 from backend.auth.context import current_user_id
 from backend.db.database import connect
-from backend.schemas import PlanIn, PlanOut, PlanSaveResult, PlanUpdate
+from backend.schemas import PlaceIn, PlaceOut, PlanIn, PlanOut, PlanSaveResult, PlanUpdate
 
 
 def _now() -> str:
@@ -182,6 +182,63 @@ class RunRepo:
         with connect(self.db) as c:
             r = c.execute("SELECT * FROM runs WHERE run_id=?", (run_id,)).fetchone()
         return dict(r) if r else None
+
+
+class PlaceConflict(Exception):
+    """같은 이름(label)의 장소가 이미 있다."""
+
+
+class PlaceRepo:
+    """현재 사용자가 저장한 장소. 이름은 사용자마다 하나(같은 이름이면 PlaceConflict)."""
+
+    def __init__(self, db_path: str):
+        self.db = db_path
+
+    @staticmethod
+    def _row(r) -> PlaceOut:
+        return PlaceOut(**{k: r[k] for k in ("id", "label", "kind", "name", "address", "x", "y")})
+
+    def list(self) -> list[PlaceOut]:
+        with connect(self.db) as c:
+            rows = c.execute("SELECT * FROM places WHERE user_id=? ORDER BY id", (current_user_id(),)).fetchall()
+        return [self._row(r) for r in rows]
+
+    def get(self, place_id: int) -> PlaceOut | None:
+        with connect(self.db) as c:
+            r = c.execute("SELECT * FROM places WHERE id=? AND user_id=?", (place_id, current_user_id())).fetchone()
+        return self._row(r) if r else None
+
+    def by_label(self, label: str | None) -> PlaceOut | None:
+        if not label:
+            return None
+        with connect(self.db) as c:
+            r = c.execute("SELECT * FROM places WHERE user_id=? AND label=?", (current_user_id(), label.strip())).fetchone()
+        return self._row(r) if r else None
+
+    def create(self, p: PlaceIn) -> PlaceOut:
+        import sqlite3
+        try:
+            with connect(self.db) as c:
+                cur = c.execute("INSERT INTO places(user_id,label,kind,name,address,x,y,created_at) VALUES(?,?,?,?,?,?,?,?)",
+                                (current_user_id(), p.label.strip(), p.kind, p.name, p.address, p.x, p.y, _now()))
+                new_id = cur.lastrowid
+        except sqlite3.IntegrityError:
+            raise PlaceConflict(p.label)
+        return self.get(new_id)
+
+    def update(self, place_id: int, p: PlaceIn) -> PlaceOut | None:
+        import sqlite3
+        try:
+            with connect(self.db) as c:
+                n = c.execute("UPDATE places SET label=?, kind=?, name=?, address=?, x=?, y=? WHERE id=? AND user_id=?",
+                              (p.label.strip(), p.kind, p.name, p.address, p.x, p.y, place_id, current_user_id())).rowcount
+        except sqlite3.IntegrityError:
+            raise PlaceConflict(p.label)
+        return self.get(place_id) if n else None
+
+    def delete(self, place_id: int) -> bool:
+        with connect(self.db) as c:
+            return c.execute("DELETE FROM places WHERE id=? AND user_id=?", (place_id, current_user_id())).rowcount > 0
 
 
 class UserRepo:

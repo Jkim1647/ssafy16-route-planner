@@ -18,6 +18,10 @@ CREATE TABLE IF NOT EXISTS run_events(
 CREATE INDEX IF NOT EXISTS idx_events_session ON run_events(session_id, run_id, seq);
 CREATE TABLE IF NOT EXISTS anomaly_reports(
   run_id TEXT PRIMARY KEY, verdict TEXT NOT NULL, findings_json TEXT NOT NULL, diagnosis TEXT, created_at TEXT);
+CREATE TABLE IF NOT EXISTS places(
+  id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, label TEXT NOT NULL, kind TEXT NOT NULL,
+  name TEXT NOT NULL, address TEXT, x REAL NOT NULL, y REAL NOT NULL, created_at TEXT NOT NULL,
+  UNIQUE(user_id, label));
 CREATE TABLE IF NOT EXISTS users(
   id TEXT PRIMARY KEY, email TEXT, name TEXT, picture TEXT, created_at TEXT NOT NULL, last_login TEXT);
 CREATE TABLE IF NOT EXISTS local_calendar(

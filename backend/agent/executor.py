@@ -45,6 +45,7 @@ class RunCtx:
     today: dt.date | None = None  # 오늘 날짜(그래프가 설정). 전날 출발 전략이 의미 있는지 판단
     notes: list[str] = field(default_factory=list)  # 모든 후보에 붙일 안내(예: 캘린더 조회 실패)
     calendar_checked: bool = False  # 캘린더를 실제로 조회해 판단에 반영했는가
+    db_path: str | None = None  # 저장한 장소를 찾을 DB(계획 저장소와 같은 DB)
 
 
 # ---------------------------------------------------------------- 계획
@@ -210,11 +211,27 @@ def _segment(ctx, errors, task_t, task_c, sx, sy, ex, ey, want_taxi) -> list[Seg
     return segs
 
 
+def _saved_place(ctx, q: str | None) -> dict | None:
+    """사용자가 저장한 장소 이름(예: 집, 교육장)이면 그 좌표를 쓴다(장소 검색 Tool을 부르지 않음)."""
+    from backend.db.repositories import PlaceRepo
+    if not ctx.db_path or not q:
+        return None
+    p = PlaceRepo(ctx.db_path).by_label(q)
+    if p is None:
+        return None
+    ctx.emitter.emit("saved_place", agent=ctx.agent, payload={"label": p.label, "name": p.name})
+    return {"name": p.name, "address": p.address, "x": p.x, "y": p.y, "saved_label": p.label}
+
+
 def _places(ctx, conds, cached_places, errors) -> dict | None:
     """t1·t2: 출발·도착 장소 좌표. 실패하면 None(오류는 errors에 기록)."""
     places = dict(cached_places)
     for tid, key, q in (("t1", "origin", conds.origin), ("t2", "destination", conds.destination)):
         if key in places and places[key]["query"] == q:
+            continue
+        saved = _saved_place(ctx, q)
+        if saved:
+            places[key] = {"query": q, **saved}
             continue
         r = call_tool(ctx, tid, "search_places", {"query": q})
         if not r["ok"]:
@@ -256,6 +273,10 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
     places = dict(cached_places)
     for tid, key, q in (("t1", "origin", conds.origin), ("t2", "destination", conds.destination)):
         if key in places and places[key]["query"] == q:
+            continue
+        saved = _saved_place(ctx, q)
+        if saved:
+            places[key] = {"query": q, **saved}
             continue
         r = call_tool(ctx, tid, "search_places", {"query": q})
         if not r["ok"]:

@@ -71,6 +71,20 @@ class PlanOut(PlanIn):
     updated_at: dt.datetime
 
 
+class PlaceIn(BaseModel):
+    """저장한 장소. label은 대화에서 부르는 이름(예: 집, 교육장)으로 사용자마다 하나씩."""
+    label: str = Field(min_length=1, max_length=20)
+    kind: str = Field(default="pin", pattern="^(home|school|work|pin)$")
+    name: str = Field(min_length=1, max_length=100)
+    address: str | None = Field(default=None, max_length=200)
+    x: float = Field(ge=-180, le=180)
+    y: float = Field(ge=-90, le=90)
+
+
+class PlaceOut(PlaceIn):
+    id: int
+
+
 class PlanSaveResult(BaseModel):
     plan: PlanOut
     overlaps: list[PlanOut]

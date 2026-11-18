@@ -1,9 +1,10 @@
 """백엔드 API(F3017): 대화 · 계획 관리 · 실행 로그 · 메타 정보를 서로 다른 경로로 제공."""
-from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
 from backend.agent.service import TurnResult
-from backend.schemas import PlanIn, PlanOut, PlanSaveResult, PlanUpdate
+from backend.db.repositories import PlaceConflict
+from backend.schemas import PlaceIn, PlaceOut, PlanIn, PlanOut, PlanSaveResult, PlanUpdate
 from backend.tools.budget import default_budget
 from backend.tools.registry import catalog
 
@@ -75,6 +76,49 @@ def register_plan_calendar(plan_id: int, request: Request):
         status = {"NOT_FOUND": 404, "CONFLICT": 409, "BAD_ARGUMENT": 400}.get(r["error"]["code"], 502)
         raise HTTPException(status, r["error"]["message"])
     return r["data"]
+
+
+# ---------------------------------------------------------------- 저장한 장소(집·교육장 등)
+@router.get("/places", response_model=list[PlaceOut], tags=["장소"])
+def list_places(request: Request):
+    return _c(request).places.list()
+
+
+@router.get("/places/search", tags=["장소"])
+def search_place(request: Request, q: str = Query(min_length=1, max_length=50)):
+    """장소 이름 검색(카카오 로컬, 캐시 사용). 저장할 장소를 고를 때 쓴다."""
+    from backend.tools.registry import get_tool
+    r = get_tool("search_places").run(query=q)
+    if not r["ok"]:
+        code = r["error"]["code"]
+        raise HTTPException(404 if code in ("NO_DATA", "AMBIGUOUS_PLACE") else 502, r["error"]["message"])
+    return [{k: p.get(k) for k in ("name", "address", "x", "y")} for p in r["data"]["places"][:5]]
+
+
+@router.post("/places", response_model=PlaceOut, status_code=201, tags=["장소"])
+def create_place(body: PlaceIn, request: Request):
+    try:
+        return _c(request).places.create(body)
+    except PlaceConflict:
+        raise HTTPException(409, f"'{body.label}' 이름의 장소가 이미 있어요.")
+
+
+@router.put("/places/{place_id}", response_model=PlaceOut, tags=["장소"])
+def update_place(place_id: int, body: PlaceIn, request: Request):
+    try:
+        p = _c(request).places.update(place_id, body)
+    except PlaceConflict:
+        raise HTTPException(409, f"'{body.label}' 이름의 장소가 이미 있어요.")
+    if p is None:
+        raise HTTPException(404, "그런 장소가 없습니다.")
+    return p
+
+
+@router.delete("/places/{place_id}", status_code=204, tags=["장소"])
+def delete_place(place_id: int, request: Request):
+    if not _c(request).places.delete(place_id):
+        raise HTTPException(404, "그런 장소가 없습니다.")
+    return Response(status_code=204)
 
 
 # ---------------------------------------------------------------- 실행 로그 (수정 API 없음, F3014)

@@ -59,7 +59,8 @@ def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
         counter = LLMCounter()
         s = deps.settings
         deps.ctx = RunCtx(emitter=em, counter=counter, mode=s.AGENT_MODE, worker_llm=s.WORKER_LLM,
-                          max_retry=s.WORKER_MAX_RETRY, llm_factory=deps.llm_factory)
+                          max_retry=s.WORKER_MAX_RETRY, llm_factory=deps.llm_factory,
+                          db_path=getattr(deps.plan_repo, "db", None))
         run_repo.start(run_id, session_id, message, deps.settings.AGENT_MODE)
         em.emit("run_start", payload={"message": message, "mode": deps.settings.AGENT_MODE})
         try:
