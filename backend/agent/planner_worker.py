@@ -36,12 +36,16 @@ Tool 입력 규격: {schema}"""
 
 
 class WorkerDecision(BaseModel):
+    """Worker LLM의 실패 대응 판단: retry(new_args로 같은 Tool 재호출)·skip·request_replan. executor._worker_on_failure가 쓴다."""
     action: Literal["retry", "skip", "request_replan"]
     new_args: dict = Field(default_factory=dict)
     reason: str
 
 
 def decide(llm, counter, tool_name: str, args: dict, error: dict, schema: dict) -> WorkerDecision:
+    """실패한 호출(인자·오류 코드·입력 규격·고정 인자)을 프롬프트로 주고 WorkerDecision을 받는다(LLM 1회, counter 집계).
+    고정 인자 위반 검사는 호출부가 violates_fixed로 따로 한다.
+    """
     from backend.agent.llm import structured
     msg = PROMPT.format(fixed=FIXED_ARGS.get(tool_name, []), tool=tool_name,
                         args=json.dumps(args, ensure_ascii=False), code=error["code"], message=error["message"],
@@ -50,4 +54,5 @@ def decide(llm, counter, tool_name: str, args: dict, error: dict, schema: dict) 
 
 
 def violates_fixed(tool_name: str, new_args: dict) -> list[str]:
+    """new_args 중 Planner가 사용자 조건으로 고정한 인자(FIXED_ARGS) 이름 목록. 비어 있지 않으면 재시도는 무효 처리된다."""
     return [k for k in new_args if k in FIXED_ARGS.get(tool_name, [])]

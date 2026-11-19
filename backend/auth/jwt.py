@@ -24,6 +24,7 @@ def _sign(msg: str, secret: str) -> str:
 
 
 def encode(claims: dict, secret: str, ttl_sec: int) -> str:
+    """claims에 iat·exp(지금 + ttl_sec초)를 붙여 HS256으로 서명한 토큰 문자열."""
     now = int(time.time())
     payload = {**claims, "iat": now, "exp": now + ttl_sec}
     msg = _b64(json.dumps(_HEADER, separators=(",", ":")).encode()) + "." + \

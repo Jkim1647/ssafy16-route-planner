@@ -16,11 +16,15 @@ TRAIN = "https://apis.data.go.kr/1613000/TrainInfo"
 
 
 def normalize_station_name(name: str) -> str:
+    """카카오 장소명을 TAGO 역 목록 키로 맞춘다: 괄호와 첫 단어 이후를 떼고 끝의 '역'을 뺀다
+    (예: '광주송정역 KTX' → '광주송정').
+    """
     n = re.sub(r"\(.*?\)", "", name).strip().split()[0] if name.strip() else ""
     return n[:-1] if n.endswith("역") else n
 
 
 def haversine_km(x1: float, y1: float, x2: float, y2: float) -> float:
+    """두 좌표 사이 대권 거리(km). 인자 순서는 (경도, 위도, 경도, 위도)다."""
     r = 6371.0
     p1, p2 = math.radians(y1), math.radians(y2)
     dp, dl = math.radians(y2 - y1), math.radians(x2 - x1)
@@ -56,6 +60,10 @@ def load_station_index() -> dict | None:
 
 
 def find_stations(x: float, y: float, radius_km: float = 20) -> dict:
+    """좌표 반경 radius_km 안 기차역 중 TAGO 역 ID가 있는 곳을 최대 3개(KTX 정차역 먼저, 그다음 가까운 순).
+    data = {stations: [{station_id, name, x, y, distance_km, ktx}]}.
+    실패: INVALID_KEY(역 목록을 받을 DATA_GO_KR_KEY 없음), NO_DATA, 그 밖은 카카오 검색 실패 코드 그대로.
+    """
     index = load_station_index()
     if index is None:
         return fail(INVALID_KEY, "DATA_GO_KR_KEY가 없어 역 목록을 받을 수 없습니다.")

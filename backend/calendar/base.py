@@ -8,6 +8,9 @@ from backend.agent.judge import Busy
 
 
 class CalendarBackend(Protocol):
+    """캘린더 구현체 규격(LocalCalendar·GoogleCalendar). get_free_busy는 바쁜 시간대,
+    create_event는 저장한 계획을 '이동: 제목' 일정으로 넣고 일정 ID를 돌려주며, upcoming_events는 경로 제안용 다가오는 일정.
+    """
     name: str
 
     def get_free_busy(self, day: dt.date) -> list[Busy]: ...
@@ -34,6 +37,9 @@ def _may_use_google(settings) -> bool:
 
 
 def get_calendar(settings) -> CalendarBackend:
+    """설정과 현재 사용자에 맞는 캘린더 구현체. CALENDAR_BACKEND=google이어도
+    현재 사용자가 캘린더 소유자가 아니면(_may_use_google) 로컬 캘린더를 쓴다.
+    """
     if settings.CALENDAR_BACKEND == "google" and _may_use_google(settings):
         from backend.calendar.google import GoogleCalendar
         return GoogleCalendar(settings.GOOGLE_CALENDAR_ID)

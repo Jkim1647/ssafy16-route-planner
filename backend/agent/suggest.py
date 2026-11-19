@@ -24,6 +24,10 @@ def _place(location: str) -> dict | None:
 
 
 def calendar_suggestions(calendar, now: dt.datetime) -> list[dict]:
+    """앞으로 DAYS일 일정 중 경로 제안 후보를 최대 MAX_ITEMS개 고른다.
+    항목 = {title, date, arrive_by(일정 시작 HH:MM), location, place}; place는 search_places 첫 결과 좌표, 못 찾으면 None.
+    캘린더 조회가 실패하면 빈 목록.
+    """
     try:
         events = calendar.upcoming_events(now, days=DAYS)
     except Exception:  # 캘린더 연결 실패면 제안만 없을 뿐 화면은 그대로

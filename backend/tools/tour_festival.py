@@ -31,6 +31,10 @@ def _items(body: dict) -> list:
 
 
 def get_festivals(x: float, y: float, date: str, radius_km: float = 1.0) -> dict:
+    """좌표 반경 radius_km 안에서 date에 진행 중인 행사(가까운 순 최대 MAX_FESTIVALS개).
+    기간이 MAX_SPAN_DAYS를 넘는 상설 행사는 뺀다. data = {festivals: [{title, start, end, address, x, y, distance_km}]}.
+    실패: BAD_ARGUMENT, INVALID_KEY, UPSTREAM_ERROR. 행사가 없으면 실패가 아니라 빈 목록.
+    """
     try:
         day = dt.date.fromisoformat(date)
     except (TypeError, ValueError):

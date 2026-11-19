@@ -30,12 +30,16 @@ CREATE TABLE IF NOT EXISTS local_calendar(
 
 
 def connect(path: str) -> sqlite3.Connection:
+    """row_factory=sqlite3.Row인 새 연결. `with connect(...)`는 커밋/롤백만 하고 연결을 닫지는 않는다."""
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db(path: str) -> None:
+    """스키마 생성(IF NOT EXISTS)과 예전 DB에 없는 칸(points_json·share_token·user_id) 추가.
+    여러 번 불러도 안전하며 Container.build에서 앱 시작 때 부른다.
+    """
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with connect(path) as c:
         c.executescript(SCHEMA)

@@ -102,6 +102,10 @@ def _festival_items(plan, day: dt.date) -> list[dict]:
 
 
 def recheck_plan(plan, *, calendar, now: dt.datetime) -> dict:
+    """저장된 계획 하나를 now 기준으로 다시 확인해 {plan_id, status, checked_at, items}를 돌려준다.
+    items는 출발 시각·시간표·캘린더·날씨·행사 항목별 {kind, level(ok|warn), text}.
+    status: 출발 시각이 지났으면 past, warn 항목이 하나라도 있으면 warn, 아니면 ok.
+    """
     start, end = plan_span(plan)
     items = []
     if now >= start:

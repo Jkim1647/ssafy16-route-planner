@@ -3,6 +3,9 @@ from typing import Any, TypedDict
 
 
 class AgentState(TypedDict, total=False):
+    """LangGraph 노드 사이에 오가는 상태(total=False라 모든 키가 선택).
+    턴마다 service.RESET으로 초기화되는 키와, 체크포인터로 세션 동안 유지되는 맥락 키(conditions·last_cards·history 등)가 섞여 있다.
+    """
     session_id: str
     run_id: str
     user_message: str

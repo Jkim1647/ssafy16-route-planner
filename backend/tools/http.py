@@ -7,6 +7,9 @@ TIMEOUT = 10
 
 
 def fetch_json(url: str, *, params: dict | None = None, headers: dict | None = None) -> dict:
+    """GET 후 JSON 본문을 ok(data)로 돌려준다. 실패: INVALID_KEY(401/403), RATE_LIMITED(429),
+    UPSTREAM_ERROR(네트워크·그 밖의 4xx/5xx·JSON 아님). HTTP 200 안의 서비스 오류 코드는 호출하는 Tool이 따로 확인한다.
+    """
     try:
         r = requests.get(url, params=params, headers=headers, timeout=TIMEOUT)
     except requests.RequestException:

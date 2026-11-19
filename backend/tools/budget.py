@@ -13,6 +13,9 @@ COORD_KEYS = {"sx", "sy", "ex", "ey", "x", "y", "lat", "lon"}
 
 
 def normalize_args(args: dict) -> str:
+    """캐시·재사용 키용 인자 직렬화: 키 정렬 JSON, 좌표 인자(COORD_KEYS)는 소수 셋째 자리로 반올림해
+    거의 같은 위치(약 100m 이내)를 같은 키로 본다.
+    """
     norm = {k: round(float(v), 3) if k.lower() in COORD_KEYS and v is not None else v
             for k, v in args.items()}
     return json.dumps(norm, sort_keys=True, ensure_ascii=False)
@@ -31,6 +34,10 @@ def _limits() -> dict[str, dict]:
 
 
 class ApiBudget:
+    """외부 API 영구 캐시(api_cache)와 API별 일·월 호출 수(api_quota)를 SQLite에 두는 관문. 외부 Tool은 cached_call로만 부른다.
+    캐시 적중이면 호출 없음, 한도 초과면 RATE_LIMITED, 아니면 1회로 세고 호출(실패도 셈) 후 성공만 TTL 동안 캐시.
+    today는 테스트에서 날짜를 바꾸려고 주입한다.
+    """
     def __init__(self, db_path: str, today: Callable[[], dt.date] = dt.date.today):
         self.db_path = db_path
         self.today = today
@@ -108,5 +115,8 @@ def default_budget() -> ApiBudget:
 
 
 def set_default_budget(budget: ApiBudget | None) -> None:
+    """default_budget()이 돌려줄 전역 ApiBudget을 바꾼다. 테스트가 임시 DB로 갈아끼우는 데 쓰며,
+    None이면 다음 default_budget() 호출 때 설정의 DB_PATH로 새로 만든다.
+    """
     global _default
     _default = budget

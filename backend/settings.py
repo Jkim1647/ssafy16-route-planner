@@ -66,6 +66,9 @@ class Settings:
 
 
 def get_settings() -> Settings:
+    """프로젝트 루트 .env와 환경변수로 Settings를 만든다(이미 있는 환경변수가 우선).
+    캐시하지 않아 부를 때마다 다시 읽는다.
+    """
     load_dotenv(ROOT / ".env")  # 이미 있는 환경변수는 덮어쓰지 않음
     return Settings(
         GMS_API_KEY=_str("GMS_API_KEY"),

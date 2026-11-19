@@ -21,6 +21,9 @@ ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 
 def create_app(container: Container | None = None) -> FastAPI:
+    """앱 팩토리. container를 주면 그것을(테스트에서 가짜 LLM 주입), 없으면 설정으로 Container를 만든다.
+    JWT_SECRET이 없거나 32자 미만이면 실행마다 임시 키를 만들어, 서버를 다시 켜면 로그인이 풀린다.
+    """
     app = FastAPI(title="이동 플래너 API", version="1.0",
                   description="Agent 기반 이동 플래너 — 대화·계획 관리·실행 로그")
     app.state.container = container or Container.build()

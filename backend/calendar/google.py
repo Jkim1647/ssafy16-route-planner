@@ -17,6 +17,9 @@ REMINDER_MIN = (15, 5)
 
 
 class GoogleCalendar:
+    """서버의 token.json 한 계정으로 Google Calendar를 쓰는 구현체(get_calendar가 소유자에게만 돌려준다).
+    token이 없거나 갱신할 수 없으면 서버 쪽에서 브라우저 OAuth 동의 흐름을 띄운다. 시각은 서울(+09:00) 기준 naive datetime.
+    """
     name = "google"
 
     def __init__(self, calendar_id: str = "primary", token_path: Path = ROOT / "token.json",

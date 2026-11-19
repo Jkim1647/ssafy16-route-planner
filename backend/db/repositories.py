@@ -26,6 +26,9 @@ def _span(leave: str, arrive: str) -> tuple[int, int]:
 
 
 class PlanRepo:
+    """저장한 이동 계획(plans) 저장소. 조회·수정은 현재 사용자 것으로 한정되고, 공유 토큰 조회(get_shared)만 예외다.
+    저장·수정 결과에는 시간이 겹치는 다른 계획이 함께 담긴다(자정 넘김 반영).
+    """
     def __init__(self, db_path: str):
         self.db = db_path
 
@@ -124,6 +127,9 @@ class PlanRepo:
 
 
 class EventRepo:
+    """실행 이벤트(run_events) 저장소. LoggerAgent가 append하고 실행 로그 화면이 세션·run 단위로 읽는다.
+    수정 메서드는 없고 세션 단위 삭제만 있다.
+    """
     def __init__(self, db_path: str):
         self.db = db_path
 
@@ -189,6 +195,7 @@ class EventRepo:
 
 
 class RunRepo:
+    """run 단위 요약(runs): 시작·종료 상태, 재계획 수, LLM 호출 수. run_turn이 기록한다."""
     def __init__(self, db_path: str):
         self.db = db_path
 
@@ -286,6 +293,7 @@ class UserRepo:
 
 
 class AnomalyRepo:
+    """이상 징후 판정(anomaly_reports): run별 verdict·findings와, warn일 때 덧붙는 LLM 진단 문장."""
     def __init__(self, db_path: str):
         self.db = db_path
 

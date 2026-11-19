@@ -10,6 +10,9 @@ from backend.db.database import connect
 
 
 class LocalCalendar:
+    """SQLite local_calendar 테이블에 사용자별로 일정을 두는 구현체(CALENDAR_BACKEND 기본값).
+    일정에 장소 칸이 없어 경로 제안 대상이 되지 않는다.
+    """
     name = "local"
 
     def __init__(self, db_path: str):

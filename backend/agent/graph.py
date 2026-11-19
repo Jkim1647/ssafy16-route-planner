@@ -32,6 +32,9 @@ WEEKDAY = "월화수목금토일"
 
 
 class Changes(BaseModel):
+    """analyze LLM이 뽑는 '이번 메시지에서 바뀐 조건'. 언급 없는 칸은 None이고 merge가 기존 조건에 덮어쓴다.
+    Field description은 LLM에게 보이는 칸 설명이라 프롬프트의 일부다.
+    """
     origin: str | None = Field(None, description="출발지 이름(동네·건물·역)")
     destination: str | None = Field(None, description="도착지 이름")
     date: str | None = Field(None, description="이동 날짜 YYYY-MM-DD")
@@ -43,6 +46,7 @@ class Changes(BaseModel):
 
 
 class AnalyzeOut(BaseModel):
+    """analyze 단계 LLM 구조화 출력: 의도 분류·근거·조건 변경, option_ref(직전 카드 번호, 1부터 — 저장 요청용)."""
     intent: Literal["plan_trip", "modify", "fact_query", "terms_query", "save_plan", "register_calendar", "chat"]
     intent_reason: str
     changes: Changes
@@ -50,6 +54,7 @@ class AnalyzeOut(BaseModel):
 
 
 class Reply(BaseModel):
+    """respond 단계 LLM 구조화 출력(사용자에게 보일 요약 문장)."""
     text: str
 
 
@@ -96,6 +101,9 @@ def _hm(t: dt.datetime | None) -> str | None:
 
 
 def card(o: Option, i: int) -> dict:
+    """통과한 Option을 화면·저장용 카드 dict로 바꾼다. i는 1부터 매기는 표시 번호(option_ref가 가리키는 값).
+    basis의 rain_block(내부 판단용)은 뺀다.
+    """
     return {"index": i, "label": o.basis.get("label"), "date": o.leave_at.date().isoformat() if o.leave_at else None,
             "leave_at": _hm(o.leave_at), "arrive_at": _hm(o.arrive_at),
             "arrive_date": o.arrive_at.date().isoformat() if o.arrive_at else None,

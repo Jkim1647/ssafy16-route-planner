@@ -26,6 +26,10 @@ def _road_path(route: dict) -> list[list[float]]:
 
 
 def get_car_route(sx: float, sy: float, ex: float, ey: float) -> dict:
+    """두 좌표(경도 x·위도 y) 사이 자동차 경로 요약(택시 대안용).
+    data = {duration_min(분 올림), distance_km, taxi_fare, toll, bbox, path(지도용 도로 좌표, 줄여 담음), cached}.
+    실패: INVALID_KEY, NO_DATA, 그 밖은 fetch_json·쿼터 코드.
+    """
     headers = kakao_headers()
     if headers is None:
         return fail(INVALID_KEY, "KAKAO_REST_KEY가 설정되지 않았습니다.")

@@ -38,6 +38,10 @@ def _event(i: dict) -> dict:
 
 
 def get_road_events(bbox: list, date: str) -> dict:
+    """bbox([minX, minY, maxX, maxY], 경도·위도) 안의 공사·사고·통제 정보. data = {realtime(오늘 조회인지), events}.
+    bbox는 소수 셋째 자리로 반올림해 캐시 키로 쓴다(월 100회 한도 절약).
+    실패: BAD_ARGUMENT, INVALID_KEY, RATE_LIMITED(쿼터), UPSTREAM_ERROR.
+    """
     if not isinstance(bbox, (list, tuple)) or len(bbox) != 4:
         return fail(BAD_ARGUMENT, "bbox는 [minX, minY, maxX, maxY]여야 합니다.")
     try:

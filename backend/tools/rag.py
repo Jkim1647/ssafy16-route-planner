@@ -19,6 +19,7 @@ Embedder = Callable[[list[str]], list[list[float]]]
 
 
 def get_embedder() -> Embedder:
+    """GMS(OpenAI 호환) 임베딩 함수(texts → 벡터 목록). 색인과 질문 검색이 같은 EMBEDDING_MODEL을 써야 한다."""
     from langchain_openai import OpenAIEmbeddings
 
     from backend.settings import get_settings
@@ -46,6 +47,9 @@ def _title(path: Path, text: str) -> str:
 
 
 def build_index(docs_dir: str, chroma_dir: str, embedder: Embedder | None = None) -> int:
+    """docs_dir의 .md/.txt/.pdf를 800자(겹침 100) 조각으로 나눠 Chroma 'terms' 컬렉션을 처음부터 다시 만든다.
+    반환은 조각 수. embedder를 주면 GMS 대신 그것을 쓴다(테스트의 가짜 임베딩).
+    """
     import chromadb
     from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -74,6 +78,10 @@ def build_index(docs_dir: str, chroma_dir: str, embedder: Embedder | None = None
 
 
 def search_terms(question: str, k: int = 4) -> dict:
+    """규정 질문과 가까운 문서 조각 k개. data = {chunks: [{text, source, title, page, distance(코사인 거리)}]}.
+    실패: BAD_ARGUMENT, NO_INDEX(색인 전 — scripts/build_index.py 실행 필요), INVALID_KEY(질문 임베딩에 GMS 키 필요),
+    UPSTREAM_ERROR.
+    """
     if not question or not question.strip():
         return fail(BAD_ARGUMENT, "question은 필수입니다.")
     path = _chroma_dir()

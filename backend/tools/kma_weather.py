@@ -46,6 +46,10 @@ def latest_base_time(t: dt.datetime) -> tuple[str, str]:
 
 
 def get_weather(lat: float, lon: float, at: str) -> dict:
+    """위경도·시각(at, YYYY-MM-DDTHH:MM)의 단기예보. 결과는 3시간 캐시.
+    data = {at, forecast_at(실제로 쓴 예보 시각, ±3시간 이내), pop(강수확률 %), pty(강수형태), temp}.
+    실패: BAD_ARGUMENT, OUT_OF_RANGE(오늘~MAX_DAYS_AHEAD일 뒤 밖이거나 예보 미발표), INVALID_KEY, UPSTREAM_ERROR.
+    """
     try:
         target = dt.datetime.fromisoformat(at)
     except (TypeError, ValueError):

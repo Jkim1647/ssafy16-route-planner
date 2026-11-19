@@ -27,6 +27,9 @@ def _touch(graph, session_id: str) -> None:
 
 
 class TurnResult(BaseModel):
+    """POST /api/chat 응답 본문. 1턴 결과(답변·경로 카드·제외/판단 불가/추정 목록·경고·되묻기)와
+    실행 계측(run_id·재계획 수·LLM 호출 수·이벤트)을 함께 담는다.
+    """
     run_id: str
     session_id: str
     reply: str
@@ -52,6 +55,10 @@ RESET = {"tasks": [], "strategy": 0, "tool_errors": [], "replan_count": 0, "repl
 
 def run_turn(graph, deps, bus, run_repo, session_id: str | None, message: str,
              after_run=None) -> TurnResult:
+    """사용자 메시지 1건으로 그래프를 1회 실행한다. session_id가 없으면 새로 만들고, run마다 run_start/run_end 이벤트와 runs 행을 남긴다.
+    전역 잠금으로 한 번에 한 턴만 돈다(deps.ctx를 턴마다 갈아끼우므로). 대화 상태 키는 '사용자ID:session_id'.
+    그래프 예외는 status="error"와 일반 안내 문장으로 바꾼다. after_run(run_id)은 잠금 밖에서 부른다(이상 징후 진단).
+    """
     session_id = session_id or uuid.uuid4().hex[:12]
     run_id = uuid.uuid4().hex[:12]
     with _lock:

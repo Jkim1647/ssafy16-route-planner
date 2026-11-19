@@ -8,6 +8,9 @@ from backend.schemas import _check_hhmm
 
 
 class Conditions(BaseModel):
+    """한 대화의 이동 요청 조건. analyze 단계가 채우고 merge로 후속 요청을 반영하며, judge·trip이 읽는다.
+    시각은 HH:MM 문자열이고, 모르는 값은 None으로 둔다(지어내지 않음).
+    """
     # 기준
     origin: str | None = None
     destination: str | None = None
@@ -38,6 +41,10 @@ def merge(old: Conditions | None, changes: dict) -> Conditions:
 
 
 def missing_fields(c: Conditions, now: dt.datetime) -> list[str]:
+    """되묻기 전에 빠진 것을 고른다. 출발지·도착지·날짜·시각(arrive_by·depart_after 중 하나) 중 없는 키 목록,
+    다 있으면 이미 지난 요청인지 보고 ["past_deadline"], 문제없으면 [].
+    마감이 출발 하한보다 이르면 다음 날 마감으로 보아 '지남'으로 치지 않는다.
+    """
     missing = [k for k in ("origin", "destination", "date") if getattr(c, k) is None]
     if c.arrive_by is None and c.depart_after is None:
         missing.append("time")

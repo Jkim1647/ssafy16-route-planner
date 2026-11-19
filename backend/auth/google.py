@@ -8,12 +8,14 @@ TOKEN_URL = "https://oauth2.googleapis.com/token"
 
 
 def login_url(settings, state: str) -> str:
+    """Google 동의 화면 URL. state는 로그인 위조(CSRF) 방지 값으로, 호출부가 쿠키에 두고 콜백에서 대조한다."""
     return AUTH_URL + "?" + urlencode({
         "client_id": settings.GOOGLE_CLIENT_ID, "redirect_uri": settings.GOOGLE_REDIRECT_URI,
         "response_type": "code", "scope": "openid email profile", "state": state, "prompt": "select_account"})
 
 
 def exchange_code(code: str, settings) -> dict:
+    """콜백의 인가 코드를 Google 토큰 응답(dict, id_token 포함)으로 바꾼다. HTTP 오류면 예외를 그대로 올린다."""
     r = requests.post(TOKEN_URL, data={
         "code": code, "client_id": settings.GOOGLE_CLIENT_ID, "client_secret": settings.GOOGLE_CLIENT_SECRET,
         "redirect_uri": settings.GOOGLE_REDIRECT_URI, "grant_type": "authorization_code"}, timeout=10)

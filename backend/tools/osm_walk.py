@@ -39,6 +39,9 @@ def _enabled() -> bool:
 
 
 def walk_shape(a: list[float], b: list[float]) -> dict:
+    """두 지점([경도, 위도]) 사이 보행 경로 좌표(지도 그림용). data = {path(최대 MAX_POINTS점으로 솎음), distance_m}.
+    실패: DISABLED(WALK_ROUTE_ENABLED=false), BAD_ARGUMENT(형식·국외 좌표·도보로 너무 먼 거리), NO_DATA.
+    """
     if not _enabled():
         return fail(DISABLED, "도보 경로 표시가 꺼져 있습니다.")
     try:

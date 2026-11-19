@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 
 
 class EventBus:
+    """동기 발행·구독 버스. publish는 구독자를 차례로 부르고, 구독자 예외는 경고 로그만 남기고 삼킨다."""
     def __init__(self):
         self._subs: list[Callable[[dict], None]] = []
 
@@ -45,6 +46,7 @@ class Emitter:
 
 
 def build_bus(event_repo, enabled: bool = True) -> EventBus:
+    """LoggerAgent를 구독시킨 버스. enabled=False(LOGGING_ENABLED off)면 구독자가 없어 이벤트가 DB에 저장되지 않는다."""
     from backend.events.logger_agent import LoggerAgent
 
     bus = EventBus()

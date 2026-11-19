@@ -56,6 +56,9 @@ def _parse_time(text: str) -> tuple[str, str] | None:
 
 
 def parse_when(text: str, today: dt.date) -> dict:
+    """문장에서 찾은 표현만 {"date": "YYYY-MM-DD", "arrive_by"|"depart_after": "HH:MM"}로 돌려준다(없으면 빈 dict).
+    시각 뒤에 '이후·부터·출발·넘어서'가 오면 depart_after, 아니면 arrive_by. today는 '내일' 같은 상대 표현의 기준.
+    """
     out = {}
     d = _parse_date(text, today)
     if d:

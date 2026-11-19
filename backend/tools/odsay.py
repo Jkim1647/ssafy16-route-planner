@@ -41,6 +41,10 @@ def _path(p: dict) -> dict:
 
 
 def get_transit_route(sx: float, sy: float, ex: float, ey: float) -> dict:
+    """두 좌표(경도 x·위도 y) 사이 대중교통 경로를 소요시간 짧은 순으로 최대 3개.
+    data = {paths: [{total_min, fare, transfers, walk_min, legs}]}.
+    실패: INVALID_KEY, NO_DATA, UPSTREAM_ERROR, RATE_LIMITED(하루 쿼터 — 무료 30회).
+    """
     key = os.getenv("ODSAY_API_KEY", "").strip()
     if not key:
         return fail(INVALID_KEY, "ODSAY_API_KEY가 설정되지 않았습니다.")

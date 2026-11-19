@@ -11,6 +11,7 @@ TTL = 30 * 24 * 3600
 
 
 def kakao_headers() -> dict | None:
+    """카카오 REST API 인증 헤더. KAKAO_REST_KEY가 없으면 None(호출부가 INVALID_KEY로 바꾼다)."""
     key = os.getenv("KAKAO_REST_KEY", "").strip()
     return {"Authorization": f"KakaoAK {key}"} if key else None
 
@@ -38,6 +39,10 @@ def _first(s: str | None) -> str:
 
 
 def search_places(query: str, near_x: float | None = None, near_y: float | None = None) -> dict:
+    """키워드로 장소를 최대 5개 찾는다. near_x·near_y를 주면 그 좌표에서 가까운 순. data = {places}.
+    실패: BAD_ARGUMENT, NO_DATA, AMBIGUOUS_PLACE(기준 좌표 없이 같은 이름이 여러 시·도에 있음 — 임의로 고르지 않고
+    후보 최대 3개를 메시지에 담는다), 그 밖은 카카오 검색 실패 코드 그대로.
+    """
     if not query or not query.strip():
         return fail(BAD_ARGUMENT, "query는 필수입니다.")
     params = {"query": query.strip(), "size": 5}

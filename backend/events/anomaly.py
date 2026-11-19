@@ -18,6 +18,7 @@ REPLAN_WARN = 2
 
 
 class Diagnosis(BaseModel):
+    """diagnose의 LLM 구조화 출력(원인 진단 문장)."""
     text: str
 
 
@@ -37,6 +38,9 @@ def _pairs(events: list[dict]) -> list[tuple[dict, dict | None]]:
 
 
 def judge_run(events: list[dict], max_replan: int) -> dict:
+    """한 run의 이벤트를 규칙으로 판정해 {verdict: ok|warn|undetermined, findings: [{rule, detail, event_seqs}]}를 돌려준다.
+    재계획 경고 기준은 REPLAN_WARN이고, max_replan은 '상한 도달' 표시에만 쓴다.
+    """
     plans = [e for e in events if e["type"] == "plan_tasks"]
     pairs = _pairs(events)
     if not plans and not pairs:
@@ -80,6 +84,9 @@ DIAG_PROMPT = """너는 Agent 실행 로그를 검토하는 진단기다. 아래
 
 
 def diagnose(llm, events: list[dict], findings: list[dict]) -> str | None:
+    """warn 판정의 원인을 LLM이 짧게 진단한다(최대 500자). 이벤트는 핵심 필드만 추려 60개까지 넘긴다.
+    실패하면 None — 판정과 실행 로그에는 영향이 없다.
+    """
     brief = [{"seq": e["seq"], "type": e["type"], "node": e.get("node"),
               **{k: e["payload"].get(k) for k in ("tool", "task_id", "args", "code", "cached", "strategy", "reason")
                  if k in (e.get("payload") or {})}}
@@ -95,6 +102,9 @@ def diagnose(llm, events: list[dict], findings: list[dict]) -> str | None:
 
 
 def evaluate_and_store(run_id: str, event_repo, anomaly_repo, llm_factory, max_replan: int) -> dict:
+    """run이 끝난 뒤(run_turn의 after_run) 이벤트를 읽어 판정·저장하고, warn이면 진단을 덧붙인다.
+    LLM 생성·진단 실패는 무시하고 판정 결과 dict를 돌려준다.
+    """
     events = event_repo.get_run(run_id)
     result = judge_run(events, max_replan)
     anomaly_repo.save(run_id, result["verdict"], result["findings"])

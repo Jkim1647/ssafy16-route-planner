@@ -73,6 +73,10 @@ REGISTER = [("t1", "register_calendar", "최근 저장한 이동 계획을 캘�
 
 
 def make_plan(intent: str) -> list[dict]:
+    """의도별 규칙 템플릿으로 작업 목록을 만든다(LLM 없음). 모르는 의도면 빈 목록.
+    작업 = {id, tool, purpose, when, fixed_args}. 레지스트리에 없는 Tool 작업은 뺀다.
+    fixed_args는 Worker가 재시도할 때 바꾸면 안 되는 인자(사용자 조건).
+    """
     from backend.agent.planner_worker import FIXED_ARGS
     template = {"plan_trip": PLAN_TRIP, "modify": PLAN_TRIP, "fact_query": FACT_QUERY,
                 "terms_query": TERMS_QUERY, "register_calendar": REGISTER}.get(intent, [])
@@ -94,6 +98,10 @@ def _summary(r: dict) -> str:
 
 
 def call_tool(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int | None = None) -> dict:
+    """Tool 1회 호출(tool_call·tool_result 이벤트 기록, 같은 입력이면 이번 실행의 앞선 결과 재사용) 후 ok/fail 결과 dict.
+    planner_worker 모드에서 첫 호출이 실패하면 Worker 판단으로 재시도·건너뜀·재계획 요청을 정한다.
+    retry_of는 재시도일 때 원래 tool_call 이벤트 seq — 이상 징후 판정이 중복 호출로 세지 않게 한다.
+    """
     r, call_seq = _call_once(ctx, task_id, name, args, retry_of)
     if ctx.mode == "planner_worker" and retry_of is None and not r.get("ok") and not r.get("reused"):
         r = _worker_on_failure(ctx, task_id, name, args, r, call_seq)

@@ -90,6 +90,7 @@ def _hm(t: dt.datetime) -> str:
 
 
 def is_intracity(ox: float, oy: float, dx: float, dy: float, same_station: bool) -> bool:
+    """시내 이동으로 볼지(열차 대신 대중교통·택시끼리 비교). 기준 역이 같거나 직선거리 INTRACITY_KM 미만이면 참."""
     return same_station or haversine_km(ox, oy, dx, dy) < INTRACITY_KM
 
 
@@ -121,6 +122,10 @@ def _sum_fares(*fares) -> int | None:
 
 
 def build_intercity_options(trains: list[dict], access: list[Segment], egress: list[Segment]) -> list[Option]:
+    """열차·고속버스 후보 × 출발 구간(access) × 도착 구간(egress) 조합마다 Option을 만든다.
+    trains 항목은 search_trains/search_express_bus 결과 모양(kind="bus"면 버스).
+    구간 소요를 모르면 leave_at/arrive_at을 None으로 두어 evaluate가 '판단 불가'로 분류한다.
+    """
     opts = []
     for t in trains:
         dep, arr = dt.datetime.fromisoformat(t["dep_at"]), dt.datetime.fromisoformat(t["arr_at"])
@@ -143,6 +148,9 @@ def build_intercity_options(trains: list[dict], access: list[Segment], egress: l
 
 
 def build_intracity_options(paths: list[dict], car: dict | None, conds: Conditions) -> list[Option]:
+    """시내 이동 Option: ODsay 경로마다 하나, 자동차 경로가 있으면 택시 하나를 더한다(소요 모르는 구간은 뺀다).
+    arrive_by가 있으면 '마감 − 여유(buffer_min)'에서 거꾸로, 없으면 depart_after부터 시각을 잡는다.
+    """
     segs = [_transit_segment(p) for p in paths]
     if car and car.get("duration_min") is not None:
         segs.append(_taxi_segment(car))
@@ -163,6 +171,10 @@ def build_intracity_options(paths: list[dict], car: dict | None, conds: Conditio
 
 
 def evaluate(options: list[Option], conds: Conditions, busy: list[Busy], now: dt.datetime) -> Judgment:
+    """Option들을 통과·제외·판단 불가·추정으로 나눈다(Judgment). 검사 순서:
+    추정 시간표 → 소요 불명 → 도착 마감(− 여유, 자정 넘김 반영) → 출발 하한(오늘이면 지금 이후)
+    → 캘린더 겹침 → 비 회피(rain_block) → 예산(운임을 모르면 판단 불가). 제외 항목에는 사유 문장이 붙는다.
+    """
     j = Judgment([], [], [], [])
     # "22시 이후 출발, 02:30까지 도착"처럼 마감이 출발 하한보다 이르면 마감은 다음 날이다
     overnight = bool(conds.arrive_by and conds.depart_after and conds.arrive_by <= conds.depart_after)
@@ -294,6 +306,10 @@ def rank(passed: list[Option], priority: str) -> list[Option]:
 
 def apply_warnings(options: list[Option], weather: dict[str, dict], road_events: list[dict],
                    avoid: list[str]) -> list[Option]:
+    """날씨·돌발정보 경고를 Option에 붙인다(제자리 수정 후 같은 리스트 반환).
+    최대 강수확률 ≥ RAIN_POP이고 도보 ≥ WALK_WARN_MIN분이면 경고, avoid에 "비"가 있으면 대신 rain_block을 남겨 evaluate가 제외한다.
+    도로를 쓰는 구간(ROAD_MODES)이 있으면 돌발정보를 최대 2건 덧붙인다.
+    """
     pops = [w.get("pop") for w in weather.values() if w and w.get("pop") is not None]
     pop = max(pops) if pops else None
     for o in options:

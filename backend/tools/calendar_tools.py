@@ -13,6 +13,9 @@ def _hm(t: dt.datetime) -> str:
 
 
 def get_free_busy(date: str, days: int = 1) -> dict:
+    """date부터 days(1~3)일간 바쁜 시간대. data = {backend, busy: [{title, start, end(HH:MM)}]}.
+    실패: BAD_ARGUMENT(형식·범위), UPSTREAM_ERROR(캘린더 조회 실패).
+    """
     try:
         day = dt.date.fromisoformat(date)
     except (TypeError, ValueError):
@@ -28,6 +31,9 @@ def get_free_busy(date: str, days: int = 1) -> dict:
 
 
 def register_calendar(plan_id: int) -> dict:
+    """저장한 계획을 캘린더에 '이동: 제목' 일정으로 넣고 일정 ID를 계획에 기록한다. data = {event_id, backend}.
+    실패: BAD_ARGUMENT, NOT_FOUND(현재 사용자의 계획이 아님), CONFLICT(이미 등록 — 중복 일정 방지), UPSTREAM_ERROR.
+    """
     try:
         pid = int(plan_id)
     except (TypeError, ValueError):

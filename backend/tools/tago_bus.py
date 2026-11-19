@@ -23,6 +23,9 @@ BRANDS = ("유스퀘어",)  # 카카오 장소명 앞에 붙는 운영사 이름
 
 
 def normalize_terminal(name: str) -> str:
+    """터미널 이름을 색인 키로 맞춘다(괄호·브랜드 단어·첫 단어 이후·잡음 단어 제거).
+    카카오 장소명과 TAGO 터미널명이 같은 키로 만나게 하려는 것.
+    """
     s = re.sub(r"\(.*?\)", "", name or "").strip()
     for w in BRANDS:
         s = s.replace(w, "").strip()
@@ -39,6 +42,9 @@ def _items(body):
 
 
 def load_terminal_index() -> dict | None:
+    """정규화한 이름 → [{terminal_id, name}] 색인. CACHE_PATH 파일이 있으면 그것을 쓰고(갱신하려면 파일 삭제),
+    없으면 TAGO에서 받아 파일로 저장한다. 키가 없거나 조회에 실패하면 None.
+    """
     if CACHE_PATH.exists():
         return json.loads(CACHE_PATH.read_text(encoding="utf-8"))
     key = os.getenv("DATA_GO_KR_KEY", "").strip()
@@ -57,6 +63,10 @@ def load_terminal_index() -> dict | None:
 
 
 def find_terminals(x: float, y: float, radius_km: float = 15) -> dict:
+    """좌표 반경 안 고속버스 터미널을 카카오 검색(최대 PAGES쪽)으로 찾아 TAGO 터미널 ID와 잇는다.
+    data = {terminals: [{terminal_id, name, x, y, distance_km}]}(가까운 순 최대 MAX_TERMINALS개).
+    실패: INVALID_KEY, NO_DATA, 첫 쪽 검색 실패는 그 코드 그대로.
+    """
     index = load_terminal_index()
     if index is None:
         return fail(INVALID_KEY, "DATA_GO_KR_KEY가 없어 터미널 목록을 받을 수 없습니다.")
@@ -93,6 +103,10 @@ def _ts(v) -> str:
 
 
 def search_express_bus(dep_terminal_id: str, arr_terminal_id: str, date: str | None = None) -> dict:
+    """출발·도착 터미널 ID와 날짜(없으면 오늘)의 고속버스 시간표(하루 캐시).
+    data = {date_requested, estimated, buses}; buses 항목은 열차와 같은 모양(train_no·grade·dep_at·arr_at·fare, kind="bus")이라
+    judge가 열차처럼 조립한다. 실패: BAD_ARGUMENT, INVALID_KEY, UPSTREAM_ERROR, NO_DATA.
+    """
     if not dep_terminal_id or not arr_terminal_id:
         return fail(BAD_ARGUMENT, "출발·도착 터미널 ID는 필수입니다.")
     try:

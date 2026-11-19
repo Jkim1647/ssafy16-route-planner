@@ -21,6 +21,10 @@ def _ts(s: str) -> str:
 
 
 def search_trains(dep_station_id: str, arr_station_id: str, date: str | None = None) -> dict:
+    """출발·도착역 TAGO ID와 날짜(없으면 오늘)의 열차 시간표.
+    data = {date_requested, date_queried, estimated, estimated_reason, trains: [{train_no, grade, dep_at, arr_at, fare}]}.
+    실패: BAD_ARGUMENT, INVALID_KEY(키 미설정·포털 미승인 응답), UPSTREAM_ERROR, NO_DATA(그날 열차 없음).
+    """
     if not dep_station_id or not arr_station_id:
         return fail(BAD_ARGUMENT, "출발역·도착역 ID는 필수입니다.")
     try:

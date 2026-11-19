@@ -5,6 +5,7 @@ log = logging.getLogger(__name__)
 
 
 class LoggerAgent:
+    """EventBus 구독자(호출 가능 객체): 받은 이벤트를 EventRepo에 가공 없이 append한다. 저장 실패는 경고 로그만 남긴다."""
     def __init__(self, event_repo):
         self.repo = event_repo
 

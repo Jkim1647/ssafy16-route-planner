@@ -16,6 +16,9 @@ class LLMCounter:
 
 
 def get_llm(temperature: float | None = None):
+    """.env의 GMS 엔드포인트·모델로 ChatOpenAI를 만든다(timeout 30초, 재시도 1회).
+    GMS_API_KEY가 없으면 LLMUnavailable — graph analyze가 잡아 키 설정 안내 응답으로 바꾼다.
+    """
     s = get_settings()
     if not s.GMS_API_KEY:
         raise LLMUnavailable("GMS_API_KEY가 설정되지 않았습니다.")
@@ -31,6 +34,7 @@ def get_llm(temperature: float | None = None):
 
 
 def structured(llm, schema: type[BaseModel], messages: list, counter: LLMCounter | None = None) -> BaseModel:
+    """LLM 구조화 출력 호출 1회. counter가 있으면 호출 전에 1 올린다(실패한 호출도 요청당 LLM 호출 수에 들어간다)."""
     if counter is not None:
         counter.count += 1
     return llm.with_structured_output(schema).invoke(messages)

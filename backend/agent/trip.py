@@ -62,6 +62,10 @@ def _plan_leg(n: int, conds: Conditions, places: dict, settings, emitter, db_pat
 
 def plan_multi(stops: list[dict], date: dt.date, *, settings, emitter, db_path, now,
                depart_after: str | None = None, budget: int | None = None, priority: str = "cheapest") -> dict:
+    """지점 목록(stops: name·x·y, 두 번째부터 arrive_by·stay_min 선택)을 순서대로 이어 구간마다 경로를 고른다.
+    반환 {legs, total_fare, start_at, end_at, warnings}; 각 leg의 status는 done·walk·no_option·skipped 등.
+    지점이 2개 미만이거나 첫 구간 시각 기준이 없으면 TripError(사용자에게 보일 문장).
+    """
     if len(stops) < 2:
         raise TripError("지점을 두 곳 이상 정해 주세요.")
     if not depart_after and not stops[1].get("arrive_by"):
