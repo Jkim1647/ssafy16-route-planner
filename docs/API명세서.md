@@ -66,7 +66,13 @@
 ```
 - `points`(선택, 기본 `[]`): 지도 표시용 지점. 경로 카드의 `points`를 그대로 넘긴다. 같은 도시 안 이동은 출발지·도착지 2개.
 - `leave_at`/`arrive_at`은 `HH:MM`, 도착이 출발보다 이르면 다음 날 도착(자정 넘김)으로 본다.
-- `PlanOut` = `PlanIn` + `id`, `calendar_event_id`, `created_at`, `updated_at`
+| `POST /api/plans/{plan_id}/recheck` | `{}` | 다시 확인(당일 재확인, LLM 없음) `{plan_id, status: ok·warn·past, checked_at, items[{kind: time·train·calendar·weather·festival, level: ok·warn·info, text}]}` — 열차 번호가 그날 시간표에 남았는지, 이동 시간과 겹치는 일정('이동:' 일정 제외), 강수확률+도보, 도착지 행사, 출발 시각 경과 / 404 |
+| `POST /api/plans/{plan_id}/share` | `{}` (JSON 필수) | `{token}` 읽기 전용 공유 토큰(144비트 무작위, 이미 있으면 그대로) / 404 내 계획 아님 / 415 |
+| `DELETE /api/plans/{plan_id}/share` | - | 204 공유 끊기(이전 링크 즉시 무효) / 404 |
+| `GET /api/shared/{token}` | **로그인 없이** | `{title, date, leave_at, arrive_at, origin_name, destination_name, legs, total_fare, points}` — 사용자·계획·캘린더·실행 ID는 보내지 않음 / 404 끊김·없음·형식 오류 |
+| `GET /api/suggestions/calendar` | - | 앞으로 이틀 안의 장소 있는 캘린더 일정 최대 5개 `[{title, date, arrive_by, location, place: {name, address, x, y} \| null}]` — '이동:' 일정·종일·30분 안 시작 제외, 장소는 카카오 장소 검색으로 좌표화. 경로 계산·LLM 없음 |
+- `PlanOut` = `PlanIn` + `id`, `calendar_event_id`, `share_token`(주인에게만), `created_at`, `updated_at`
+- 캘린더 등록(Google)은 출발 15분·5분 전 팝업 알림을 함께 넣는다.
 
 ## 3. 실행 로그 (F3014 — 수정 API 없음)
 

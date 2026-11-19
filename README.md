@@ -14,6 +14,10 @@
 |---|---|---|---|
 | ![질문 만들기](docs/screenshots/builder.jpg) | ![여러 동선](docs/screenshots/trip.jpg) | ![행사 안내](docs/screenshots/festival.jpg) | ![내 장소](docs/screenshots/places.jpg) |
 
+| 시간·요금 그래프 | 저장한 계획 다시 확인 |
+|---|---|
+| ![시간·요금](docs/screenshots/tradeoff.jpg) | ![다시 확인](docs/screenshots/recheck.jpg) |
+
 ## 1. 실행 방법
 
 ```bash
@@ -27,7 +31,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
 - 화면은 빌드 없이 CDN의 Vue 3·Vue Router·Leaflet(버전 고정·무결성 해시)과 OpenStreetMap 지도 타일을 불러오므로 **인터넷 연결이 필요**합니다. `python -m http.server`는 Windows에서 `.js`를 `text/plain`으로 보내 화면이 뜨지 않을 수 있어 `serve_frontend.py`를 씁니다.
-- 테스트: `pytest` (319개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs` (9개)
+- 테스트: `pytest` (339개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs tests/frontend/tradeoff.test.mjs tests/frontend/reminder.test.mjs` (16개)
 - 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능
@@ -57,6 +61,11 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | 내 장소 | 집·교육장처럼 이름을 붙여 저장(장소 검색으로 고름). 대화에서 그 이름을 말하면 검색 없이 저장한 좌표 사용 |
 | 행사 참고 안내 | 이동하는 날 도착지 1km 안에서 열리는 축제·행사(한국관광공사 TourAPI)를 카드에 "주변이 붐빌 수 있어요"로 안내. 후보는 거르지 않음, 상설 공연 제외 |
 | 조건으로 질문 만들기 | 대화 화면 아래 패널. 내 장소를 끌어다 놓거나 눌러서 들를 곳을 넣고(순서는 끌기·↑↓), 날짜는 달력, 시각은 숫자로 입력(0730·7:30·19 → 07:30). **두 곳**이면 "내일 오전 9시까지 집에서 교육장 가야 해" 같은 질문을 만들어 바로 보내거나 입력창에서 고쳐 보냄(대화 Agent가 처리) |
+| 시간·요금 그래프 | 경로 카드들을 출발 시각(가로)·총 요금(세로) 점으로, "34분 일찍 나가면 1,600원 아껴요" 한 줄 요약. 점을 누르면 그 경로를 지도에 |
+| 다시 확인 | 저장한 계획 상세의 '다시 확인' — 그날 시간표에 열차가 남았는지, 새로 겹친 일정, 비+긴 도보, 도착지 행사, 출발 시각 경과를 다시 보고 문제 있으면 '다른 경로 찾기'(같은 조건으로 대화에 질문) |
+| 일정으로 경로 제안 | 앞으로 이틀 안의 장소 있는 캘린더 일정을 대화 첫 화면에 '다가오는 일정'으로, '경로 찾기'를 누르면 집 → 그 장소(일정 시각까지)로 질문 만들기 패널을 채움(누르기 전엔 경로 계산 안 함) |
+| 출발 알림 | Google 캘린더 등록 시 출발 15·5분 전 팝업, 화면 위 '1시간 안 출발' 배너, 허용하면 10분 전 브라우저 알림(한 번) |
+| 공유 링크 | 계획 상세의 '공유 링크' → 로그인 없이 보는 읽기 전용 페이지(`#/s/…`). 주인만 만들고 '공유 끊기'로 즉시 무효, 사용자·캘린더 정보는 보내지 않음(출발지 위치는 보이므로 화면에 안내) |
 | 여러 동선 | 같은 패널에 **세 곳 이상**(최대 6곳) 넣으면 대화 안에서 한꺼번에 길찾기. 곳마다 도착 마감·머무는 시간, 구간마다 기존 판단을 쓰고 앞 구간 도착 + 머무는 시간이 다음 출발 하한(LLM 없음, 실행 로그 기록). 옛 주소 `#/trip`은 대화 화면으로 이동 |
 
 ## 3. API 키 설정

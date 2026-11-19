@@ -390,6 +390,182 @@
     }
    }
   },
+  "/api/plans/{plan_id}/share": {
+   "post": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Share Plan",
+    "description": "읽기 전용 공유 링크 토큰을 만든다(이미 있으면 그대로). JSON 요청만 — 다른 사이트 폼으로 링크가 생기지 않게.",
+    "operationId": "share_plan_api_plans__plan_id__share_post",
+    "parameters": [
+     {
+      "name": "plan_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Plan Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "delete": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Unshare Plan",
+    "operationId": "unshare_plan_api_plans__plan_id__share_delete",
+    "parameters": [
+     {
+      "name": "plan_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Plan Id"
+      }
+     }
+    ],
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/shared/{token}": {
+   "get": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "View Shared",
+    "description": "공유 링크로 보는 계획(로그인 없이, 읽기 전용). 사용자·캘린더·실행 ID는 보내지 않는다.",
+    "operationId": "view_shared_api_shared__token__get",
+    "parameters": [
+     {
+      "name": "token",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Token"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/plans/{plan_id}/recheck": {
+   "post": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Recheck Plan Api",
+    "description": "저장한 계획 다시 확인(당일 재확인): 시간표·캘린더·날씨·행사·출발 시각. LLM 없음.",
+    "operationId": "recheck_plan_api_api_plans__plan_id__recheck_post",
+    "parameters": [
+     {
+      "name": "plan_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Plan Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/suggestions/calendar": {
+   "get": {
+    "tags": [
+     "계획"
+    ],
+    "summary": "Calendar Suggestions Api",
+    "description": "앞으로 이틀 안의 장소 있는 캘린더 일정 → 경로 찾기 제안(LLM·경로 계산 없음).",
+    "operationId": "calendar_suggestions_api_api_suggestions_calendar_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/trips/plan": {
    "post": {
     "tags": [
@@ -1304,6 +1480,17 @@
        }
       ],
       "title": "Calendar Event Id"
+     },
+     "share_token": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Share Token"
      },
      "created_at": {
       "type": "string",
