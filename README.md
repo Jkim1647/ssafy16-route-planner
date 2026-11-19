@@ -27,47 +27,42 @@
 ```mermaid
 flowchart TB
   subgraph FE["① 화면 · frontend/ (Vue 3, 빌드 없음)"]
-    direction LR
-    P1["대화<br/>질문 만들기 · 지도"]
-    P2["내 장소 · 이동 계획<br/>실행 로그"]
-    P3["공유 링크<br/>#/s/…"]
+    P1["대화 · 질문 만들기 · 지도"]
+    P2["내 장소 · 이동 계획 · 실행 로그"]
+    P3["공유 링크 (읽기 전용)"]
   end
   subgraph BE["② 백엔드 · backend/ (FastAPI)"]
-    direction TB
-    MW["auth/middleware.py — 로그인 쿠키(JWT) → 현재 사용자"]
-    API["api/routes.py — /api/chat · plans · places · logs · map"]
-    subgraph CORE["Agent"]
-      direction LR
-      AG["agent/graph.py<br/>메인 Agent(LangGraph)"]
-      JD["agent/judge.py<br/>시각 계산 · 판단"]
-      TL["tools/*<br/>Tool 16종"]
-      BG["tools/budget.py<br/>캐시 · 호출 한도"]
-    end
-    subgraph STORE["기록 · 저장"]
-      direction LR
-      EV["events/<br/>로깅 Agent · 이상 징후"]
-      DB[("SQLite<br/>data/app.db")]
-      CAL["calendar/<br/>로컬 ↔ Google"]
-    end
+    MW["auth/middleware.py<br/>로그인 쿠키(JWT) → 현재 사용자"]
+    API["api/routes.py<br/>대화 · 계획 · 장소 · 로그 · 지도 API"]
+    AG["agent/graph.py<br/>메인 Agent(LangGraph)"]
+    JD["agent/judge.py<br/>시각 계산 · 마감·예산·일정 판단"]
+    TL["tools/*<br/>Tool 16종 · ok/fail 규약"]
+    BG["tools/budget.py<br/>캐시 · 호출 한도"]
+    EV["events/<br/>로깅 Agent · 이상 징후"]
+    DB[("SQLite<br/>data/app.db")]
+    CAL["calendar/<br/>로컬 ↔ Google"]
   end
   subgraph EXT["③ 외부 서비스"]
-    direction LR
-    LLM["SSAFY GMS<br/>(LLM)"]
-    X1["카카오<br/>장소·택시"]
-    X2["TAGO<br/>열차·고속버스"]
-    X3["ODsay<br/>대중교통"]
-    X4["기상청·ITS<br/>TourAPI"]
-    X5["OSM<br/>보행 경로"]
+    LLM["SSAFY GMS (LLM)"]
+    X1["카카오 장소·택시"]
+    X2["TAGO 열차·고속버스"]
+    X3["ODsay 대중교통"]
+    X4["기상청 · ITS · TourAPI"]
+    X5["OSM 보행 경로"]
   end
-  FE -->|"fetch(쿠키)"| MW --> API --> AG
+  FE -->|"fetch(쿠키)"| MW
+  MW --> API
+  API --> AG
   AG --> JD
-  AG --> TL --> BG
+  AG --> TL
+  TL --> BG
+  TL --> CAL
   AG -->|"조건 뽑기 · 답장(최대 2회)"| LLM
   BG --> X1 & X2 & X3 & X4
   API -->|"지도 동선"| X5
-  AG -. "단계마다 이벤트" .-> EV --> DB
+  AG -. "단계마다 이벤트" .-> EV
+  EV --> DB
   API --> DB
-  TL --> CAL
 ```
 
 ### 요청 하나가 처리되는 과정
