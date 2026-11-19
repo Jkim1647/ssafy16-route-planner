@@ -390,3 +390,15 @@ select { font: inherit; padding: 7px 8px; border: 1px solid var(--line); border-
 .recheck ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 3px; font-size: 14px; }
 .recheck li.warn { color: #8a5a00; font-weight: 600; }
 .recheck li.info { color: var(--muted); }
+
+/* 시간·요금 그래프 */
+.tradeoff { margin: 6px 0 10px; padding: 8px 10px; background: #fff; border: 1px solid var(--line); border-radius: 10px; }
+.tradeoff figcaption { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; font-size: 13px; }
+.tradeoff-insight { color: var(--accent); font-weight: 600; }
+.tradeoff svg { width: 100%; max-width: 560px; height: auto; display: block; }
+.tradeoff .axis { stroke: #c9d0cc; stroke-width: 1; }
+.tradeoff .tick { font-size: 9px; fill: var(--muted); }
+.tradeoff .pt { cursor: pointer; outline: none; }
+.tradeoff .pt circle { fill: #fff; stroke: var(--accent); stroke-width: 2.5; }
+.tradeoff .pt.on circle, .tradeoff .pt:hover circle, .tradeoff .pt:focus-visible circle { fill: var(--accent); }
+.tradeoff .pt-label { font-size: 9px; fill: var(--ink); font-weight: 600; }

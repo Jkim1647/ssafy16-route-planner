@@ -7,6 +7,7 @@ import RouteMap from "../components/RouteMap.js";
 import { Excluded, RouteCard, TraceList } from "../components/common.js";
 import PlanBuilder from "../components/PlanBuilder.js";
 import TripResult from "../components/TripResult.js";
+import TradeoffChart from "../components/TradeoffChart.js";
 
 const EXAMPLES = [
   "토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하",
@@ -16,7 +17,7 @@ const EXAMPLES = [
 
 export default {
   name: "ChatPage",
-  components: { RouteMap, RouteCard, Excluded, TraceList, PlanBuilder, TripResult },
+  components: { RouteMap, RouteCard, Excluded, TraceList, PlanBuilder, TripResult, TradeoffChart },
   setup() {
     const input = ref("");
     const inputEl = ref(null);
@@ -159,6 +160,7 @@ export default {
             <p>{{ m.text }}</p>
             <p v-if="decisionText(m.decision)" class="decision">{{ decisionText(m.decision) }}</p>
             <template v-if="m.cards && m.cards.length">
+              <TradeoffChart v-if="m.cards.length >= 2" :cards="m.cards" :selected="store.selected" @select="select" />
               <RouteCard v-for="c in m.cards" :key="c.index + c.leave_at" :card="c" :selected="c === store.selected"
                          :saving="savingKey === c.index + c.leave_at" @select="select" @save="save($event, m.conds)" />
             </template>
