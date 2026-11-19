@@ -361,3 +361,20 @@ select { font: inherit; padding: 7px 8px; border: 1px solid var(--line); border-
 .time-input input { width: 92px; font-variant-numeric: tabular-nums; }
 .time-input.bad input { border-color: var(--bad); }
 .field-error { color: var(--bad); font-size: 11px; }
+
+/* 첫 화면 안내(압축) */
+.intro .intro-points { list-style: none; margin: 0 0 8px; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; font-weight: 600; color: var(--accent); }
+.intro .examples { margin-top: 0; }
+/* 질문 만들기 패널(압축) */
+.builder > summary .badge { font-size: 12px; font-weight: 600; color: #fff; background: var(--accent); border-radius: 10px; padding: 1px 8px; }
+.builder-source { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.builder-source .search-row { flex: 1; min-width: 200px; display: flex; gap: 6px; margin: 0; }
+.builder-source .search-row input { flex: 1; min-width: 0; }
+.builder-opts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.builder-opts input[type="date"] { width: 150px; }
+.builder-opts .with-unit { display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted); }
+.builder-opts .with-unit input { width: 110px; }
+.builder-opts .clear { margin-left: auto; }
+.builder-run { display: flex; gap: 8px; align-items: center; }
+.builder-run .question-preview { flex: 1; margin: 0; }
+.builder .stop-list { margin: 8px 0; }

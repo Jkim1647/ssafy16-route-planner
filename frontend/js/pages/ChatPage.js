@@ -168,19 +168,19 @@ export default {
             <p class="hint">조건 분석 → 시간표·구간 조회 → 마감·예산·일정 판단 순서로 진행해요. 보통 5~15초 걸려요.</p>
           </div>
         </div>
-        <section v-if="store.messages.length <= 1 && !store.sending" class="intro" aria-label="이 서비스가 하는 일" data-tour="why">
-          <h3>길찾기 앱이 해 주지 않는 것을 계산해요</h3>
-          <ul>
-            <li><strong>조건을 한 번에</strong><span>도착 마감·예산·내 캘린더 일정을 함께 따져 맞는 경로만 남겨요.</span></li>
-            <li><strong>나갈 시각을 거꾸로</strong><span>문 앞에서 문 앞까지 이어 붙여 몇 시에 나서야 하는지 알려 줘요.</span></li>
-            <li><strong>고른 이유와 뺀 이유</strong><span>마감까지 여유·남는 예산을 보여 주고, 맞는 게 없으면 다시 찾아요.</span></li>
-            <li><strong>지어내지 않아요</strong><span>시간표·요금은 공공·지도 API로 확인한 값만 쓰고, 좌석·지연은 확인 불가로 밝혀요.</span></li>
+        <!-- 첫 화면 안내: 하는 일(한 줄 키워드)과 예시 질문을 한 상자에. 질문 만들기 패널을 펼치면 접는다 -->
+        <section v-if="store.messages.length <= 1 && !store.sending && !store.builder.open" class="intro" aria-label="이 서비스가 하는 일">
+          <ul class="intro-points" data-tour="why">
+            <li title="도착 마감·예산·내 캘린더 일정을 함께 따져 맞는 경로만 남겨요">⏱ 마감·예산·일정을 한 번에</li>
+            <li title="문 앞에서 문 앞까지 이어 붙여 몇 시에 나서야 하는지 알려 줘요">↩ 나갈 시각을 거꾸로</li>
+            <li title="마감까지 여유·남는 예산을 보여 주고, 맞는 게 없으면 다시 찾아요">✓ 고른 이유·뺀 이유</li>
+            <li title="시간표·요금은 공공·지도 API로 확인한 값만 쓰고, 좌석·지연은 확인 불가로 밝혀요">🔎 확인한 값만</li>
           </ul>
+          <div class="examples" data-tour="examples">
+            <span class="hint">예시</span>
+            <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>
+          </div>
         </section>
-        <div v-if="store.messages.length <= 1 && !store.sending" class="examples" data-tour="examples">
-          <span class="hint">이렇게 물어보세요</span>
-          <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>
-        </div>
         <PlanBuilder :busy="store.sending" @question="useQuestion" @trip="runTrip" />
         <form class="composer" @submit.prevent="send()" data-tour="ask">
           <label for="chat-input" class="sr-only">메시지</label>

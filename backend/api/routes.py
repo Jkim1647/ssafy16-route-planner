@@ -113,6 +113,22 @@ def map_road_shape(body: ShapeIn):
     return r["data"]
 
 
+class WalkIn(BaseModel):
+    points: list[KoreaPoint] = Field(min_length=2, max_length=2)
+
+
+@router.post("/map/walk-shape", tags=["지도"])
+def map_walk_shape(body: WalkIn):
+    """도보 구간을 실제 길을 따라 그리기 위한 좌표(OpenStreetMap 보행 경로, FOSSGIS OSRM, 캐시). 그림에만 쓴다."""
+    from backend.tools.osm_walk import walk_shape
+    r = walk_shape(*body.points)
+    if not r["ok"]:
+        code = r["error"]["code"]
+        raise HTTPException(422 if code == "BAD_ARGUMENT" else 404 if code in ("NO_DATA", "DISABLED") else 502,
+                            r["error"]["message"])
+    return r["data"]
+
+
 @router.get("/places", response_model=list[PlaceOut], tags=["장소"])
 def list_places(request: Request):
     return _c(request).places.list()

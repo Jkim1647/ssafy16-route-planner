@@ -80,20 +80,20 @@ export default {
   },
   template: `
     <details class="builder" :open="b.open" @toggle="b.open = $event.target.open" data-tour="builder">
-      <summary>조건으로 질문 만들기 <span class="hint">내 장소 끌어 놓기 · 달력 · 시각은 숫자로(0730)</span></summary>
+      <summary>조건으로 질문 만들기 <span v-if="b.stops.length" class="badge">{{ b.stops.length }}곳</span></summary>
       <div class="builder-body">
-        <div class="saved-chips" v-if="store.places.length">
-          <span class="hint">내 장소(끌어서 순서에 놓거나 눌러서 추가)</span>
+        <!-- 넣을 곳 고르기: 내 장소 칩(끌기·누르기)과 검색을 한 줄에 -->
+        <div class="builder-source">
           <button v-for="p in store.places" :key="p.id" type="button" class="chip" draggable="true"
                   @dragstart="startDrag($event, p.label); dragPlace = p" @dragend="dragPlace = null; overIndex = null" @click="add(p)"
                   :disabled="b.stops.length >= MAX_STOPS">{{ KIND_ICON[p.kind] }} {{ p.label }}</button>
+          <router-link v-if="!store.places.length" to="/places" class="hint">내 장소 저장하기</router-link>
+          <form class="search-row" @submit.prevent="search">
+            <label class="sr-only" for="builder-q">다른 장소 검색해 추가</label>
+            <input id="builder-q" v-model="q" maxlength="50" placeholder="다른 장소 검색" :disabled="b.stops.length >= MAX_STOPS">
+            <button type="submit" class="ghost small" :disabled="!q.trim() || b.stops.length >= MAX_STOPS">검색</button>
+          </form>
         </div>
-        <p v-else class="hint">자주 가는 곳은 <router-link to="/places">내 장소</router-link>에 저장하면 끌어다 쓸 수 있어요.</p>
-        <form class="search-row" @submit.prevent="search">
-          <label class="sr-only" for="builder-q">장소 검색해 추가</label>
-          <input id="builder-q" v-model="q" maxlength="50" placeholder="장소 검색해 추가(예: 강남역)" :disabled="b.stops.length >= MAX_STOPS">
-          <button type="submit" class="ghost" :disabled="!q.trim() || b.stops.length >= MAX_STOPS">검색</button>
-        </form>
         <ul v-if="found.length" class="result-list">
           <li v-for="(r, i) in found" :key="i"><button type="button" class="result" @click="add(r)"><strong>{{ r.name }}</strong><span class="basis">{{ r.address }}</span></button></li>
         </ul>
@@ -119,31 +119,29 @@ export default {
             </span>
           </li>
           <li class="empty" :class="{ over: dragPlace && overIndex === null }">
-            {{ b.stops.length ? '여기에 놓으면 끝에 추가 (최대 ' + MAX_STOPS + '곳)' : '내 장소를 끌어다 놓거나 눌러서 출발지부터 넣으세요' }}</li>
+            {{ b.stops.length ? '+ 끝에 추가' : '출발지부터 끌어 놓거나 눌러서 추가' }}</li>
         </ol>
 
-        <div class="trip-opts">
-          <label>날짜 <input type="date" v-model="b.date"></label>
-          <label>예산(원) <input type="number" min="0" step="1000" v-model="b.budget" placeholder="선택"></label>
-          <label>우선 <select v-model="b.priority"><option value="cheapest">최저가</option><option value="fastest">최단 소요</option><option value="fewest_transfers">환승 최소</option></select></label>
+        <!-- 공통 조건 한 줄 -->
+        <div class="builder-opts">
+          <input type="date" v-model="b.date" aria-label="날짜">
+          <label class="with-unit"><input type="number" min="0" step="1000" v-model="b.budget" placeholder="예산" aria-label="예산(원)"><span>원</span></label>
+          <select v-model="b.priority" aria-label="우선"><option value="cheapest">최저가</option><option value="fastest">최단 소요</option><option value="fewest_transfers">환승 최소</option></select>
+          <button type="button" class="ghost small clear" @click="clear" :disabled="!b.stops.length">비우기</button>
         </div>
 
-        <template v-if="isTrip">
-          <p class="hint">세 곳 이상은 구간별로 한꺼번에 찾아요. 앞 구간 도착 + 머무는 시간이 다음 구간의 출발 시각이 돼요.</p>
-          <div class="builder-actions">
-            <button type="button" :disabled="busy || !tripReady" @click="runTrip">여러 동선 길찾기</button>
-            <button type="button" class="ghost" @click="clear">비우기</button>
-            <span v-if="!tripReady" class="hint">출발 시각이나 첫 도착 마감을 정해 주세요.</span>
-          </div>
-        </template>
-        <template v-else>
-          <p class="question-preview" :class="{ off: !question.ok }">{{ question.ok ? '“' + question.text + '”' : question.reason }}</p>
-          <div class="builder-actions">
+        <!-- 결과 줄: 만들어질 질문(또는 여러 동선 안내)과 실행 버튼 -->
+        <div class="builder-run">
+          <template v-if="isTrip">
+            <p class="question-preview" :class="{ off: !tripReady }">{{ tripReady ? '구간 ' + (b.stops.length - 1) + '개를 차례로 찾아요(앞 도착 + 머묾 → 다음 출발)' : '출발 시각이나 첫 도착 마감을 넣어 주세요' }}</p>
+            <button type="button" :disabled="busy || !tripReady" @click="runTrip">길찾기</button>
+          </template>
+          <template v-else>
+            <p class="question-preview" :class="{ off: !question.ok }">{{ question.ok ? '“' + question.text + '”' : question.reason }}</p>
+            <button type="button" class="ghost" :disabled="!question.ok" @click="useQuestion(false)" title="입력창에 넣고 고치기">고치기</button>
             <button type="button" :disabled="busy || !question.ok" @click="useQuestion(true)">이 질문 보내기</button>
-            <button type="button" class="ghost" :disabled="!question.ok" @click="useQuestion(false)">입력창에 넣고 고치기</button>
-            <button type="button" class="ghost" @click="clear" :disabled="!b.stops.length">비우기</button>
-          </div>
-        </template>
+          </template>
+        </div>
       </div>
     </details>`,
 };

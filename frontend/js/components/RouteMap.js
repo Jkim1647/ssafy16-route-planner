@@ -3,7 +3,7 @@
 // - 지하철: 지나는 역 좌표를 차례로 이은 선
 // - 택시: 카카오 모빌리티가 준 도로 좌표
 // - 열차·고속버스: 선로 좌표가 공개 API에 없어 출발역~도착역 직선
-// - 도보·좌표가 없는 구간: 앞뒤 지점을 잇는 점선
+// - 도보: OpenStreetMap 보행 경로(FOSSGIS OSRM)로 실제 길을 따라 그린 점선(받기 전·실패 시 직선 점선)
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
 import { api } from "../api.js";
 import { POINT_LABEL, legColor } from "../format.js";
@@ -14,11 +14,12 @@ const WALK = "#4b5551";
 const shapes = new Map();  // 정류장 열(JSON) → 도로 좌표 | "fail" | Promise — 페이지 사이에도 재사용
 const keyOf = (coords) => JSON.stringify(coords);
 
-// 버스 구간의 도로 좌표를 받아 둔다. 받으면 onReady()로 다시 그린다.
-function fetchShape(coords, onReady) {
-  const k = keyOf(coords);
+// 버스(도로)·도보(보행로) 구간의 좌표를 받아 둔다. 받으면 onReady()로 다시 그린다.
+function fetchShape(kind, coords, onReady) {
+  const k = kind + keyOf(coords);
   if (shapes.has(k)) return;
-  shapes.set(k, api("/map/road-shape", { method: "POST", body: { points: coords.slice(0, 80) } })
+  const path = kind === "walk" ? "/map/walk-shape" : "/map/road-shape";
+  shapes.set(k, api(path, { method: "POST", body: { points: coords.slice(0, 80) } })
     .then((r) => { shapes.set(k, r.path && r.path.length >= 2 ? r.path : "fail"); onReady(); })
     .catch(() => shapes.set(k, "fail")));
 }
@@ -102,10 +103,12 @@ export default {
       };
       for (const pc of pieces) {
         let coords = pc.coords;
-        if (pc.kind === "bus" && coords.length >= 2) {
-          const s = shapes.get(keyOf(coords));
+        // 버스는 도로, 도보는 보행로를 따라. 30m도 안 되는 도보는 그대로 둔다
+        const shaped = pc.kind === "bus" || (pc.kind === "walk" && !near(coords[0], coords[coords.length - 1]));
+        if (shaped && coords.length >= 2) {
+          const s = shapes.get(pc.kind + keyOf(coords));
           if (Array.isArray(s)) coords = s;
-          else if (!s) fetchShape(coords, draw);
+          else if (!s) fetchShape(pc.kind, coords, draw);
         }
         const ll = coords.map(([x, y]) => [y, x]);
         // 흰 테두리를 깔아 지도 위에서 동선이 묻히지 않게 한다
@@ -161,7 +164,7 @@ export default {
         <span class="lg trunk"></span>열차·고속버스 <span class="lg taxi"></span>택시 <span class="lg walk"></span>도보
         <span class="lg-note">· 지하철은 노선 고유색, 버스는 종류별 색(간선 파랑·지선 초록·광역·급행 빨강)이에요.
           버스·택시는 도로를 따라(버스는 정류장을 경유지로 넣은 길찾기 추정), 지하철은 역을 이어, 열차는 역 사이 직선으로 그려요.
-          도보는 점선이고 보행 경로 API가 없어 직선이에요</span>
+          도보는 점선이고 OpenStreetMap 보행로를 따라 그려요(<a href="https://routing.openstreetmap.de/about.html" target="_blank" rel="noopener">FOSSGIS OSRM</a>)</span>
       </p>
     </div>`,
 };

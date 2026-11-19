@@ -27,7 +27,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
 - 화면은 빌드 없이 CDN의 Vue 3·Vue Router·Leaflet(버전 고정·무결성 해시)과 OpenStreetMap 지도 타일을 불러오므로 **인터넷 연결이 필요**합니다. `python -m http.server`는 Windows에서 `.js`를 `text/plain`으로 보내 화면이 뜨지 않을 수 있어 `serve_frontend.py`를 씁니다.
-- 테스트: `pytest` (311개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs` (9개)
+- 테스트: `pytest` (319개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs` (9개)
 - 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능
@@ -65,6 +65,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | 변수 | 발급처 |
 |---|---|
 | `GMS_API_KEY` | SSAFY GMS (모델 `LLM_MODEL=gpt-6-luna`, 임베딩 `text-embedding-3-small`) |
+| `WALK_ROUTE_ENABLED` | 선택, 기본 `true`. 지도의 도보 구간을 OpenStreetMap 보행로를 따라 그림(FOSSGIS OSRM, 키 없음). 도보 구간 좌표가 그 서버로 가고 로그에 남으므로 원치 않으면 `false`(직선 점선) |
 | `KAKAO_REST_KEY` | Kakao Developers → 앱 생성 → 플랫폼 키의 REST API 키, 제품 설정 > 카카오맵 사용 ON |
 | `ODSAY_API_KEY` | ODsay LAB → 애플리케이션 등록(Basic, Server IP 등록) |
 | `DATA_GO_KR_KEY` | 공공데이터포털 → TAGO 열차정보·고속버스정보, 기상청 단기예보, 한국관광공사 국문 관광정보 서비스(행사 정보, 선택) 활용신청(일반 인증키) |
@@ -83,6 +84,8 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | ODsay 대중교통 길찾기 | ODsay LAB Basic | **하루 30회**, 무료(개인·학생) | 7일 캐시, 하루 24회 + 예약 6회, 요청당 4회 상한, 초과 시 택시 대체 |
 | ITS 돌발정보 | 국가교통정보센터 | **월 100회**(개발용) | 실행당 1회·하루 4회 상한, 30분 캐시 |
 | SSAFY GMS | SSAFY | 교육용 사용량 한도 | 요청당 LLM 최대 2회 |
+| 한국관광공사 국문 관광정보(TourAPI) 행사 | 한국관광공사(공공데이터포털) | 개발계정 하루 1,000회 | 그날 진행 중 행사를 한 번 받아 6시간 캐시, 참고 안내만 |
+| OpenStreetMap 보행 경로(도보 구간 지도) | FOSSGIS e.V. (`routing.openstreetmap.de`, OSRM) | 초당 1회 이하·과다 사용 금지·User-Agent·출처 표시, 요청은 서버 로그에 남음 | 서버에서만 호출, 7일 캐시, 호출 간격 1초, 지도에 출처 링크, `WALK_ROUTE_ENABLED=false`로 끔 |
 | OpenStreetMap 지도 타일 | OpenStreetMap 재단 | ODbL, 타일 이용 정책(가벼운 사용·출처 표시) | 지도에 출처 표시, 경로 화면에서만 사용 |
 | 코레일 여객운송약관, 정책브리핑 공지 | 한국철도공사, 국토교통부 | 공개 약관 / 공공누리 제1유형 | `data/docs/SOURCES.md` |
 

@@ -470,6 +470,46 @@
     }
    }
   },
+  "/api/map/walk-shape": {
+   "post": {
+    "tags": [
+     "지도"
+    ],
+    "summary": "Map Walk Shape",
+    "description": "도보 구간을 실제 길을 따라 그리기 위한 좌표(OpenStreetMap 보행 경로, FOSSGIS OSRM, 캐시). 그림에만 쓴다.",
+    "operationId": "map_walk_shape_api_map_walk_shape_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/WalkIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/places": {
    "get": {
     "tags": [
@@ -1718,6 +1758,31 @@
      "type"
     ],
     "title": "ValidationError"
+   },
+   "WalkIn": {
+    "properties": {
+     "points": {
+      "items": {
+       "items": {
+        "type": "number",
+        "maximum": 132.0,
+        "minimum": 33.0
+       },
+       "type": "array",
+       "maxItems": 2,
+       "minItems": 2
+      },
+      "type": "array",
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Points"
+     }
+    },
+    "type": "object",
+    "required": [
+     "points"
+    ],
+    "title": "WalkIn"
    }
   }
  }
