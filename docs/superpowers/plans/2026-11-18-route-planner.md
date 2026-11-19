@@ -10,6 +10,8 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-18-route-planner-design.md` (이하 "설계" — 장 번호로 참조)
 
+> **구현 후 갱신(2026-11-19):** 구현하면서 바뀐 파일·테스트 이름을 실제 코드 기준으로 고쳤다. 구조상 바뀐 점: 노드와 구조화 출력 스키마는 `nodes.py`로 나누지 않고 `backend/agent/graph.py` 안에, API 라우터는 `backend/api/routes.py` 하나, 의존성 조립은 `backend/container.py`, 프론트는 바닐라 JS 대신 Vue 3(CDN, 빌드 없음) — 현재 구조는 `README.md`와 `docs/인계가이드.md`.
+
 ## Global Constraints
 
 - 라이브러리 버전 고정: langgraph==1.2.10, langchain==1.3.14, langchain-openai==1.4.3, langchain-core==1.6.0, langchain-text-splitters==1.1.2, openai==2.54.0, python-dotenv==1.2.3, requests==2.34.2, langsmith==0.10.17, typing-extensions==4.16.0, fastapi==0.141.1, uvicorn[standard]==0.52.4, pydantic==2.13.5, google-api-python-client==2.201.0, google-auth-oauthlib==1.5.0, google-auth-httplib2==0.4.3, chromadb==1.5.9. 개발용 추가는 `pytest` 하나만.
@@ -115,7 +117,7 @@
 
 **Files:**
 - Create: `backend/tools/kakao_local.py`, `backend/tools/stations.py`
-- Test: `tests/tools/test_kakao_local.py`, `tests/tools/test_stations.py`
+- Test: `tests/tools/test_kakao_local.py`(역 매칭 포함)
 
 **Interfaces:**
 - Consumes: Task 2 `fetch_json`, `register`, fixtures.
@@ -152,7 +154,7 @@
 
 ### Task 5: 대중교통 구간 Tool (`get_transit_route`) — F3003 필수
 
-**Files:** Create `backend/tools/odsay.py` / Test `tests/tools/test_odsay.py`
+**Files:** Create `backend/tools/odsay.py` / Test `tests/tools/test_routes.py`
 
 **Interfaces:**
 - 모든 외부 Tool(Task 3~7, 17)은 HTTP 호출을 `ApiBudget.cached_call(api, args, ttl, fn)`로 감싼다(TTL은 설계 19-1).
@@ -163,7 +165,7 @@
 
 ### Task 6: 자동차·택시 Tool (`get_car_route`) — F3003 보충
 
-**Files:** Create `backend/tools/kakao_mobility.py` / Test `tests/tools/test_kakao_mobility.py`
+**Files:** Create `backend/tools/kakao_mobility.py` / Test `tests/tools/test_routes.py`
 
 **Interfaces:**
 - Produces: `get_car_route(sx, sy, ex, ey) -> dict` → `data={"duration_min","distance_km","taxi_fare","toll","bbox":[min_x,min_y,max_x,max_y]}`. 분은 올림. 경로 없음 → `NO_DATA`.
@@ -178,7 +180,7 @@
 **Interfaces:**
 - Produces: `latlon_to_grid(lat: float, lon: float) -> tuple[int, int]` (기상청 LCC 격자 변환 공식), `latest_base_time(now: datetime) -> tuple[str, str]`(발표시각 02,05,08,11,14,17,20,23시 + API 제공 10분 지연 반영), `get_weather(lat: float, lon: float, at: str) -> dict` → `data={"at","pop": int|None,"pty": str|None,"temp": float|None}`. `at`이 응답 예보 범위 밖이면 `OUT_OF_RANGE`.
 
-- [ ] **Step 1:** `test_grid_seoul`(37.5665,126.9780 → (60,127)), `test_grid_gwangju_songjeong`(Task 1 실제 값으로 확정), `test_base_time_before_0210`(02:05 → 전날 2300), `test_weather_out_of_range`(+5일 → `OUT_OF_RANGE`), `test_weather_ok`.
+- [ ] **Step 1:** `test_grid_seoul`(37.5665,126.9780 → (60,127)), `test_grid_gwangju_gwangsan`(Task 1 실제 값으로 확정), `test_base_time_before_0210`(02:05 → 전날 2300), `test_weather_out_of_range`(+5일 → `OUT_OF_RANGE`), `test_weather_ok`.
 - [ ] **Step 2~4** → **Step 5:** 커밋 `feat: 날씨 Tool`.
 
 ### Task 8: Tool 단독 실행 데모 + 1일차 문서 + day1 커밋
@@ -192,7 +194,7 @@
 - [ ] **Step 1:** 데모 스크립트 작성(키 없음은 `os.environ.pop` 후 복원).
 - [ ] **Step 2:** 실행. Expected: 핵심 Tool 3종 정상 `True`, 나머지 3케이스 `False CODE`.
 - [ ] **Step 3:** `docs/요구사항정의서.md` v1 — 도메인 근거(설계 1·4장), 요구사항 표 F3001~F3023·NF3001~NF3007(이 도메인 표현), 기획 검증 결과(Task 1 기록 링크).
-- [ ] **Step 4:** 출력 캡처를 `docs/screenshots/day1_tools.png`로 저장.
+- [ ] **Step 4:** 출력 캡처를 `docs/day1_tools_demo.txt`로 저장.
 - [ ] **Step 5:** `pytest -q` 전체 PASS → 커밋 `feat: day1 Tool 단독 실행` → (사용자 확인 후) lab.ssafy.com `AICorePJT03` 하위 `AI코어프로젝트3_이동플래너_광주_03_김진영`에 push.
 
 ---
@@ -212,7 +214,7 @@
 
 ### Task 10: DB 스키마와 저장소
 
-**Files:** Create `backend/db/__init__.py`, `backend/db/database.py`, `backend/db/repositories.py`, `backend/schemas.py` / Test `tests/db/test_plans.py`, `tests/db/test_events.py`
+**Files:** Create `backend/db/__init__.py`, `backend/db/database.py`, `backend/db/repositories.py`, `backend/schemas.py` / Test `tests/db/test_repos.py`
 
 **Interfaces:**
 - Produces (`database.py`): `connect(path: str) -> sqlite3.Connection`(row_factory=Row, 호출마다 새 연결), `init_db(path: str) -> None` (설계 9장 5개 테이블, `CREATE TABLE IF NOT EXISTS`).
@@ -271,7 +273,7 @@
 - [ ] **Step 1: 실패 테스트** (값은 설계 그대로)
   - `test_leave_and_arrive_formula`: 열차 07:02→09:00, 출발구간 20분, 도착구간 25분 → leave 06:32, arrive 09:25
   - `test_arrive_by_with_buffer`: arrive_by 09:30, buffer 10 → 09:25 통과, 09:21 도착 통과, 09:22? (경계: `arrive_at ≤ 09:20`만 통과) → 09:25는 제외 사유 `"도착 09:25 > 마감 09:20"`
-  - `test_budget_none_fare_is_undetermined`
+  - `test_budget_exceeded_and_none_fare_undetermined`
   - `test_calendar_overlap_excluded`: busy 07:00–08:00, 이동 06:32–09:25 → 제외 사유 `"캘린더 '팀 회의' 07:00–08:00과 겹침"`
   - `test_destination_event_not_excluded`: busy 14:00–15:00, arrive 13:40 → 통과(설계 18-7)
   - `test_estimated_never_passed`
@@ -284,12 +286,12 @@
 
 ### Task 14: Agent 그래프(단일 모드) — F3005~F3011
 
-**Files:** Create `backend/agent/state.py`, `backend/agent/prompts.py`, `backend/agent/nodes.py`, `backend/agent/graph.py`, `backend/agent/service.py` / Test `tests/agent/test_graph.py`
+**Files:** Create `backend/agent/state.py`, `backend/agent/prompts.py`, `backend/agent/graph.py`(노드·스키마 포함), `backend/agent/service.py` / Test `tests/agent/test_graph.py`
 
 **Interfaces:**
 - Consumes: Task 2 레지스트리, Task 9 `structured`, Task 11 `Emitter`, Task 12, Task 13.
 - Produces (`state.py`): `AgentState(TypedDict)` = 설계 7.2 필드.
-- Produces (`nodes.py`) 구조화 출력 스키마: `AnalyzeOut(intent: Literal["plan_trip","modify","fact_query","terms_query","save_plan","register_calendar","chat"], intent_reason: str, changes: dict, option_ref: int | None)`, `PlanOut(tasks: list[TaskSpec])`, `TaskSpec(id: str, tool: str, args: dict, depends_on: list[str] = [], fixed_args: list[str] = [])`. 인자 값 `"$<task_id>.<path>"`는 이전 결과 참조.
+- Produces (`graph.py`) 구조화 출력 스키마: `AnalyzeOut(intent: Literal["plan_trip","modify","fact_query","terms_query","save_plan","register_calendar","chat"], intent_reason: str, changes: dict, option_ref: int | None)`, `PlanOut(tasks: list[TaskSpec])`, `TaskSpec(id: str, tool: str, args: dict, depends_on: list[str] = [], fixed_args: list[str] = [])`. 인자 값 `"$<task_id>.<path>"`는 이전 결과 참조.
 - Produces 노드: `analyze(state) -> dict`, `clarify(state)`, `plan(state)`(LLM 출력 검증: 미등록 Tool·스키마 위반 task 제거, `plan_tasks` 이벤트), `execute(state)`(참조 해석·펼치기·캐시 `(tool, json.dumps(args, sort_keys=True))`, 실패 기록 후 계속, `tool_call/tool_result` 이벤트에 `task_id, cached, duration_ms`), `judge_node(state)`, `replan(state)`(설계 5.4 전략 순서, 비재계획 사유 판정), `respond(state)`(LLM 요약 + `numbers_ok(text, cards) -> bool` 검사: 텍스트의 `\d{1,2}:\d{2}`와 `\d[\d,]*원`이 카드 값 집합에 없으면 템플릿 문장으로 대체), `action(state)`(save_plan: `option_ref`로 직전 카드 → `PlanRepo.create`).
 - Produces (`graph.py`): `build_graph(deps: Deps) -> CompiledGraph` (`MemorySaver`, 라우팅 = 설계 7.1 다이어그램), `@dataclass Deps(llm, bus, plan_repo, run_repo, settings, now: Callable[[], datetime])`.
 - Produces (`service.py`): `run_turn(deps, session_id: str, message: str) -> TurnResult` — TurnResult(Pydantic) = `run_id, session_id, reply, cards: list[dict], excluded: list[dict], undetermined: list[dict], estimated: list[dict], warnings: list[str], clarification: str | None, replan_count: int, llm_calls: int, events: list[dict]`. 이벤트는 run 동안 Emitter가 모은 사본. `run_start/run_end` 발행, `RunRepo.start/finish`.
@@ -300,7 +302,7 @@
   - `test_ambiguous_place_asks_user`(Review Focus 1)
   - `test_full_flow_events_order`: node_start/end 순서 analyze→plan→execute→judge→respond, analyze 종료 payload에 `intent_reason`
   - `test_tool_failure_continues`: 열차 하나 상세 실패해도 응답 생성 (S4)
-  - `test_replan_reuses_cache`: 1회차 통과 0 → replan → 같은 args 호출이 `cached=true`
+  - `test_replan_reuses_cache_and_widens`: 1회차 통과 0 → replan → 같은 args 호출이 `cached=true`
   - `test_replan_limit_stops`: 항상 통과 0 → `replan_count == 3`, reply에 조정 질문 (S3)
   - `test_upstream_failure_no_replan`(Review Focus 5): INVALID_KEY → replan 0
   - `test_followup_keeps_conditions`: 같은 session_id로 S1 → S7, 두 번째 run의 조건에서 date·destination 유지
@@ -310,11 +312,11 @@
   - `test_rate_limited_falls_back_to_taxi_no_replan`: ODsay `RATE_LIMITED` → 카드 경고 "대중교통 조회 한도 초과 → 택시 기준", replan 0
   - `test_its_called_once_after_judge`: `get_road_events` 호출은 judge 이후 최대 1회, 택시·버스 구간 없으면 0회
   - `test_main_works_without_logger`: `LOGGING_ENABLED=false`로 정상 응답(4.3)
-- [ ] **Step 2~4** → **Step 5:** `python -c "from backend.agent.graph import ...; print(build_graph(deps).get_graph().draw_mermaid())"`로 그래프 구조 출력 → `docs/screenshots/graph.md` 저장(4.2 증빙) → 커밋 `feat: 단일 Agent 그래프`.
+- [ ] **Step 2~4** → **Step 5:** `python -c "from backend.agent.graph import ...; print(build_graph(deps).get_graph().draw_mermaid())"`로 그래프 구조 출력 → README '시스템 아키텍처'의 'Agent 그래프' mermaid 그림(4.2 증빙) → 커밋 `feat: 단일 Agent 그래프`.
 
 ### Task 15: FastAPI 서버 — F3014, F3015, F3016, F3017
 
-**Files:** Create `backend/main.py`, `backend/api/{__init__,chat,plans,logs,meta}.py`, `backend/deps.py` / Test `tests/api/test_api.py`
+**Files:** Create `backend/main.py`, `backend/api/routes.py`, `backend/container.py` / Test `tests/api/test_api.py`
 
 **Interfaces:**
 - Consumes: Task 10 저장소, Task 14 `run_turn`.
@@ -323,11 +325,11 @@
 - 실행: `uvicorn backend.main:app --reload` (8000).
 
 - [ ] **Step 1:** `TestClient` 테스트: `test_plan_crud_roundtrip`, `test_plan_overlap_in_response`, `test_logs_list_detail_delete`, `test_logs_no_put`(PUT → 405), `test_config_status_booleans_only`, `test_chat_returns_events`(deps를 FakeLLM으로 override), `test_500_hides_detail`.
-- [ ] **Step 2~4** → **Step 5:** `/docs` 화면 캡처 `docs/screenshots/api_docs.png` → 커밋 `feat: FastAPI 서버`.
+- [ ] **Step 2~4** → **Step 5:** `/docs` 화면 캡처 `docs/screenshots/api_docs.jpg` → 커밋 `feat: FastAPI 서버`.
 
 ### Task 16: 프론트엔드 — F3018, F3019
 
-**Files:** Create `frontend/index.html`, `frontend/css/app.css`, `frontend/js/{api,chat,timeline,plans,logs,app}.js`
+**Files:** Create `frontend/index.html`, `frontend/css/app.css`, `frontend/js/{api,store,main,format}.js`, `frontend/js/pages/*.js`, `frontend/js/components/*.js`
 
 **Interfaces:**
 - Consumes: Task 15 API(`API_BASE="http://127.0.0.1:8000/api"`).
@@ -339,18 +341,18 @@
 - [ ] **Step 2:** 브라우저에서 S1, S5, S6 요청 → 카드·타임라인 표시, 콘솔 오류 0, CORS 오류 0.
 - [ ] **Step 3:** 계획 저장 → 계획 탭 즉시 반영 → 수정 → 삭제 반영, 겹침 저장 시 알림(S10).
 - [ ] **Step 4:** `ODSAY_API_KEY` 제거 후 재시작 → 배너와 "택시 기준" 경고 표시(S4).
-- [ ] **Step 5:** 화면 캡처 `docs/screenshots/chat.png, plans.png, logs.png` → 커밋 `feat: 대화·계획·로그 화면`.
+- [ ] **Step 5:** 화면 캡처 `docs/screenshots/chat.jpg, plans.jpg, logs_anomaly.jpg` → 커밋 `feat: 대화·계획·로그 화면`.
 
 ### Task 17: 확장 Tool — 카카오 모빌리티 연결 확인, ITS 돌발, 고속버스, (선택) TourAPI
 
-**Files:** Create `backend/tools/its_events.py`, `backend/tools/tago_bus.py`, (선택) `backend/tools/tour_events.py` / Test `tests/tools/test_its_events.py`, `tests/tools/test_tago_bus.py`
+**Files:** Create `backend/tools/its_events.py`, `backend/tools/tago_bus.py`, (선택) `backend/tools/tour_festival.py` / Test `tests/tools/test_its_events.py`, `tests/tools/test_tago_bus.py`
 
 **Interfaces:**
 - Produces: `get_road_events(bbox: list[float], date: str) -> dict` → `data={"realtime": bool, "events":[{"type","description","start","end","x","y"}]}`. `date`가 오늘이 아니면 `end`가 있고 그 날짜를 포함하는 이벤트만(설계 5.3).
 - Produces: `search_express_bus(dep_terminal_id, arr_terminal_id, date=None) -> dict` → `search_trains`와 같은 모양(`trains` 대신 `buses`, `grade`, `fare`). `find_terminals(x, y)`는 `find_stations`와 같은 매칭 방식(`data/cache/terminals.json`).
 - Judge 연동: `build_intercity_options`가 `buses`도 간선으로 받도록 `trunks: list[dict]`(필드 `kind: "train"|"bus"`)로 일반화 — Task 13 테스트가 계속 통과해야 함.
 
-- [ ] **Step 1:** `test_events_future_date_filters_realtime`, `test_events_empty_is_ok_with_empty_list`(결과 없음은 실패가 아니라 빈 목록 — 경고 없음), `test_bus_ok`, `test_bus_empty`.
+- [ ] **Step 1:** `test_events_future_date_filters_by_period`, `test_events_empty_is_ok_with_empty_list`(결과 없음은 실패가 아니라 빈 목록 — 경고 없음), `test_bus_ok`, `test_bus_empty`.
 - [ ] **Step 2~4** → **Step 5:** 커밋 `feat: 돌발정보·고속버스 Tool`.
 
 ### Task 18: 이상 징후 판정 — F3020
@@ -364,7 +366,7 @@
 - Produces: `evaluate_and_store(run_id, deps) -> dict` — 판정 저장 → warn이면 진단 저장. `service.run_turn` 끝에서 호출(로깅 활성 시). `get_verdict(run_id) -> dict | None`(Planner 참조용).
 - `DEBUG_FORCE` 처리: `execute`에서 `duplicate`면 첫 Tool을 캐시 우회로 한 번 더, `unplanned`면 task 밖 `get_weather` 1회, `replan`이면 첫 judge 결과를 통과 0으로 강제.
 
-- [ ] **Step 1:** `test_duplicate_detected`, `test_cached_not_duplicate`, `test_unplanned_detected`, `test_retry_not_unplanned`, `test_excessive_replan`(replan 2 → warn), `test_no_evidence_undetermined`(plan_tasks·tool_call 없음 → `undetermined`), `test_normal_run_ok_and_no_llm`(FakeLLM 호출 0), `test_diagnosis_failure_keeps_verdict`.
+- [ ] **Step 1:** `test_duplicate_detected`, `test_cached_not_duplicate`, `test_unplanned_detected`, `test_retry_not_unplanned_or_duplicate`, `test_excessive_replan`(replan 2 → warn), `test_no_evidence_undetermined`(plan_tasks·tool_call 없음 → `undetermined`), `test_normal_run_ok`(FakeLLM 호출 0), `test_diagnosis_failure_keeps_verdict`.
 - [ ] **Step 2~4** → **Step 5:** 커밋 `feat: 이상 징후 판정`.
 
 ### Task 19: Planner·Worker 모드 — F3021
@@ -391,13 +393,13 @@
 - 응답 연동: `terms_query` 의도는 계획 `[search_terms]` → respond가 근거 문단과 출처를 카드(`type: "source"`)로 표시.
 
 - [ ] **Step 1:** 사용자에게 원문 확보 요청: 코레일 여객운송약관, 고속버스 운송약관, 기상특보 행동요령 → `data/docs/`, 출처·수집일을 `SOURCES.md`에.
-- [ ] **Step 2:** `test_no_index_code`(빈 임시 디렉터리 → `NO_INDEX`), `test_search_returns_sources`(임시 디렉터리에 문서 2개 색인 후 질의 → `source` 존재).
+- [ ] **Step 2:** `test_no_index_code`(빈 임시 디렉터리 → `NO_INDEX`), `test_build_and_search_returns_sources`(임시 디렉터리에 문서 2개 색인 후 질의 → `source` 존재).
 - [ ] **Step 3~4** FAIL→구현→PASS, 실제 색인 후 S8 질문으로 수동 확인.
 - [ ] **Step 5:** 커밋 `feat: 약관 RAG Tool`.
 
 ### Task 21: 캘린더 — F3023 (로컬 먼저)
 
-**Files:** Create `backend/calendar/{__init__,base,local,google}.py`, `backend/tools/calendar_tools.py` / Modify `backend/api/plans.py`(`POST /api/plans/{id}/calendar`) / Test `tests/calendar/test_calendar.py`
+**Files:** Create `backend/calendar/{__init__,base,local,google}.py`, `backend/tools/calendar_tools.py` / Modify `backend/api/routes.py`(`POST /api/plans/{id}/calendar`) / Test `tests/calendar/test_calendar.py`
 
 **Interfaces:**
 - Produces: `class CalendarBackend(Protocol)`: `get_free_busy(day: date) -> list[Busy]`, `create_event(plan: PlanOut) -> str`. `LocalCalendar(db_path)`(table `local_calendar`), `GoogleCalendar(calendar_id, token_path="token.json", credentials_path="credentials.json")`(scope `https://www.googleapis.com/auth/calendar.events` + freeBusy용 `calendar.readonly`; `InstalledAppFlow.run_local_server` 최초 1회). `get_calendar(settings) -> CalendarBackend`.
