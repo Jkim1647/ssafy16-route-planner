@@ -23,7 +23,8 @@ export default {
     const input = ref("");
     const inputEl = ref(null);
     const list = ref(null);
-    const panel = ref(store.selected ? "map" : "trace");
+    // 오른쪽 칸 탭은 store에 둔다(일정 제안의 '경로 찾기'도 질문 만들기 탭을 연다)
+    const panel = computed({ get: () => store.sidePanel, set: (v) => { store.sidePanel = v; } });
     const seconds = ref(0);
     const savingKey = ref(null);
     let timer = null;
@@ -137,7 +138,7 @@ export default {
     }
 
     function select(card) { store.selected = card; panel.value = "map"; }
-    function newChat() { resetChat(); panel.value = "trace"; }
+    function newChat() { resetChat(); }
 
     onBeforeUnmount(() => clearInterval(timer));
     scrollDown();
@@ -177,7 +178,7 @@ export default {
           </div>
         </div>
         <!-- 첫 화면 안내: 하는 일(한 줄 키워드)과 예시 질문을 한 상자에. 질문 만들기 패널을 펼치면 접는다 -->
-        <section v-if="store.messages.length <= 1 && !store.sending && !store.builder.open" class="intro" aria-label="이 서비스가 하는 일">
+        <section v-if="store.messages.length <= 1 && !store.sending" class="intro" aria-label="이 서비스가 하는 일">
           <ul class="intro-points" data-tour="why">
             <li title="도착 마감·예산·내 캘린더 일정을 함께 따져 맞는 경로만 남겨요">⏱ 마감·예산·일정을 한 번에</li>
             <li title="문 앞에서 문 앞까지 이어 붙여 몇 시에 나서야 하는지 알려 줘요">↩ 나갈 시각을 거꾸로</li>
@@ -190,7 +191,8 @@ export default {
             <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>
           </div>
         </section>
-        <PlanBuilder :busy="store.sending" @question="useQuestion" @trip="runTrip" />
+        <button v-if="panel !== 'builder'" type="button" class="open-builder" @click="panel = 'builder'">
+          🧭 조건으로 질문 만들기 <span class="hint">내 장소·달력·시각으로 →</span></button>
         <form class="composer" @submit.prevent="send()" data-tour="ask">
           <label for="chat-input" class="sr-only">메시지</label>
           <input id="chat-input" ref="inputEl" v-model="input" autocomplete="off" maxlength="500" :disabled="store.sending"
@@ -200,11 +202,15 @@ export default {
       </div>
       <aside class="side-col" data-tour="side">
         <div class="segmented" role="tablist" aria-label="오른쪽 보기">
+          <button type="button" role="tab" data-tour="builder" :aria-selected="panel === 'builder'" :class="{ active: panel === 'builder' }" @click="panel = 'builder'">질문 만들기</button>
           <button type="button" role="tab" :aria-selected="panel === 'map'" :class="{ active: panel === 'map' }" @click="panel = 'map'">지도</button>
           <button type="button" role="tab" :aria-selected="panel === 'trace'" :class="{ active: panel === 'trace' }" @click="panel = 'trace'">실행 과정</button>
           <span class="meta">{{ store.sending ? '처리 중…' : store.lastMeta }}</span>
         </div>
-        <div v-if="panel === 'map'" class="side-body">
+        <div v-if="panel === 'builder'" class="side-body">
+          <PlanBuilder :busy="store.sending" @question="useQuestion" @trip="runTrip" />
+        </div>
+        <div v-else-if="panel === 'map'" class="side-body">
           <p v-if="store.selected" class="map-title">{{ store.selected.index }}. {{ store.selected.label }} · {{ store.selected.leave_at }} → {{ store.selected.arrive_at }}</p>
           <RouteMap :points="mapPoints" :legs="store.selected ? store.selected.legs : []" :others="otherPoints"
                     height="max(420px, calc(100vh - 330px))" />

@@ -3,7 +3,7 @@ import { reactive } from "vue";
 import { api } from "./api.js";
 
 function newBuilder() {
-  return { open: false, date: new Date(Date.now() + 86400000).toLocaleDateString("sv-SE"), budget: "", priority: "cheapest", stops: [] };
+  return { date: new Date(Date.now() + 86400000).toLocaleDateString("sv-SE"), budget: "", priority: "cheapest", stops: [] };
 }
 
 const WELCOME = { role: "agent", text: "출발지·도착지와 \"언제까지 도착\" 또는 \"언제부터 출발\"을 알려 주세요." };
@@ -25,7 +25,8 @@ export const store = reactive({
   auth: null,              // /auth/me {user, auth_required, google_configured}
   places: [],              // 저장한 장소(대화의 질문 만들기 패널에서 사용)
   builder: newBuilder(),
-  pendingQuestion: "",     // 다른 화면(계획 재확인·일정 제안)에서 대화로 넘겨 바로 보낼 질문   // 조건으로 질문 만들기(들를 곳·날짜·시각) — 페이지를 옮겨도 유지
+  pendingQuestion: "",
+  sidePanel: "builder",    // 대화 화면 오른쪽 칸: builder(질문 만들기) · map · trace — 결과가 없을 땐 질문 만들기부터     // 다른 화면(계획 재확인·일정 제안)에서 대화로 넘겨 바로 보낼 질문   // 조건으로 질문 만들기(들를 곳·날짜·시각) — 페이지를 옮겨도 유지
 });
 
 export async function loadMe() {
@@ -47,6 +48,7 @@ export function resetChat() {
   store.lastEvents = [];
   store.lastMeta = "";
   store.selected = null;
+  store.sidePanel = "builder";
 }
 
 export async function loadStatus() {

@@ -428,3 +428,15 @@ select { font: inherit; padding: 7px 8px; border: 1px solid var(--line); border-
   border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
 .share-box input { flex: 1; min-width: 240px; font-size: 13px; }
 .share-box .hint { flex-basis: 100%; margin: 0; }
+
+/* 질문 만들기는 오른쪽 칸 탭 안에(펼친 채) — 왼쪽에는 여는 버튼 */
+.side-col .builder { margin-top: 0; border: 0; background: transparent; }
+.side-col .builder-body, .builder-body { max-height: none; overflow: visible; padding: 0; }
+.builder-lead { margin: 0 0 10px; font-size: 13px; color: var(--muted); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.builder-lead .badge { font-size: 12px; font-weight: 600; color: #fff; background: var(--accent); border-radius: 10px; padding: 1px 8px; }
+.open-builder { margin-top: 10px; width: 100%; text-align: left; background: #fff; color: var(--accent); border: 1px dashed var(--accent);
+  font-weight: 600; display: flex; gap: 8px; align-items: baseline; }
+.open-builder .hint { font-weight: 400; }
+.open-builder:hover { background: var(--accent-soft); }
+.side-col .stop-list li.empty { padding: 26px 12px; font-size: 14px; border-width: 2px; }
+.side-col .builder-source .chip { font-size: 14px; padding: 5px 12px; }

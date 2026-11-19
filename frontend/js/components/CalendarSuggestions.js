@@ -23,7 +23,7 @@ export default {
         label: p.label || null, kind: p.kind || "pin", depart: "", arrive_by: "", stay_min: 0, ...extra });
       b.stops.splice(0, b.stops.length, ...(home ? [stop(home)] : []), stop(s.place, { arrive_by: s.arrive_by }));
       b.date = s.date;
-      b.open = true;
+      store.sidePanel = "builder";
     }
     return { items, use, dateLabel };
   },

@@ -60,14 +60,12 @@ export default {
     const isTrip = computed(() => b.stops.length >= 3);
     const tripReady = computed(() => isTrip.value && (b.stops[0].depart || b.stops[1].arrive_by));
 
-    // 보내면 패널을 접어 결과가 보이게 한다(조건은 남아 있어 다시 펼쳐 고칠 수 있음)
+    // 보내면 대화 화면이 결과에 맞춰 오른쪽 칸을 지도로 바꾼다(조건은 남아 있어 '질문 만들기' 탭에서 다시 고칠 수 있음)
     function useQuestion(sendNow) {
       if (!question.value.ok) return;
-      if (sendNow) b.open = false;
       emit("question", question.value.text, sendNow);
     }
     function runTrip() {
-      b.open = false;
       emit("trip", {
         date: b.date, depart_after: b.stops[0].depart || null, priority: b.priority,
         budget: b.budget ? Number(b.budget) : null,
@@ -79,8 +77,9 @@ export default {
       add, search, move, remove, drop, clear, startDrag, useQuestion, runTrip };
   },
   template: `
-    <details class="builder" :open="b.open" @toggle="b.open = $event.target.open" data-tour="builder">
-      <summary>조건으로 질문 만들기 <span v-if="b.stops.length" class="badge">{{ b.stops.length }}곳</span></summary>
+    <section class="builder" aria-label="조건으로 질문 만들기">
+      <p class="builder-lead">내 장소를 끌어 놓거나 눌러서 출발지부터 넣고, 날짜·시각을 고르면 질문을 만들어 드려요.
+        <span v-if="b.stops.length" class="badge">{{ b.stops.length }}곳</span></p>
       <div class="builder-body">
         <!-- 넣을 곳 고르기: 내 장소 칩(끌기·누르기)과 검색을 한 줄에 -->
         <div class="builder-source">
@@ -143,5 +142,5 @@ export default {
           </template>
         </div>
       </div>
-    </details>`,
+    </section>`,
 };

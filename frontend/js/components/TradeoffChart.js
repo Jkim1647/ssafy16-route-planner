@@ -14,7 +14,7 @@ export default {
     const summary = computed(() => insight(props.cards));
     const fares = computed(() => pts.value.map((p) => p.card.total_fare));
     const byX = computed(() => [...pts.value].sort((a, b) => a.x - b.x));
-    const man = (n) => `${(n / 10000).toFixed(1)}만원`;
+    const man = (n) => (n >= 10000 ? `${(n / 10000).toFixed(1)}만원` : `${n.toLocaleString("ko-KR")}원`);
     return { pts, summary, fares, byX, W, H, PAD, LEFT, won, man };
   },
   template: `
