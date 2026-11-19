@@ -18,6 +18,116 @@
 |---|---|
 | ![시간·요금](docs/screenshots/tradeoff.jpg) | ![다시 확인](docs/screenshots/recheck.jpg) |
 
+## 0. 한눈에 보기 (처음 보는 분께)
+
+**한 문장:** 사용자가 "내일 오후 2시까지 첨단동에서 강남역, 6만원 이하"라고 말하면, Agent가 장소 → 역·터미널 → 시간표 → 구간 이동 → 날씨·일정을 **외부 API로 조회**하고, **규칙(코드)으로** 마감·예산·일정을 판단해 "몇 시에 나가면 되는지"를 근거와 함께 돌려줍니다. LLM은 **말 이해(조건 뽑기)와 답장 문장**에만 쓰고(요청당 최대 2회), 숫자 계산·판단은 전부 코드가 합니다.
+
+### 시스템 구조
+
+```mermaid
+flowchart LR
+  subgraph FE["화면 · frontend/ (Vue 3, 빌드 없음)"]
+    P1["대화 · 질문 만들기 · 지도"]
+    P2["내 장소 · 이동 계획 · 실행 로그"]
+    P3["공유 링크 #/s/…"]
+  end
+  subgraph BE["백엔드 · backend/ (FastAPI)"]
+    MW["auth/middleware.py<br/>로그인 쿠키(JWT) → 현재 사용자"]
+    API["api/routes.py<br/>/api/chat · /plans · /places · /logs …"]
+    AG["agent/graph.py<br/>메인 Agent (LangGraph)"]
+    JD["agent/judge.py<br/>시각 계산 · 마감·예산·일정 판단"]
+    TL["tools/*<br/>Tool 16종 (ok/fail 규약)"]
+    BG["tools/budget.py<br/>캐시 · 호출 한도"]
+    EV["events/<br/>이벤트 버스 → 로깅 Agent → 이상 징후"]
+    DB[("SQLite · data/app.db<br/>계획 · 장소 · 실행 로그")]
+    CAL["calendar/<br/>로컬 ↔ Google"]
+  end
+  subgraph EXT["외부 서비스"]
+    X1["카카오 로컬·모빌리티"]
+    X2["TAGO 열차·고속버스"]
+    X3["ODsay 대중교통"]
+    X4["기상청 · ITS · TourAPI"]
+    X5["OSM 보행 경로"]
+    LLM["SSAFY GMS (LLM)"]
+  end
+  FE -->|"fetch(쿠키)"| MW --> API
+  API --> AG
+  AG -->|"조건 뽑기·답장"| LLM
+  AG --> TL --> BG --> X1 & X2 & X3 & X4
+  API -->|"지도 동선"| X5
+  AG --> JD
+  AG -. "단계마다 이벤트" .-> EV --> DB
+  API --> DB
+  TL --> CAL
+```
+
+### 요청 하나가 처리되는 과정
+
+```mermaid
+sequenceDiagram
+  actor U as 사용자
+  participant W as 화면(ChatPage)
+  participant R as API(/api/chat)
+  participant G as Agent 그래프
+  participant L as LLM(GMS)
+  participant T as Tool들
+  participant J as 판단(judge.py)
+  participant E as 로깅 Agent
+  U->>W: "내일 14시까지 첨단동→강남역"
+  W->>R: POST /api/chat {message, session_id}
+  R->>G: run_turn()
+  G->>L: ① 조건 뽑기(출발·도착·날짜·마감·예산)
+  G->>G: 작업 목록 t1~t15 만들기(LLM 없음)
+  loop 작업마다
+    G->>T: 장소·역·열차·구간·날씨·일정 조회(캐시 우선)
+    G-->>E: tool_call / tool_result 이벤트
+  end
+  G->>J: 후보마다 출발·도착 계산 → 마감·예산·일정 판정
+  alt 통과 후보 없음 (최대 3회)
+    G->>G: 재계획(역 넓히기 → 고속버스·택시 → 전날 출발)
+  end
+  G->>L: ② 카드 숫자만 써서 답장(숫자 검사 통과 못 하면 템플릿)
+  G-->>R: reply + cards + 판단 요약 + 이벤트
+  R-->>W: 카드 · 지도 · 시간·요금 그래프 · 실행 과정
+  E-->>E: 이상 징후 판정(중복·계획 외 호출·과도 재계획)
+```
+
+### Agent 그래프 (`backend/agent/graph.py`)
+
+```mermaid
+flowchart TD
+  S(["시작"]) --> A["analyze<br/>의도·조건 뽑기 (LLM ①)"]
+  A -->|"조건 부족"| C["clarify<br/>되묻기"]
+  A -->|"저장·캘린더 등록"| AC["action<br/>계획 저장·등록"]
+  A -->|"인사·규정 질문"| RS
+  A -->|"길찾기·조건 변경"| PL["plan<br/>작업 목록 t1~t15"]
+  PL --> EX["execute<br/>Tool 호출·결과 재사용"]
+  EX -->|"Planner·Worker 모드"| V["verify<br/>로깅 Agent 검증"]
+  EX --> JG["judge<br/>마감·예산·일정·파레토·순위"]
+  V --> JG
+  V -->|"이상 → 1회 재구성"| RP
+  JG -->|"통과 0개 · 3회 미만"| RP["replan<br/>전략 바꿔 다시"]
+  RP --> PL
+  JG -->|"통과 있음 또는 상한"| RS["respond<br/>답장 (LLM ②)"]
+  C --> END(["끝"])
+  AC --> END
+  RS --> END
+```
+
+### 고치려면 어디를 보면 되나
+
+| 하고 싶은 일 | 볼 곳 |
+|---|---|
+| 새 외부 API를 Tool로 추가 | `backend/tools/` 파일 하나 + `register(Tool(...))`, `tools/catalog_all.py`에 import, 쓰는 작업은 `agent/executor.py`의 `PLAN_TRIP` — 순서는 `docs/인계가이드.md` 2장 |
+| 판단 규칙(마감 여유·예산·지각 위험) 바꾸기 | `backend/agent/judge.py` (`evaluate`, `risk_for`, `rank`) |
+| 재계획 전략 바꾸기 | `backend/agent/executor.py` `run_plan_trip(strategy)`(0 기본 · 1 역 넓히기 · 2 고속버스·택시 · 3 전날 출발), 이름표는 `graph.py` `replan` |
+| LLM 지시문 | `backend/agent/prompts.py` (답장 숫자는 카드에 있는 것만 — `graph.py` `numbers_ok`가 검사) |
+| 새 API 경로 | `backend/api/routes.py` + 형식은 `backend/schemas.py`, 문서는 `docs/API명세서.md` |
+| 새 화면(페이지) | `frontend/js/pages/새페이지.js` + `frontend/js/main.js` `routes`·상단 메뉴 |
+| 화면 상태(대화·질문 만들기·오른쪽 탭) | `frontend/js/store.js` |
+| 지도 그리기 | `frontend/js/components/RouteMap.js` (버스 도로·도보 보행로는 `/api/map/*`) |
+| 외부 API 호출 한도·캐시 | `backend/tools/budget.py`, `.env`의 `ODSAY_*`·`ITS_*` |
+
 ## 1. 실행 방법
 
 ```bash
@@ -110,78 +220,74 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | 실행 로그 샘플 | `docs/실행로그샘플.md` |
 | 구조 비교 | `docs/비교결과.md` |
 | 셀프 체크리스트 | `docs/셀프체크리스트.md` |
+| **인계 가이드** | `docs/인계가이드.md` — 처음 맡는 사람용: 로컬 실행·폴더 역할·확장 방법·주의할 한도·비밀값 |
 | 설계·구현 계획 | `docs/superpowers/specs/`, `docs/superpowers/plans/` |
 
 ## 6. 구조
+파일마다 맨 위에 역할 설명이 있고, 주요 함수·클래스에는 무엇을 받고 무엇을 돌려주는지 적혀 있습니다. 처음이라면 `backend/agent/graph.py` → `executor.py` → `judge.py` 순서로 읽으면 흐름이 잡힙니다.
+
 ```
 route-planner/
 ├── backend/                     # FastAPI 백엔드
-│   ├── main.py                  # 앱 생성·CORS·오류 숨김
-│   ├── container.py             # 의존성 조립
+│   ├── main.py                  # 앱 생성 · 미들웨어(로그인·Host 검사·CORS) · 오류 숨김
+│   ├── container.py             # 의존성 조립(저장소·Agent·로깅) — API가 여기서 꺼내 씀
 │   ├── settings.py              # .env 설정
 │   ├── schemas.py               # 요청·응답 형식(Pydantic)
-│   ├── api/
-│   │   └── routes.py            # 대화·계획·실행 로그·메타 API
+│   ├── share.py                 # 공유 링크 응답에서 집 위치 흐리게
+│   ├── api/routes.py            # 대화 · 계획(다시 확인·공유) · 장소 · 여러 동선 · 지도 · 일정 제안 · 로그 · 메타
+│   ├── auth/                    # Google 로그인 → JWT 쿠키 → 요청마다 현재 사용자
+│   │   ├── routes.py · google.py · jwt.py · middleware.py · context.py
 │   ├── agent/                   # 메인 Agent(LangGraph)
-│   │   ├── graph.py             # 분석→계획→실행→판단→(재계획)→응답 그래프
-│   │   ├── executor.py          # 작업 목록 실행·Tool 호출·결과 재사용
-│   │   ├── judge.py             # 출발·도착 시각 계산, 마감·예산·일정 판단
-│   │   ├── conditions.py        # 요청 조건·후속 요청 병합
-│   │   ├── ko_time.py           # 한국어 날짜·시각 보조 파서
+│   │   ├── graph.py             # analyze→plan→execute→judge→(replan)→respond 그래프 · 카드 만들기 · 숫자 검사
+│   │   ├── executor.py          # 작업 목록(t1~t15) 실행 · Tool 호출 · 결과 재사용 · 재계획 전략
+│   │   ├── judge.py             # 출발·도착 계산, 마감·예산·일정 판단, 파레토·순위·지각 위험
+│   │   ├── conditions.py        # 요청 조건 · 후속 요청 병합
+│   │   ├── ko_time.py           # 한국어 날짜·시각 보조 파서("모레", "오후 2시")
+│   │   ├── service.py           # 대화 1턴 실행(세션·잠금·로그 저장)
+│   │   ├── trip.py              # 여러 동선(구간 연결, LLM 없음)
+│   │   ├── recheck.py           # 저장한 계획 다시 확인(LLM 없음)
+│   │   ├── suggest.py           # 캘린더 일정 → 경로 제안
 │   │   ├── planner_worker.py    # 심화: Planner·Worker
-│   │   ├── llm.py               # GMS LLM 호출
-│   │   ├── prompts.py
-│   │   ├── service.py           # 대화 1턴 실행
-│   │   └── state.py
-│   ├── tools/                   # Tool (공통 ok/fail 규약)
+│   │   ├── llm.py · prompts.py · state.py
+│   ├── tools/                   # Tool (공통 ok/fail 규약, 캐시·한도는 budget.py)
 │   │   ├── base.py · registry.py · http.py · budget.py · catalog_all.py
 │   │   ├── kakao_local.py       # 장소 검색
-│   │   ├── stations.py          # 근처 기차역
+│   │   ├── stations.py          # 근처 기차역(KTX 우선)
 │   │   ├── tago_train.py        # 열차 시간표·운임
 │   │   ├── tago_bus.py          # 고속버스 터미널·시간표
-│   │   ├── odsay.py             # 대중교통 구간
-│   │   ├── kakao_mobility.py    # 택시 구간
+│   │   ├── odsay.py             # 대중교통 구간(정류장 좌표 포함)
+│   │   ├── kakao_mobility.py    # 택시 구간 · 버스 동선 도로 좌표
+│   │   ├── osm_walk.py          # 도보 동선 보행로 좌표(지도용)
 │   │   ├── kma_weather.py       # 날씨
 │   │   ├── its_events.py        # 도로 돌발정보
+│   │   ├── tour_festival.py     # 도착지 근처 행사
 │   │   ├── rag.py               # 심화: 규정 검색(RAG)
 │   │   └── calendar_tools.py    # 심화: 캘린더 조회·등록
-│   ├── events/                  # 이벤트 발행·로깅 Agent·이상 징후
-│   │   ├── bus.py
-│   │   ├── logger_agent.py
-│   │   └── anomaly.py
-│   ├── db/                      # SQLite 저장소
-│   │   ├── database.py
-│   │   └── repositories.py
-│   └── calendar/                # 캘린더 구현체
-│       ├── base.py
-│       ├── local.py
-│       └── google.py
+│   ├── events/                  # 이벤트 버스 · 로깅 Agent · 이상 징후 판정
+│   ├── db/                      # SQLite 연결·스키마(database.py) · 저장소(repositories.py)
+│   └── calendar/                # 캘린더 구현체(base · local · google)
 ├── frontend/                    # Vue 3 화면(빌드 없음, CDN + 주소별 페이지)
 │   ├── index.html               # 라이브러리 로드(버전 고정·무결성 해시)
 │   ├── css/app.css
 │   └── js/
-│       ├── main.js              # 라우터·상단바·알림
+│       ├── main.js              # 라우터 · 상단 메뉴 · 로그인 게이트 · 알림
 │       ├── api.js · store.js · format.js
-│       ├── question.js          # 조건 → 대화 질문 문장(의존성 없음, node 테스트)
+│       ├── question.js · tradeoff.js · reminder.js   # 순수 계산(의존성 없음, node 테스트)
 │       ├── components/
-│       │   ├── RouteMap.js      # 경로 지도(Leaflet + OpenStreetMap)
-│       │   ├── ModeIcon.js      # 이동 수단 아이콘(직접 그린 SVG)
-│       │   ├── common.js        # 경로 카드·수단 막대·아이콘 줄·실행 과정 타임라인
-│       │   ├── PlanBuilder.js   # 조건으로 질문 만들기(끌어 놓기·달력·시계)
-│       │   ├── TripResult.js    # 여러 동선 결과(대화 안)
-│       │   └── IntroGuide.js    # 처음 안내(요소별 설명)
+│       │   ├── RouteMap.js      # 경로 지도(Leaflet + OSM, 도로·보행로 동선)
+│       │   ├── common.js        # 경로 카드 · 수단 막대 · 실행 과정 타임라인
+│       │   ├── PlanBuilder.js · TimeInput.js        # 질문 만들기(끌어 놓기·숫자 시각)
+│       │   ├── TripResult.js    # 여러 동선 결과
+│       │   ├── TradeoffChart.js # 시간·요금 그래프
+│       │   ├── CalendarSuggestions.js · DepartureBanner.js   # 일정 제안 · 출발 알림
+│       │   ├── IntroGuide.js    # 처음 안내(코치마크)
+│       │   └── ModeIcon.js · NavIcon.js              # 직접 그린 SVG 아이콘
 │       └── pages/
-│           ├── ChatPage.js      # 대화 + 질문 만들기 + 지도 + 실행 과정
-│           ├── PlacesPage.js    # 내 장소(집·교육장 등 저장)
-│           ├── PlansPage.js     # 이동 계획 목록(검색·기간 필터)
-│           ├── PlanDetailPage.js# 계획 상세(지도·구간·캘린더·수정·삭제)
-│           └── LogsPage.js      # 실행 로그 목록·세션 상세
-├── scripts/                     # 확인용 스크립트
-│   ├── serve_frontend.py        # 프론트 정적 서버
-│   ├── check_apis.py · tools_demo.py · tools_demo_extra.py
-│   ├── smoke_run.py · run_scenarios.py · compare_modes.py
-│   └── build_index.py           # 규정 문서 색인
-├── data/docs/                   # 규정 원문(색인 대상)
-├── tests/                       # pytest (fixtures = 실제 응답 샘플)
-└── docs/                        # 산출물 문서·증거·스크린샷
+│           ├── ChatPage.js      # 대화 + 오른쪽(질문 만들기 · 지도 · 실행 과정)
+│           ├── PlacesPage.js · PlansPage.js · PlanDetailPage.js · LogsPage.js
+│           └── SharedPlanPage.js# 공유받은 계획(로그인 없이 읽기 전용)
+├── scripts/                     # 실행·확인용 스크립트(serve_frontend · build_index · field_check · compare_modes …)
+├── data/docs/                   # 규정 원문(색인 대상) · 출처(SOURCES.md)
+├── tests/                       # pytest(외부 호출 차단) · tests/frontend(node --test)
+└── docs/                        # 산출물 문서 · 증거 · 스크린샷 · 인계가이드
 ```
