@@ -66,7 +66,7 @@ def get_festivals(x: float, y: float, date: str, radius_km: float = 1.0) -> dict
         if km <= radius_km:
             found.append({"title": i.get("title"), "start": start, "end": end, "address": i.get("addr1"),
                           "x": fx, "y": fy, "distance_km": round(km, 2)})
-    return ok({"festivals": sorted(found, key=lambda f: f["distance_km"])[:MAX_FESTIVALS]})
+    return ok({"festivals": sorted(found, key=lambda f: f["distance_km"])[:MAX_FESTIVALS]}, cached=r["cached"])
 
 
 register(Tool(

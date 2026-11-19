@@ -84,7 +84,7 @@ def find_stations(x: float, y: float, radius_km: float = 20) -> dict:
     if not found:
         return fail(NO_DATA, "근처에서 열차를 탈 수 있는 역을 찾지 못했습니다.")
     found.sort(key=lambda s: (not s["ktx"], s["distance_km"]))  # KTX 정차역을 먼저(간선 열차가 많음)
-    return ok({"stations": found[:3]})
+    return ok({"stations": found[:3]}, cached=r["cached"])
 
 
 register(Tool(

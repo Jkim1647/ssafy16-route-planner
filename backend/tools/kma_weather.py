@@ -86,7 +86,7 @@ def get_weather(lat: float, lon: float, at: str) -> dict:
     return ok({"at": target.isoformat(timespec="minutes"), "forecast_at": near.isoformat(timespec="minutes"),
                "pop": int(vals["POP"]) if "POP" in vals else None,
                "pty": PTY.get(vals.get("PTY")) if "PTY" in vals else None,
-               "temp": float(vals["TMP"]) if "TMP" in vals else None})
+               "temp": float(vals["TMP"]) if "TMP" in vals else None}, cached=r["cached"])
 
 
 register(Tool(

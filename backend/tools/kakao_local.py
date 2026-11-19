@@ -24,7 +24,7 @@ def keyword_search(params: dict) -> dict:
     r = default_budget().cached_call("kakao", params, TTL, lambda: fetch_json(URL, params=params, headers=headers))
     if not r["ok"]:
         return r
-    return ok(r["data"].get("documents", []))
+    return ok(r["data"].get("documents", []), cached=r.get("cached", False))
 
 
 def _place(d: dict) -> dict:
@@ -66,7 +66,7 @@ def search_places(query: str, near_x: float | None = None, near_y: float | None 
                     seen.add(reg)
                     cands.append(f"{d['place_name']}({d.get('address_name')})")
             return fail(AMBIGUOUS_PLACE, "같은 이름의 장소가 여러 지역에 있습니다: " + ", ".join(cands[:3]))
-    return ok({"places": [_place(d) for d in docs]})
+    return ok({"places": [_place(d) for d in docs]}, cached=r["cached"])
 
 
 register(Tool(

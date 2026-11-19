@@ -70,7 +70,7 @@ def get_road_events(bbox: list, date: str) -> dict:
         events = [e for e in events
                   if e["end"] and dt.datetime.fromisoformat(e["end"]) >= lo
                   and (not e["start"] or dt.datetime.fromisoformat(e["start"]) <= hi)]
-    return ok({"realtime": realtime, "events": events})
+    return ok({"realtime": realtime, "events": events}, cached=r["cached"])
 
 
 register(Tool(

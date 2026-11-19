@@ -17,8 +17,13 @@ RATE_LIMITED = "RATE_LIMITED"
 CONFLICT = "CONFLICT"  # 이미 처리된 요청(예: 이미 캘린더에 등록한 계획)
 
 
-def ok(data) -> dict:
-    return {"ok": True, "data": data}
+def ok(data, cached: bool | None = None) -> dict:
+    """성공 결과. cached: 외부 API 결과를 영구 캐시에서 꺼냈는지(`ApiBudget.cached_call`의 값을 그대로 넘긴다).
+    실행 로그의 '캐시' 표시가 이 값을 쓰므로, 캐시를 거치는 Tool은 가공한 결과에도 함께 넘겨야 한다."""
+    r = {"ok": True, "data": data}
+    if cached is not None:
+        r["cached"] = cached
+    return r
 
 
 def fail(code: str, message: str) -> dict:

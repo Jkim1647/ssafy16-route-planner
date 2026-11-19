@@ -47,7 +47,7 @@ def get_car_route(sx: float, sy: float, ex: float, ey: float) -> dict:
                "taxi_fare": (s.get("fare") or {}).get("taxi"), "toll": (s.get("fare") or {}).get("toll"),
                "bbox": [b.get("min_x"), b.get("min_y"), b.get("max_x"), b.get("max_y")],
                "path": _road_path(routes[0]),
-               "cached": r.get("cached", False)})
+               "cached": r.get("cached", False)}, cached=r.get("cached", False))
 
 
 MAX_WAYPOINTS = 5  # 카카오 길찾기 경유지 상한

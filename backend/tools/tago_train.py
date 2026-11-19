@@ -60,7 +60,7 @@ def search_trains(dep_station_id: str, arr_station_id: str, date: str | None = N
                "fare": int(it["adultcharge"]) if str(it.get("adultcharge", "")).isdigit() else None}
               for it in items]
     return ok({"date_requested": day.isoformat(), "date_queried": day.isoformat(),
-               "estimated": False, "estimated_reason": None, "trains": trains})
+               "estimated": False, "estimated_reason": None, "trains": trains}, cached=r["cached"])
 
 
 register(Tool(
