@@ -80,6 +80,19 @@ def register_plan_calendar(plan_id: int, request: Request):
     return r["data"]
 
 
+@router.post("/plans/{plan_id}/recheck", tags=["계획"])
+def recheck_plan_api(plan_id: int, request: Request):
+    """저장한 계획 다시 확인(당일 재확인): 시간표·캘린더·날씨·행사·출발 시각. LLM 없음."""
+    from backend.agent.recheck import recheck_plan
+    from backend.calendar.base import get_calendar
+
+    c = _c(request)
+    plan = c.plans.get(plan_id)
+    if plan is None:
+        raise HTTPException(404, "그런 이동 계획이 없습니다.")
+    return recheck_plan(plan, calendar=get_calendar(c.settings), now=c.deps.now())
+
+
 # ---------------------------------------------------------------- 여러 동선 한꺼번에
 @router.post("/trips/plan", tags=["여러 동선"])
 def plan_trip(body: TripIn, request: Request):

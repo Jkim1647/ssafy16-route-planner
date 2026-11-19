@@ -3,7 +3,8 @@ import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { api } from "../api.js";
 import { busTypeLabel, dateLabel, legColor, legLabel, mins, won, POINT_LABEL } from "../format.js";
-import { toast } from "../store.js";
+import { buildQuestion } from "../question.js";
+import { store, toast } from "../store.js";
 import RouteMap from "../components/RouteMap.js";
 import ModeIcon from "../components/ModeIcon.js";
 import { RouteBar } from "../components/common.js";
@@ -21,6 +22,8 @@ export default {
     const busy = ref(false);
     const notice = ref(null);
     const confirmDelete = ref(false);
+    const check = ref(null);      // 다시 확인 결과
+    const checking = ref(false);
 
     async function load() {
       error.value = "";
@@ -67,6 +70,28 @@ export default {
         busy.value = false;
       }
     }
+    // 당일 재확인: 시간표·캘린더·날씨·행사·출발 시각을 다시 본다
+    async function recheck() {
+      checking.value = true;
+      try {
+        check.value = await api(`/plans/${props.id}/recheck`, { method: "POST", body: {} });
+      } catch (e) {
+        notice.value = { kind: "bad", text: e.message };
+      } finally {
+        checking.value = false;
+      }
+    }
+    // 같은 출발지·도착지·도착 시각으로 대화에서 다시 찾는다
+    function replan() {
+      const p = plan.value;
+      const q = buildQuestion({ date: p.date, stops: [{ name: p.origin_name }, { name: p.destination_name, arrive_by: p.arrive_at }] },
+        new Date().toLocaleDateString("sv-SE"));
+      if (!q.ok) return;
+      store.pendingQuestion = q.text;
+      router.push("/");
+    }
+    const CHECK_ICON = { ok: "✓", warn: "⚠", info: "·" };
+
     async function remove() {
       busy.value = true;
       try {
@@ -80,6 +105,7 @@ export default {
     }
 
     return { plan, error, editing, form, busy, notice, confirmDelete, totalMin, startEdit, saveEdit, addCalendar, remove,
+      check, checking, recheck, replan, CHECK_ICON,
       dateLabel, legLabel, mins, won, POINT_LABEL, legColor, busTypeLabel };
   },
   template: `
@@ -98,6 +124,7 @@ export default {
             <p class="big-times">{{ plan.leave_at }} 출발 → {{ plan.arrive_at }} 도착</p>
           </div>
           <div class="actions">
+            <button type="button" :disabled="checking" @click="recheck">{{ checking ? '확인하는 중…' : '다시 확인' }}</button>
             <span v-if="plan.calendar_event_id" class="tag ok">캘린더 등록됨</span>
             <button v-else type="button" class="ghost" :disabled="busy" @click="addCalendar">캘린더에 등록</button>
             <button type="button" class="ghost" :disabled="busy" @click="startEdit">수정</button>
@@ -105,6 +132,16 @@ export default {
           </div>
         </div>
         <div v-if="notice" class="notice" :class="notice.kind" role="status">{{ notice.text }}</div>
+        <section v-if="check" class="recheck" :class="check.status" aria-live="polite">
+          <div class="recheck-head">
+            <strong>{{ check.status === 'ok' ? '그대로 가도 돼요' : check.status === 'past' ? '출발 시각이 지났어요' : '확인할 게 있어요' }}</strong>
+            <span class="basis">{{ check.checked_at.replace('T', ' ') }} 기준</span>
+            <button v-if="check.status !== 'ok'" type="button" class="small" @click="replan">다른 경로 찾기</button>
+          </div>
+          <ul>
+            <li v-for="(it, i) in check.items" :key="i" :class="it.level"><span aria-hidden="true">{{ CHECK_ICON[it.level] }}</span> {{ it.text }}</li>
+          </ul>
+        </section>
         <div v-if="confirmDelete" class="notice bad confirm" role="alertdialog" aria-label="삭제 확인">
           '{{ plan.title }}' ({{ plan.date }} {{ plan.leave_at }}) 계획을 삭제할까요? 되돌릴 수 없어요.
           <button type="button" class="danger" :disabled="busy" @click="remove">삭제</button>

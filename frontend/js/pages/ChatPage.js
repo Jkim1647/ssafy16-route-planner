@@ -139,6 +139,11 @@ export default {
 
     onBeforeUnmount(() => clearInterval(timer));
     scrollDown();
+    if (store.pendingQuestion) {  // 계획 재확인·일정 제안에서 넘어온 질문은 바로 보낸다
+      const q = store.pendingQuestion;
+      store.pendingQuestion = "";
+      nextTick(() => send(q));
+    }
     return { store, input, inputEl, list, panel, seconds, savingKey, EXAMPLES, mapPoints, otherPoints,
       send, save, select, newChat, decisionText, useQuestion, runTrip };
   },

@@ -24,7 +24,8 @@ export const store = reactive({
   toasts: [],
   auth: null,              // /auth/me {user, auth_required, google_configured}
   places: [],              // 저장한 장소(대화의 질문 만들기 패널에서 사용)
-  builder: newBuilder(),   // 조건으로 질문 만들기(들를 곳·날짜·시각) — 페이지를 옮겨도 유지
+  builder: newBuilder(),
+  pendingQuestion: "",     // 다른 화면(계획 재확인·일정 제안)에서 대화로 넘겨 바로 보낼 질문   // 조건으로 질문 만들기(들를 곳·날짜·시각) — 페이지를 옮겨도 유지
 });
 
 export async function loadMe() {

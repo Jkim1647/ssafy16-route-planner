@@ -380,3 +380,13 @@ select { font: inherit; padding: 7px 8px; border: 1px solid var(--line); border-
 .builder-run { display: flex; gap: 8px; align-items: center; }
 .builder-run .question-preview { flex: 1; margin: 0; }
 .builder .stop-list { margin: 8px 0; }
+
+/* 계획 다시 확인 */
+.recheck { margin: 0 0 14px; padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--line); background: #fff; }
+.recheck.ok { border-color: var(--accent); background: var(--accent-soft); }
+.recheck.warn, .recheck.past { border-color: #d39b2a; background: #fff8e8; }
+.recheck-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.recheck-head button { margin-left: auto; }
+.recheck ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 3px; font-size: 14px; }
+.recheck li.warn { color: #8a5a00; font-weight: 600; }
+.recheck li.info { color: var(--muted); }

@@ -1,0 +1,117 @@
+"""저장한 계획 다시 확인(당일 재확인). 저장 뒤 바뀌었을 수 있는 것만 규칙으로 다시 본다(LLM 없음).
+
+- 시간표: 열차 구간의 열차 번호가 그날 시간표에 아직 있는지(TAGO)
+- 캘린더: 이동 시간과 겹치는 일정(이 계획을 등록한 '이동:' 일정은 제외)
+- 날씨: 출발·도착 지점 강수확률, 도보가 길면 주의
+- 행사: 도착지 근처 그날 행사(혼잡 참고)
+- 출발 시각: 이미 지났는지
+결과 status: ok(그대로 가도 됨) · warn(주의할 것 있음 → 다른 경로 찾기 권장) · past(출발 시각 지남)
+"""
+from __future__ import annotations
+
+import datetime as dt
+
+from backend.agent.judge import RAIN_POP, WALK_WARN_MIN
+from backend.calendar.base import plan_span
+from backend.tools.registry import get_tool
+
+
+def _run(name: str, **kw) -> dict | None:
+    tool = get_tool(name)
+    return tool.run(**kw) if tool else None
+
+
+def _item(kind: str, level: str, text: str) -> dict:
+    return {"kind": kind, "level": level, "text": text}
+
+
+def _train_items(plan, day: dt.date) -> list[dict]:
+    trains = [lg for lg in plan.legs if (lg.source or "") == "tago_train" and lg.name]
+    if not trains:
+        return []
+    pts = {p.kind: p for p in plan.points}
+    dep, arr = pts.get("dep_station"), pts.get("arr_station")
+    if not (dep and arr):
+        return [_item("train", "info", "역 정보가 없는 예전 계획이라 열차 시간표는 다시 확인하지 못했어요")]
+
+    def station_id(p):
+        r = _run("find_stations", x=p.x, y=p.y)
+        st = (r or {}).get("data", {}).get("stations", []) if r and r["ok"] else []
+        same = [s for s in st if s["name"] == p.name]
+        return (same or st or [{}])[0].get("station_id")
+
+    sid_dep, sid_arr = station_id(dep), station_id(arr)
+    if not (sid_dep and sid_arr):
+        return [_item("train", "info", "역을 다시 찾지 못해 열차 시간표는 확인하지 못했어요")]
+    r = _run("search_trains", dep_station_id=sid_dep, arr_station_id=sid_arr, date=day.isoformat())
+    if not r or not r["ok"]:
+        return [_item("train", "info", "열차 시간표를 지금 조회하지 못했어요")]
+    listed = {str(t.get("train_no")).lstrip("0") for t in r["data"]["trains"]}
+    out = []
+    for lg in trains:
+        no = lg.name.split()[-1].lstrip("0")
+        if no in listed:
+            out.append(_item("train", "ok", f"{lg.name} 그날 시간표에 그대로 있어요"))
+        else:
+            out.append(_item("train", "warn", f"{lg.name}을(를) 그날 시간표에서 찾지 못했어요(운휴·변경 가능)"))
+    if r["data"].get("estimated"):
+        out.append(_item("train", "info", "아직 그날 시간표가 열리지 않아 같은 요일 시간표로 봤어요"))
+    return out
+
+
+def _calendar_items(plan, calendar, start: dt.datetime, end: dt.datetime) -> list[dict]:
+    try:
+        busy = calendar.get_free_busy(start.date(), days=2 if end.date() > start.date() else 1)
+    except Exception:  # 캘린더 연결 실패는 재확인 전체를 막지 않는다
+        return [_item("calendar", "info", "캘린더를 지금 조회하지 못했어요")]
+    own = f"이동: {plan.title}"
+    clash = [b for b in busy if b.title != own and b.start < end and start < b.end]
+    if not clash:
+        return [_item("calendar", "ok", "이동 시간과 겹치는 일정이 없어요")]
+    return [_item("calendar", "warn", f"'{b.title}' {b.start:%H:%M}–{b.end:%H:%M} 일정과 겹쳐요") for b in clash[:3]]
+
+
+def _weather_items(plan, start: dt.datetime, end: dt.datetime) -> list[dict]:
+    pts = {p.kind: p for p in plan.points}
+    walk = sum(lg.minutes or 0 for lg in plan.legs if lg.mode == "walk")
+    pops = []
+    for kind, at in (("origin", start), ("destination", end)):
+        p = pts.get(kind)
+        if not p:
+            continue
+        r = _run("get_weather", lat=p.y, lon=p.x, at=at.strftime("%Y-%m-%dT%H:%M"))
+        if r and r["ok"] and r["data"].get("pop") is not None:
+            pops.append(r["data"]["pop"])
+    if not pops:
+        return [_item("weather", "info", "그날 예보가 아직 없거나 조회하지 못했어요")]
+    pop = max(pops)
+    if pop >= RAIN_POP and walk >= WALK_WARN_MIN:
+        return [_item("weather", "warn", f"강수확률 {pop}% — 도보 {walk}분이라 우산을 챙기거나 택시 구간을 고려하세요")]
+    return [_item("weather", "ok", f"강수확률 {pop}%")]
+
+
+def _festival_items(plan, day: dt.date) -> list[dict]:
+    dest = next((p for p in plan.points if p.kind == "destination"), None)
+    if not dest:
+        return []
+    r = _run("get_festivals", x=dest.x, y=dest.y, date=day.isoformat())
+    if not r or not r["ok"]:
+        return []
+    return [_item("festival", "warn", f"도착지 {f['distance_km']}km 거리에서 '{f['title']}' 행사 중 — 붐빌 수 있어요")
+            for f in r["data"]["festivals"][:2]]
+
+
+def recheck_plan(plan, *, calendar, now: dt.datetime) -> dict:
+    start, end = plan_span(plan)
+    items = []
+    if now >= start:
+        items.append(_item("time", "warn", f"출발 시각 {plan.leave_at}이 이미 지났어요"))
+    else:
+        left = int((start - now).total_seconds() // 60)
+        items.append(_item("time", "ok", f"출발까지 {left // 60}시간 {left % 60}분 남았어요" if left >= 60 else f"출발까지 {left}분 남았어요"))
+    items += _train_items(plan, plan.date)
+    items += _calendar_items(plan, calendar, start, end)
+    items += _weather_items(plan, start, end)
+    items += _festival_items(plan, plan.date)
+    status = "past" if now >= start else "warn" if any(i["level"] == "warn" for i in items) else "ok"
+    return {"plan_id": plan.id, "status": status, "checked_at": now.isoformat(timespec="minutes"), "items": items}
