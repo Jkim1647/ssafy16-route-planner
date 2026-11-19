@@ -10,6 +10,10 @@
 |---|---|---|---|
 | ![대화](docs/screenshots/chat.jpg) | ![계획 상세](docs/screenshots/plan_detail.jpg) | ![계획](docs/screenshots/plans.jpg) | ![로그](docs/screenshots/logs_anomaly.jpg) |
 
+| 고속버스·행사 안내(부산 벡스코) | 여러 동선(집 → 교육장 → 강남역) | 내 장소 |
+|---|---|---|
+| ![행사 안내](docs/screenshots/festival.jpg) | ![여러 동선](docs/screenshots/trip.jpg) | ![내 장소](docs/screenshots/places.jpg) |
+
 ## 1. 실행 방법
 
 ```bash
