@@ -101,6 +101,7 @@ export default {
         start: t >= 0 ? pieces.slice(0, t + 1).flatMap((pc, i) => (i === t ? [pc.coords[0]] : pc.coords)).map(([x, y]) => [y, x]) : [],
         end: t >= 0 ? pieces.slice(t).flatMap((pc, i) => (i === 0 ? [pc.coords[pc.coords.length - 1]] : pc.coords)).map(([x, y]) => [y, x]) : [],
       };
+      const ends = [];
       for (const pc of pieces) {
         let coords = pc.coords;
         // 버스는 도로, 도보는 보행로를 따라. 30m도 안 되는 도보는 그대로 둔다
@@ -111,14 +112,21 @@ export default {
           else if (!s) fetchShape(pc.kind, coords, draw);
         }
         const ll = coords.map(([x, y]) => [y, x]);
-        // 흰 테두리를 깔아 지도 위에서 동선이 묻히지 않게 한다
+        // 어두운 바깥선 + 흰 테두리 + 색 선 세 겹: 바탕 지도의 도로·글자와 섞이지 않게 한다
         const walk = pc.kind === "walk";
-        const weight = walk ? 4 : pc.kind === "trunk" ? 7 : 6;
-        L.polyline(ll, { color: "#fff", weight: weight + 4, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(layer);
+        const weight = walk ? 5 : pc.kind === "trunk" ? 8 : 7;
+        const round = { lineCap: "round", lineJoin: "round" };
+        L.polyline(ll, { color: "#1b2420", weight: weight + 7, opacity: 0.35, ...round }).addTo(layer);
+        L.polyline(ll, { color: "#fff", weight: weight + 4, opacity: 1, ...round }).addTo(layer);
         L.polyline(ll, walk
-          ? { color: WALK, weight, opacity: 1, dashArray: "2 8", lineCap: "round" }
-          : { color: pc.color || COLOR[pc.kind] || COLOR.trunk, weight, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(layer);
+          ? { color: WALK, weight, opacity: 1, dashArray: "1 10", lineCap: "round" }
+          : { color: pc.color || COLOR[pc.kind] || COLOR.trunk, weight, opacity: 1, ...round }).addTo(layer);
+        if (!walk) ends.push({ at: ll[0], color: pc.color || COLOR[pc.kind] || COLOR.trunk }, { at: ll[ll.length - 1], color: pc.color || COLOR[pc.kind] || COLOR.trunk });
         ll.forEach((p) => all.push(p));
+      }
+      // 타고 내리는 곳(구간 양 끝)에 작은 원: 어디서 갈아타는지 한눈에
+      for (const e of ends) {
+        L.circleMarker(e.at, { radius: 5, color: e.color, weight: 3, fillColor: "#fff", fillOpacity: 1 }).addTo(layer);
       }
       props.points.forEach((p, i) => {
         const end = p.kind === "origin" || p.kind === "destination";

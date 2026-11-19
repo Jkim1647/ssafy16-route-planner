@@ -185,6 +185,8 @@ details.excluded li { margin: 2px 0; }
 /* 지도 */
 .route-map { display: flex; flex-direction: column; gap: 6px; }
 .map-box { width: 100%; border-radius: var(--radius); border: 1px solid var(--line); background: #e9ecea; }
+/* 바탕 지도는 채도·대비를 낮춰 동선이 도드라지게(지도 글자는 읽을 수 있게 유지) */
+.map-box .leaflet-tile-pane { filter: saturate(0.35) brightness(1.04) contrast(0.92); }
 .map-fallback { padding: 24px 12px; text-align: center; color: var(--muted); font-size: 13px; border: 1px dashed var(--line); border-radius: var(--radius); }
 .map-views { display: flex; gap: 6px; }
 .map-legend { margin: 0; font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
