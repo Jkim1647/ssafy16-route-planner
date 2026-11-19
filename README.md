@@ -1,102 +1,90 @@
 # 이동 플래너 (Route Planner)
 
-> AI 코어 프로젝트 3회차 — Agent 기반 도메인 플래너 서비스 · 광주 3반
+> AI 코어 프로젝트 3회차 · Agent 기반 도메인 플래너 · 광주 3반
 
-"어디서 → 어디로, 언제까지(또는 언제부터), 얼마 이하로" 가는지 말하면, Agent가 **외부 API로 확인한 시간표·소요시간·요금만으로** 도보·지하철·버스·열차·택시를 이어 붙인 문 앞~문 앞 이동 옵션을 계산해 근거와 함께 제안하고, 고른 옵션을 이동 계획으로 저장·캘린더 등록까지 해 줍니다. 좌석·실시간 지연처럼 확인할 수 없는 값은 지어내지 않고 "확인 불가"로 밝힙니다.
+**약속 시각에서 거꾸로 계산하는 문 앞~문 앞 이동 플래너.** "내일 오후 2시까지 첨단동에서 강남역, 6만원 이하"라고 말하면 Agent가 장소·역·열차·버스·택시·날씨·내 캘린더를 외부 API로 확인하고, 마감·예산·일정을 코드로 판정해 **몇 시에 나가면 되는지**를 근거와 함께 제안합니다.
 
 ![데모](docs/screenshots/demo.gif)
 
-| 대화 + 경로 지도 | 계획 상세(지도·구간) | 이동 계획 목록 | 실행 로그·이상 징후 |
-|---|---|---|---|
-| ![대화](docs/screenshots/chat.jpg) | ![계획 상세](docs/screenshots/plan_detail.jpg) | ![계획](docs/screenshots/plans.jpg) | ![로그](docs/screenshots/logs_anomaly.jpg) |
+## 프로젝트 소개
 
-| 질문 만들기(오른쪽 탭, 끌어 놓기·숫자 시각) | 여러 동선 결과(대화 안) | 고속버스·행사 안내(부산 벡스코) | 내 장소 |
-|---|---|---|---|
-| ![질문 만들기](docs/screenshots/builder.jpg) | ![여러 동선](docs/screenshots/trip.jpg) | ![행사 안내](docs/screenshots/festival.jpg) | ![내 장소](docs/screenshots/places.jpg) |
-
-| 시간·요금 그래프 | 저장한 계획 다시 확인 |
+| 문제 | 해결 |
 |---|---|
-| ![시간·요금](docs/screenshots/tradeoff.jpg) | ![다시 확인](docs/screenshots/recheck.jpg) |
+| 지도 앱은 "지금 출발하면"만 알려 준다. 도착 마감·예산·내 일정을 함께 따지려면 사람이 여러 앱을 오가며 계산한다 | 조건을 한 번에 받아 **도착 마감에서 거꾸로** 출발 시각을 계산하고, 예산·캘린더와 맞는 경로만 남긴다 |
+| LLM에게 바로 물으면 시간표·요금을 지어낸다 | LLM은 **조건 뽑기와 답장 문장에만**(요청당 최대 2회). 숫자는 전부 외부 API 값과 코드 계산이고, 답장 숫자가 카드에 없으면 거절한다 |
+| 조건에 맞는 경로가 없으면 그냥 "없음" | 역 넓히기 → 고속버스·택시 → 전날 출발 순으로 **재계획**(상한 3회), 그래도 없으면 뺀 이유와 함께 조건 조정을 묻는다 |
 
-## 0. 한눈에 보기 (처음 보는 분께)
+| 대화 · 경로 카드 · 지도 | 시간·요금 트레이드오프 | 질문 만들기(끌어 놓기) |
+|---|---|---|
+| ![대화](docs/screenshots/chat.jpg) | ![시간·요금](docs/screenshots/tradeoff.jpg) | ![질문 만들기](docs/screenshots/builder.jpg) |
 
-**한 문장:** 사용자가 "내일 오후 2시까지 첨단동에서 강남역, 6만원 이하"라고 말하면, Agent가 장소 → 역·터미널 → 시간표 → 구간 이동 → 날씨·일정을 **외부 API로 조회**하고, **규칙(코드)으로** 마감·예산·일정을 판단해 "몇 시에 나가면 되는지"를 근거와 함께 돌려줍니다. LLM은 **말 이해(조건 뽑기)와 답장 문장**에만 쓰고(요청당 최대 2회), 숫자 계산·판단은 전부 코드가 합니다.
+<details>
+<summary>화면 더 보기 (여러 동선 · 다시 확인 · 행사 안내 · 계획 · 실행 로그 · 내 장소)</summary>
 
-### 시스템 구조
+| 여러 동선 | 저장한 계획 다시 확인 | 고속버스·행사 안내 |
+|---|---|---|
+| ![여러 동선](docs/screenshots/trip.jpg) | ![다시 확인](docs/screenshots/recheck.jpg) | ![행사](docs/screenshots/festival.jpg) |
 
-```mermaid
-flowchart TB
-  subgraph FE["① 화면 · frontend/ (Vue 3, 빌드 없음)"]
-    P1["대화 · 질문 만들기 · 지도"]
-    P2["내 장소 · 이동 계획 · 실행 로그"]
-    P3["공유 링크 (읽기 전용)"]
-  end
-  subgraph BE["② 백엔드 · backend/ (FastAPI)"]
-    MW["auth/middleware.py<br/>로그인 쿠키(JWT) → 현재 사용자"]
-    API["api/routes.py<br/>대화 · 계획 · 장소 · 로그 · 지도 API"]
-    AG["agent/graph.py<br/>메인 Agent(LangGraph)"]
-    JD["agent/judge.py<br/>시각 계산 · 마감·예산·일정 판단"]
-    TL["tools/*<br/>Tool 16종 · ok/fail 규약"]
-    BG["tools/budget.py<br/>캐시 · 호출 한도"]
-    EV["events/<br/>로깅 Agent · 이상 징후"]
-    DB[("SQLite<br/>data/app.db")]
-    CAL["calendar/<br/>로컬 ↔ Google"]
-  end
-  subgraph EXT["③ 외부 서비스"]
-    LLM["SSAFY GMS (LLM)"]
-    X1["카카오 장소·택시"]
-    X2["TAGO 열차·고속버스"]
-    X3["ODsay 대중교통"]
-    X4["기상청 · ITS · TourAPI"]
-    X5["OSM 보행 경로"]
-  end
-  FE -->|"fetch(쿠키)"| MW
-  MW --> API
-  API --> AG
-  AG --> JD
-  AG --> TL
-  TL --> BG
-  TL --> CAL
-  AG -->|"조건 뽑기 · 답장(최대 2회)"| LLM
-  BG --> X1 & X2 & X3 & X4
-  API -->|"지도 동선"| X5
-  AG -. "단계마다 이벤트" .-> EV
-  EV --> DB
-  API --> DB
-```
+| 계획 상세 | 이동 계획 목록 | 실행 로그·이상 징후 | 내 장소 |
+|---|---|---|---|
+| ![계획 상세](docs/screenshots/plan_detail.jpg) | ![계획](docs/screenshots/plans.jpg) | ![로그](docs/screenshots/logs_anomaly.jpg) | ![내 장소](docs/screenshots/places.jpg) |
+</details>
 
-### 요청 하나가 처리되는 과정
+## 기술 스택
+
+| 영역 | 사용 기술 |
+|---|---|
+| Backend | ![Python](https://img.shields.io/badge/Python_3.12-3776AB?style=for-the-badge&logo=python&logoColor=white) ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) ![Pydantic](https://img.shields.io/badge/Pydantic-E92063?style=for-the-badge&logo=pydantic&logoColor=white) ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white) |
+| Agent · AI | ![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) ![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white) ![GMS](https://img.shields.io/badge/SSAFY_GMS_(OpenAI_호환)-412991?style=for-the-badge&logo=openai&logoColor=white) ![Chroma](https://img.shields.io/badge/Chroma_RAG-FF6446?style=for-the-badge) |
+| Frontend | ![Vue.js](https://img.shields.io/badge/Vue_3-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white) ![Vue Router](https://img.shields.io/badge/Vue_Router-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white) ![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white) |
+| 인증 · 연동 | ![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=for-the-badge&logo=google&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white) ![Google Calendar](https://img.shields.io/badge/Google_Calendar-4285F4?style=for-the-badge&logo=googlecalendar&logoColor=white) |
+| 외부 데이터 | ![Kakao](https://img.shields.io/badge/카카오_로컬·모빌리티-FFCD00?style=for-the-badge&logo=kakao&logoColor=black) ![data.go.kr](https://img.shields.io/badge/공공데이터포털_TAGO·기상청·TourAPI-0B5394?style=for-the-badge) ![ODsay](https://img.shields.io/badge/ODsay-2F6FDE?style=for-the-badge) ![ITS](https://img.shields.io/badge/ITS_돌발정보-555555?style=for-the-badge) |
+| 테스트 | ![pytest](https://img.shields.io/badge/pytest_342-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white) ![node test](https://img.shields.io/badge/node_--test_16-339933?style=for-the-badge&logo=nodedotjs&logoColor=white) |
+
+버전: FastAPI 0.141 · LangGraph 1.2 · LangChain 1.3 · Pydantic 2.13 · Chroma 1.5 · Vue 3.5 · Vue Router 4.5 · Leaflet 1.9 (프론트는 빌드 없이 CDN, 버전·무결성 해시 고정)
+
+## 시스템 아키텍처
+
+![시스템 아키텍처](docs/images/architecture.svg)
+
+- **화면과 서버 분리**: 화면은 정적 파일(Vue 3), 서버는 FastAPI. 요청마다 로그인 쿠키(JWT)로 사용자를 정하고, 모든 데이터는 사용자별로 나뉜다.
+- **Agent 안의 역할 분리**: LLM은 말 이해와 답장, **판단은 코드**(`agent/judge.py`), 외부 호출은 **Tool**(`tools/`)만 한다. 모든 단계는 이벤트로 남고 로깅 Agent가 저장·이상 징후를 판정한다.
+- **외부 API 보호**: 모든 외부 호출은 `tools/budget.py`를 지나 캐시를 먼저 보고, 하루·월 한도를 넘지 않게 센다(ODsay 하루 30회, ITS 월 100회).
+
+<details>
+<summary>요청 하나가 처리되는 순서</summary>
 
 ```mermaid
 sequenceDiagram
   actor U as 사용자
-  participant W as 화면(ChatPage)
-  participant R as API(/api/chat)
+  participant W as 화면
+  participant R as /api/chat
   participant G as Agent 그래프
   participant L as LLM(GMS)
   participant T as Tool들
   participant J as 판단(judge.py)
   participant E as 로깅 Agent
   U->>W: "내일 14시까지 첨단동→강남역"
-  W->>R: POST /api/chat {message, session_id}
+  W->>R: POST /api/chat
   R->>G: run_turn()
   G->>L: ① 조건 뽑기(출발·도착·날짜·마감·예산)
-  G->>G: 작업 목록 t1~t15 만들기(LLM 없음)
+  G->>G: 작업 목록 t1~t15(LLM 없음)
   loop 작업마다
-    G->>T: 장소·역·열차·구간·날씨·일정 조회(캐시 우선)
+    G->>T: 장소·역·열차·구간·날씨·일정(캐시 우선)
     G-->>E: tool_call / tool_result 이벤트
   end
   G->>J: 후보마다 출발·도착 계산 → 마감·예산·일정 판정
   alt 통과 후보 없음 (최대 3회)
     G->>G: 재계획(역 넓히기 → 고속버스·택시 → 전날 출발)
   end
-  G->>L: ② 카드 숫자만 써서 답장(숫자 검사 통과 못 하면 템플릿)
-  G-->>R: reply + cards + 판단 요약 + 이벤트
-  R-->>W: 카드 · 지도 · 시간·요금 그래프 · 실행 과정
+  G->>L: ② 답장(카드에 있는 숫자만, 아니면 템플릿)
+  G-->>W: 답장 · 경로 카드 · 판단 요약 · 실행 과정
   E-->>E: 이상 징후 판정(중복·계획 외 호출·과도 재계획)
 ```
+</details>
 
-### Agent 그래프 (`backend/agent/graph.py`)
+<details>
+<summary>Agent 그래프 (backend/agent/graph.py)</summary>
 
 ```mermaid
 flowchart TD
@@ -113,185 +101,208 @@ flowchart TD
   JG -->|"통과 0개 · 3회 미만"| RP["replan<br/>전략 바꿔 다시"]
   RP --> PL
   JG -->|"통과 있음 또는 상한"| RS["respond<br/>답장 (LLM ②)"]
-  C --> END(["끝"])
-  AC --> END
-  RS --> END
+  C --> FIN(["끝"])
+  AC --> FIN
+  RS --> FIN
 ```
+</details>
 
-### 고치려면 어디를 보면 되나
+## 기능
 
-| 하고 싶은 일 | 볼 곳 |
+### 필수 기능 (F3001 ~ F3019)
+| 구분 | 내용 |
 |---|---|
-| 새 외부 API를 Tool로 추가 | `backend/tools/` 파일 하나 + `register(Tool(...))`, `tools/catalog_all.py`에 import, 쓰는 작업은 `agent/executor.py`의 `PLAN_TRIP` — 순서는 `docs/인계가이드.md` 2장 |
-| 판단 규칙(마감 여유·예산·지각 위험) 바꾸기 | `backend/agent/judge.py` (`evaluate`, `risk_for`, `rank`) |
-| 재계획 전략 바꾸기 | `backend/agent/executor.py` `run_plan_trip(strategy)`(0 기본 · 1 역 넓히기 · 2 고속버스·택시 · 3 전날 출발), 이름표는 `graph.py` `replan` |
-| LLM 지시문 | `backend/agent/prompts.py` (답장 숫자는 카드에 있는 것만 — `graph.py` `numbers_ok`가 검사) |
-| 새 API 경로 | `backend/api/routes.py` + 형식은 `backend/schemas.py`, 문서는 `docs/API명세서.md` |
-| 새 화면(페이지) | `frontend/js/pages/새페이지.js` + `frontend/js/main.js` `routes`·상단 메뉴 |
-| 화면 상태(대화·질문 만들기·오른쪽 탭) | `frontend/js/store.js` |
-| 지도 그리기 | `frontend/js/components/RouteMap.js` (버스 도로·도보 보행로는 `/api/map/*`) |
-| 외부 API 호출 한도·캐시 | `backend/tools/budget.py`, `.env`의 `ODSAY_*`·`ITS_*` |
+| Tool (F3001~F3004) | 공통 `ok/fail` 규약·"언제 쓰는지" 설명·JSON Schema 입력. 열차(TAGO)·대중교통(ODsay)·택시(카카오 모빌리티)·장소·역(카카오 로컬)·날씨(기상청)·도로 돌발(ITS)·고속버스(TAGO) 등 13종 — [Tool 정의서](docs/Tool정의서.md) |
+| 메인 Agent (F3005~F3011) | LangGraph 분석 → 계획 → 실행 → 판단 → (재계획) → 응답. 마감·출발 하한·예산·캘린더 판단, 재계획 3단계(상한 3), 대화 맥락 유지(후속 요청은 바뀐 조건만) |
+| 로깅 (F3012~F3014) | 단계마다 이벤트 발행 → 로깅 Agent(LLM 없음)가 세션 단위로 SQLite 저장, 목록·상세·삭제(수정 없음) |
+| 계획 관리 (F3015~F3016) | 저장(같은 날 겹침 알림)·조회·수정·삭제 |
+| 서버·화면 (F3017~F3019) | FastAPI(대화·계획·로그 API 분리) + Vue 화면(주소별 페이지, 경로 지도, 실행 과정 타임라인, 키 누락·호출 한도 표시) — [API 명세서](docs/API명세서.md) |
 
-## 1. 실행 방법
+### 심화 기능 (F3020 ~ F3023) — 4종 모두 적용
+| 기능 | 적용 내용 |
+|---|---|
+| F3020 이상 징후 판정 | 규칙으로 중복 호출·계획 외 호출·과도 재계획 판정, 근거 없으면 "판정 불가", 이상 실행만 LLM 원인 진단. 이 판정으로 실제 중복 호출 버그를 찾아 고침 |
+| F3021 Planner·Worker | `AGENT_MODE=planner_worker` — 고칠 인자가 있는 실패에서만 Worker LLM, 로깅 Agent 검증 후 재구성. 단일 모드와 비교: [비교결과](docs/비교결과.md) |
+| F3022 RAG | 코레일 여객운송약관·고속버스 취소수수료 공지를 Chroma에 색인, 근거 문단·출처 제시 |
+| F3023 캘린더 | 로컬 구현 → Google Calendar 교체, 일정을 판단에 반영, 등록은 계획 ID만 |
+
+### 추가 기능
+- **질문 만들기** — 내 장소를 끌어 놓고 날짜·시각(숫자 입력)만 고르면 질문 생성. 세 곳 이상이면 여러 동선(구간 연결) 계산
+- **시간·요금 그래프** — "34분 일찍 나가면 1,600원 아껴요"처럼 트레이드오프를 한 줄로
+- **다시 확인** — 저장한 계획을 출발 전에 다시 판정(열차가 시간표에 남았는지·새 일정·비·행사), 문제 있으면 같은 조건으로 재검색
+- **일정으로 경로 제안 · 출발 알림** — 장소 있는 캘린더 일정을 경로 찾기로, 출발 15·5분 전 알림
+- **실제 동선 지도** — 버스는 도로, 도보는 보행로를 따라, 노선별 색
+- **Google 로그인 · 사용자별 데이터 · 공유 링크** — 읽기 전용 공유, 집 위치는 흐리게
+- **행사 혼잡 안내** — 도착지 1km 안 그날 축제·행사(TourAPI)
+
+## 설계 포인트
+
+| 고민 | 선택 |
+|---|---|
+| LLM이 숫자를 지어내지 않게 | LLM 호출을 요청당 2회(조건·답장)로 고정, 시각·요금 판단은 코드. 답장 숫자가 카드에 없으면 템플릿으로 대체(`graph.py` `numbers_ok`) |
+| 조건을 어떻게 판단하나 | 도착 마감에서 거꾸로 출발 시각 계산 → 마감·출발 하한·예산·캘린더 통과 → 다른 후보에 모든 면에서 밀리는 경로 제거(파레토) → 최저가·최단·늦게 출발·환승 최소로 순위, 지각 위험(여유 분) 표시 |
+| 결과가 없을 때 | 전략을 바꿔 재계획(상한 3), 같은 Tool·입력은 실행 안에서 재사용해 중복 호출 0 |
+| 무료 API 한도 | 영구 캐시 + API별 일·월 카운터, 요청당 상한, 초과 시 택시 기준으로 대체 |
+| Agent가 잘 돌았는지 | 모든 단계를 이벤트로 저장하고 규칙으로 이상 징후 판정 → 실제로 중복 호출 버그를 이것으로 발견 |
+| 보안 | 키는 `.env`만, 오류 메시지에서 URL·키 제거, 로그인 쿠키 HttpOnly·SameSite, Host 검사, 상태 변경 API는 JSON만(폼 위조 차단), 사용자별 데이터 분리, 공유 링크 무작위 토큰·개인 정보 제외 |
+| 검증 | pytest 342개(외부 호출 차단, 실제 응답 샘플로) + 실제 API 시나리오·실사용 점검 — [검증 결과](docs/검증결과.md) |
+
+## ERD
+
+```mermaid
+erDiagram
+  users ||--o{ places : "저장"
+  users ||--o{ plans : "소유"
+  users ||--o{ runs : "요청"
+  runs ||--o{ run_events : "단계 기록"
+  runs ||--o| anomaly_reports : "이상 징후"
+  runs ||--o{ plans : "출처"
+  plans ||--o| local_calendar : "캘린더 등록"
+  users {
+    TEXT id PK "google:sub 또는 local"
+    TEXT email
+    TEXT name
+    TEXT last_login
+  }
+  places {
+    INTEGER id PK
+    TEXT user_id FK
+    TEXT label "집·교육장(사용자별 고유)"
+    TEXT kind "home·school·work·pin"
+    REAL x
+    REAL y
+  }
+  plans {
+    INTEGER id PK
+    TEXT user_id FK
+    TEXT date
+    TEXT leave_at
+    TEXT arrive_at
+    TEXT legs_json "구간(수단·소요·동선)"
+    INTEGER total_fare
+    TEXT source_run_id FK
+    TEXT calendar_event_id
+    TEXT share_token "읽기 전용 공유"
+  }
+  runs {
+    TEXT run_id PK
+    TEXT session_id
+    TEXT user_id FK
+    TEXT status
+    INTEGER replan_count
+    INTEGER llm_calls
+  }
+  run_events {
+    INTEGER id PK
+    TEXT run_id FK
+    INTEGER seq
+    TEXT type "tool_call·replan 등"
+    TEXT payload_json
+  }
+  anomaly_reports {
+    TEXT run_id PK
+    TEXT verdict "ok·warn·판정 불가"
+    TEXT findings_json
+    TEXT diagnosis "LLM 원인 진단"
+  }
+  local_calendar {
+    INTEGER id PK
+    TEXT user_id FK
+    TEXT title
+    TEXT start
+    INTEGER plan_id FK
+  }
+```
+외부 API 캐시·호출 수는 별도 DB(`api_cache`, `api_quota`)에 둡니다(`tools/budget.py`).
+
+## 확장성
+
+- **Tool 추가가 독립적** — Tool은 파일 하나 + `register()`로 붙고, Agent는 레지스트리에서 꺼내 쓴다. 새 교통수단(예: 항공·자전거)은 Tool과 작업 목록 한 줄을 더하면 기존 판단·재계획을 그대로 쓴다.
+- **판단 규칙이 코드 한곳** — 마감 여유·예산·순위·지각 위험이 `judge.py`에 모여 있어 정책(예: 환승 가중치)을 바꿔도 LLM·Tool에 영향이 없다.
+- **교체 가능한 구현체** — 캘린더(로컬 ↔ Google)·Agent 구조(단일 ↔ Planner·Worker)·LLM 모델이 설정 하나로 바뀐다. 다른 캘린더(Outlook 등)는 같은 인터페이스(`calendar/base.py`)만 구현하면 된다.
+- **다중 사용자 전제** — 로그인·사용자별 데이터 분리·공유 링크가 이미 있어, SQLite를 PostgreSQL로 바꾸고 서버를 배포하면 여러 명이 쓸 수 있다(저장소 계층 `db/repositories.py`만 교체).
+- **화면 확장** — 빌드 없는 Vue 컴포넌트 구조라 페이지·컴포넌트를 파일 단위로 더한다. 순수 계산(질문 문장·그래프·알림)은 분리돼 따로 테스트된다.
+
+확장 절차와 모듈별 수정 위치: [인계 가이드](docs/인계가이드.md)
+
+## 실행 방법
 
 ```bash
 python -m venv .venv
 .venv\Scripts\activate            # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-copy .env.example .env            # 키 입력 (아래 3장)
+copy .env.example .env            # 키 입력 (아래 'API 키 설정')
 python scripts/build_index.py     # 규정 문서 RAG 색인(최초 1회)
 uvicorn backend.main:app --port 8000          # 백엔드 → http://127.0.0.1:8000/docs
 python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:5500
 ```
-- 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
-- 화면은 빌드 없이 CDN의 Vue 3·Vue Router·Leaflet(버전 고정·무결성 해시)과 OpenStreetMap 지도 타일을 불러오므로 **인터넷 연결이 필요**합니다. `python -m http.server`는 Windows에서 `.js`를 `text/plain`으로 보내 화면이 뜨지 않을 수 있어 `serve_frontend.py`를 씁니다.
-- 테스트: `pytest` (342개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs tests/frontend/tradeoff.test.mjs tests/frontend/reminder.test.mjs` (16개)
-- 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
+- 테스트: `pytest` · `node --test tests/frontend/question.test.mjs tests/frontend/tradeoff.test.mjs tests/frontend/reminder.test.mjs`
+- 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api`. 화면은 CDN 라이브러리와 OSM 지도를 쓰므로 인터넷 연결이 필요합니다.
+- 로그인 없이 쓰려면 `.env`에 `AUTH_REQUIRED=false`.
 
-## 2. 기능
-
-### 필수 (F3001~F3019)
-| 기능 | 내용 |
-|---|---|
-| Tool 정의·등록 | 공통 `ok/fail` 규약, "언제 쓰는지" 설명, JSON Schema 입력, 외부 API 툴/로컬 서버 API 툴 구분 (`docs/Tool정의서.md`) |
-| 후보·상세·보조 Tool | 열차 시간표·운임(TAGO), 역↔장소 대중교통(ODsay)·택시(카카오 모빌리티), 장소·역(카카오 로컬), 날씨(기상청), 도로 돌발(ITS), 고속버스(TAGO) |
-| 메인 Agent(LangGraph) | 분석 → 계획 → 실행 → 판단 → (재계획) → 응답. 제약 계산(마감·출발 하한·예산·캘린더), 재계획 3단계(거점 확장·수단 확장·전날 출발, 상한 3), 대화 맥락 유지 |
-| 로깅 | 실행 이벤트 발행 ↔ 로깅 Agent(LLM 없음)가 세션 단위로 SQLite 저장, 목록·상세·삭제(수정 없음) |
-| 계획 관리 | 저장(같은 날 겹침 알림)·조회·수정·삭제 |
-| 서버·화면 | FastAPI(`docs/API명세서.md`), Vue 화면 — 주소별 페이지(대화 `#/`, 이동 계획 `#/plans`, 계획 상세 `#/plans/:id`, 실행 로그 `#/logs`, 세션 상세 `#/logs/:sid`), 경로 지도(출발지·역·도착지), 경로 카드(소요 시간·수단별 색 막대·수단 아이콘 줄·판단 결과 "마감까지 여유/예산 남은 금액/일정 안 겹침"), 판단 요약(검토·통과·제외 사유별 개수), 경로 선택 알고리즘(파레토 최적 정리·가장 늦게 출발·지각 위험 넉넉/보통/빠듯), 실제 동선 지도(버스·지하철 정류장, 택시 도로, 출발 쪽/도착 쪽 확대), 첫 화면 서비스 소개, 첫 방문 안내(화면 요소를 차례로 비추는 코치마크 8단계, 오늘 하루 보지 않기), 노선별 색(지하철 노선색·버스 종류색), 실행 단계·Tool 이력·재계획 구분·처리 중(경과 초)·키 누락·호출 한도 표시, 예시 질문, 저장 알림에서 상세로 이동, 계획 검색·기간 필터, 이상 징후 세션 필터 |
-
-### 심화 (F3020~F3023) — 4종 모두 적용
-| 기능 | 내용 |
-|---|---|
-| F3020 이상 징후 판정 | 규칙으로 중복 호출·계획 외 호출·과도 재계획 판정, 근거 없으면 "판정 불가", 이상 실행만 LLM 원인 진단(분리 저장). 이 판정으로 실제 중복 호출 버그를 찾아 고침 |
-| F3021 Planner·Worker | `AGENT_MODE=planner_worker` — 고정 인자 보호, 고칠 인자가 있는 실패에서만 Worker LLM, 로깅 Agent 검증 후 재구성. 비교: `docs/비교결과.md` |
-| F3022 RAG | 코레일 여객운송약관·고속버스 취소수수료 공지를 Chroma에 색인, 근거 문단·출처 제시, 색인 없으면 `NO_INDEX` |
-| F3023 캘린더 | 로컬 구현 → Google Calendar(OAuth) 교체, 일정 조회를 판단에 반영, 등록은 계획 ID만 |
-
-### 추가 기능
-| 기능 | 내용 |
-|---|---|
-| 로그인 | Google 로그인(OpenID Connect, 인가 코드 방식) → 서버가 id_token 검증(서명·발급자·대상·만료·이메일 인증) → HS256 JWT를 HttpOnly·SameSite=Lax 쿠키로. 계획·내 장소·실행 로그·로컬 캘린더는 사용자별로 분리. `AUTH_REQUIRED=false`면 로그인 없이 이 컴퓨터 사용자 한 명 |
-| 내 장소 | 집·교육장처럼 이름을 붙여 저장(장소 검색으로 고름). 대화에서 그 이름을 말하면 검색 없이 저장한 좌표 사용 |
-| 행사 참고 안내 | 이동하는 날 도착지 1km 안에서 열리는 축제·행사(한국관광공사 TourAPI)를 카드에 "주변이 붐빌 수 있어요"로 안내. 후보는 거르지 않음, 상설 공연 제외 |
-| 조건으로 질문 만들기 | 대화 화면 오른쪽 '질문 만들기' 탭(처음 들어오면 이 탭부터, 결과가 나오면 지도로 바뀜, 왼쪽 입력창 위 버튼으로 다시 열기). 내 장소를 끌어다 놓거나 눌러서 들를 곳을 넣고(순서는 끌기·↑↓), 날짜는 달력, 시각은 숫자로 입력(0730·7:30·19 → 07:30). **두 곳**이면 "내일 오전 9시까지 집에서 교육장 가야 해" 같은 질문을 만들어 바로 보내거나 입력창에서 고쳐 보냄(대화 Agent가 처리) |
-| 시간·요금 그래프 | 경로 카드들을 출발 시각(가로)·총 요금(세로) 점으로, "34분 일찍 나가면 1,600원 아껴요" 한 줄 요약. 점을 누르면 그 경로를 지도에 |
-| 다시 확인 | 저장한 계획 상세의 '다시 확인' — 그날 시간표에 열차가 남았는지, 새로 겹친 일정, 비+긴 도보, 도착지 행사, 출발 시각 경과를 다시 보고 문제 있으면 '다른 경로 찾기'(같은 조건으로 대화에 질문) |
-| 일정으로 경로 제안 | 앞으로 이틀 안의 장소 있는 캘린더 일정을 대화 첫 화면에 '다가오는 일정'으로, '경로 찾기'를 누르면 집 → 그 장소(일정 시각까지)로 질문 만들기 패널을 채움(누르기 전엔 경로 계산 안 함) |
-| 출발 알림 | Google 캘린더 등록 시 출발 15·5분 전 팝업, 화면 위 '1시간 안 출발' 배너, 허용하면 10분 전 브라우저 알림(한 번) |
-| 공유 링크 | 계획 상세의 '공유 링크' → 로그인 없이 보는 읽기 전용 페이지(`#/s/…`). 주인만 만들고 '공유 끊기'로 즉시 무효, 사용자·캘린더 정보는 보내지 않고, '집'으로 저장한 곳 근처는 약 500m 단위로 흐리게·'집 근처'로 표시(주인 화면은 그대로) |
-| 여러 동선 | 같은 패널에 **세 곳 이상**(최대 6곳) 넣으면 대화 안에서 한꺼번에 길찾기. 곳마다 도착 마감·머무는 시간, 구간마다 기존 판단을 쓰고 앞 구간 도착 + 머무는 시간이 다음 출발 하한(LLM 없음, 실행 로그 기록). 옛 주소 `#/trip`은 대화 화면으로 이동 |
-
-## 3. API 키 설정
-`.env`(커밋 금지, `.gitignore` 등록)
+## API 키 설정
+`.env`(커밋 금지, `.gitignore` 등록). 설정 여부는 `GET /api/config/status`와 화면 상단 배너로 확인(값은 노출하지 않음).
 
 | 변수 | 발급처 |
 |---|---|
 | `GMS_API_KEY` | SSAFY GMS (모델 `LLM_MODEL=gpt-6-luna`, 임베딩 `text-embedding-3-small`) |
-| `WALK_ROUTE_ENABLED` | 선택, 기본 `true`. 지도의 도보 구간을 OpenStreetMap 보행로를 따라 그림(FOSSGIS OSRM, 키 없음). 도보 구간 좌표가 그 서버로 가고 로그에 남으므로 원치 않으면 `false`(직선 점선) |
-| `KAKAO_REST_KEY` | Kakao Developers → 앱 생성 → 플랫폼 키의 REST API 키, 제품 설정 > 카카오맵 사용 ON |
+| `KAKAO_REST_KEY` | Kakao Developers → 앱 생성 → REST API 키, 제품 설정 > 카카오맵 사용 ON |
 | `ODSAY_API_KEY` | ODsay LAB → 애플리케이션 등록(Basic, Server IP 등록) |
-| `DATA_GO_KR_KEY` | 공공데이터포털 → TAGO 열차정보·고속버스정보, 기상청 단기예보, 한국관광공사 국문 관광정보 서비스(행사 정보, 선택) 활용신청(일반 인증키) |
+| `DATA_GO_KR_KEY` | 공공데이터포털 → TAGO 열차정보·고속버스정보, 기상청 단기예보, 한국관광공사 국문 관광정보(선택) 활용신청 |
 | `ITS_API_KEY` | 국가교통정보센터 오픈데이터 → 인증키 발급(돌발상황정보) |
-| `AUTH_REQUIRED`·`GOOGLE_CLIENT_ID`·`GOOGLE_CLIENT_SECRET`·`GOOGLE_REDIRECT_URI`·`JWT_SECRET` | 로그인(선택). Google Cloud → Google 인증 플랫폼 → 클라이언트 만들기 → **웹 애플리케이션**, 승인된 리디렉션 URI `http://127.0.0.1:8000/api/auth/google/callback`(백엔드 포트에 맞게). `JWT_SECRET`은 32자 이상 임의 문자열. `CALENDAR_OWNER_EMAIL`: 실제 Google 캘린더를 쓸 계정(다른 사용자는 각자 로컬 캘린더) |
-| `CALENDAR_BACKEND=google` | Google Cloud → Calendar API 사용 → OAuth 동의 화면(외부·테스트 사용자 등록) → 데스크톱 OAuth 클라이언트 JSON을 `credentials.json`으로 저장, 최초 실행 시 브라우저 동의 후 `token.json` 생성. 키 없이 쓰려면 `local` |
+| `CALENDAR_BACKEND=google` | Google Cloud → Calendar API → OAuth 동의 화면(테스트 사용자) → 데스크톱 클라이언트 JSON을 `credentials.json`으로, 첫 실행 때 동의하면 `token.json` 생성. 키 없이 쓰려면 `local` |
+| `AUTH_REQUIRED`·`GOOGLE_CLIENT_ID`·`GOOGLE_CLIENT_SECRET`·`GOOGLE_REDIRECT_URI`·`JWT_SECRET` | 로그인(선택). Google 인증 플랫폼 → 웹 애플리케이션 클라이언트, 리디렉션 URI `http://127.0.0.1:8000/api/auth/google/callback`. `JWT_SECRET`은 32자 이상. `CALENDAR_OWNER_EMAIL`: 실제 Google 캘린더를 쓸 계정 |
+| `WALK_ROUTE_ENABLED` | 선택(기본 `true`). 도보 구간을 OSM 보행로로 그림. 도보 구간 좌표가 FOSSGIS 서버로 가므로 원치 않으면 `false` |
 
-설정 여부는 `GET /api/config/status`와 화면 상단 배너로 확인(값은 노출하지 않음).
-
-## 4. 외부 API 출처와 이용 조건 (NF3007)
+## 외부 API 출처와 이용 조건
 | API | 제공 | 한도·조건 | 이 서비스의 보호 장치 |
 |---|---|---|---|
 | 카카오 로컬·모빌리티 | Kakao Developers | 무료 쿼터, 운영정책 | 30일·6시간 캐시 |
-| TAGO 열차정보·고속버스정보 | 국토교통부(공공데이터포털) | 개발계정 기능별 하루 10,000회, 이용허락범위 제한 없음 | 1일 캐시 |
+| TAGO 열차정보·고속버스정보 | 국토교통부(공공데이터포털) | 개발계정 기능별 하루 10,000회 | 1일 캐시 |
 | 기상청 단기예보 | 기상청(공공데이터포털) | 개발계정 하루 10,000회 | 발표 시각 단위 캐시 |
+| 한국관광공사 TourAPI(행사) | 한국관광공사(공공데이터포털) | 개발계정 트래픽 한도(마이페이지 표시 기준) | 6시간 캐시, 참고 안내만 |
 | ODsay 대중교통 길찾기 | ODsay LAB Basic | **하루 30회**, 무료(개인·학생) | 7일 캐시, 하루 24회 + 예약 6회, 요청당 4회 상한, 초과 시 택시 대체 |
 | ITS 돌발정보 | 국가교통정보센터 | **월 100회**(개발용) | 실행당 1회·하루 4회 상한, 30분 캐시 |
 | SSAFY GMS | SSAFY | 교육용 사용량 한도 | 요청당 LLM 최대 2회 |
-| 한국관광공사 국문 관광정보(TourAPI) 행사 | 한국관광공사(공공데이터포털) | 개발계정 트래픽 한도(공공데이터포털 마이페이지 표시 기준) | 그날 진행 중 행사를 한 번 받아 6시간 캐시, 참고 안내만 |
-| OpenStreetMap 보행 경로(도보 구간 지도) | FOSSGIS e.V. (`routing.openstreetmap.de`, OSRM) | 초당 1회 이하·과다 사용 금지·User-Agent·출처 표시, 요청은 서버 로그에 남음 | 서버에서만 호출, 7일 캐시, 호출 간격 1초, 지도에 출처 링크, `WALK_ROUTE_ENABLED=false`로 끔 |
-| OpenStreetMap 지도 타일 | OpenStreetMap 재단 | ODbL, 타일 이용 정책(가벼운 사용·출처 표시) | 지도에 출처 표시, 경로 화면에서만 사용 |
+| OSM 보행 경로 | FOSSGIS e.V. (`routing.openstreetmap.de`) | 초당 1회 이하·과다 사용 금지·출처 표시, 요청은 서버 로그에 남음 | 서버에서만 호출, 7일 캐시, 1초 간격, 출처 링크, 끄기 스위치 |
+| OpenStreetMap 지도 타일 | OpenStreetMap 재단 | ODbL, 타일 이용 정책 | 지도에 출처 표시 |
 | 코레일 여객운송약관, 정책브리핑 공지 | 한국철도공사, 국토교통부 | 공개 약관 / 공공누리 제1유형 | `data/docs/SOURCES.md` |
 
-## 5. 문서
+## 산출물
 | 산출물 | 위치 |
 |---|---|
-| 요구사항 정의서 | `docs/요구사항정의서.md` |
-| 기획 검증 | `docs/기획검증.md` |
-| Agent 설계 | `docs/Agent설계.md` |
-| Tool 정의서 | `docs/Tool정의서.md` |
-| API 명세서 | `docs/API명세서.md` (`docs/openapi.json`) |
-| 검증 결과 | `docs/검증결과.md`, `docs/evidence/` |
-| 실행 로그 샘플 | `docs/실행로그샘플.md` |
-| 구조 비교 | `docs/비교결과.md` |
-| 셀프 체크리스트 | `docs/셀프체크리스트.md` |
-| **인계 가이드** | `docs/인계가이드.md` — 처음 맡는 사람용: 로컬 실행·폴더 역할·확장 방법·주의할 한도·비밀값 |
-| 설계·구현 계획 | `docs/superpowers/specs/`, `docs/superpowers/plans/` |
+| 요구사항 정의서 · 기획 검증 | [요구사항정의서](docs/요구사항정의서.md) · [기획검증](docs/기획검증.md) |
+| Agent 설계 문서 | [Agent설계](docs/Agent설계.md) |
+| Tool 정의서 | [Tool정의서](docs/Tool정의서.md) |
+| API 명세서 | [API명세서](docs/API명세서.md) · `docs/openapi.json` |
+| 검증 결과 · 실행 로그 샘플 | [검증결과](docs/검증결과.md) · [실행로그샘플](docs/실행로그샘플.md) · `docs/evidence/` |
+| 심화 기능 비교 | [비교결과](docs/비교결과.md) |
+| 셀프 체크리스트 | [셀프체크리스트](docs/셀프체크리스트.md) |
+| 인계 가이드 | [인계가이드](docs/인계가이드.md) |
 
-## 6. 구조
-파일마다 맨 위에 역할 설명이 있고, 주요 함수·클래스에는 무엇을 받고 무엇을 돌려주는지 적혀 있습니다. 처음이라면 `backend/agent/graph.py` → `executor.py` → `judge.py` 순서로 읽으면 흐름이 잡힙니다.
+<details>
+<summary>폴더 구조</summary>
 
 ```
 route-planner/
-├── backend/                     # FastAPI 백엔드
-│   ├── main.py                  # 앱 생성 · 미들웨어(로그인·Host 검사·CORS) · 오류 숨김
-│   ├── container.py             # 의존성 조립(저장소·Agent·로깅) — API가 여기서 꺼내 씀
-│   ├── settings.py              # .env 설정
-│   ├── schemas.py               # 요청·응답 형식(Pydantic)
-│   ├── share.py                 # 공유 링크 응답에서 집 위치 흐리게
-│   ├── api/routes.py            # 대화 · 계획(다시 확인·공유) · 장소 · 여러 동선 · 지도 · 일정 제안 · 로그 · 메타
-│   ├── auth/                    # Google 로그인 → JWT 쿠키 → 요청마다 현재 사용자
-│   │   ├── routes.py · google.py · jwt.py · middleware.py · context.py
-│   ├── agent/                   # 메인 Agent(LangGraph)
-│   │   ├── graph.py             # analyze→plan→execute→judge→(replan)→respond 그래프 · 카드 만들기 · 숫자 검사
-│   │   ├── executor.py          # 작업 목록(t1~t15) 실행 · Tool 호출 · 결과 재사용 · 재계획 전략
-│   │   ├── judge.py             # 출발·도착 계산, 마감·예산·일정 판단, 파레토·순위·지각 위험
-│   │   ├── conditions.py        # 요청 조건 · 후속 요청 병합
-│   │   ├── ko_time.py           # 한국어 날짜·시각 보조 파서("모레", "오후 2시")
-│   │   ├── service.py           # 대화 1턴 실행(세션·잠금·로그 저장)
-│   │   ├── trip.py              # 여러 동선(구간 연결, LLM 없음)
-│   │   ├── recheck.py           # 저장한 계획 다시 확인(LLM 없음)
-│   │   ├── suggest.py           # 캘린더 일정 → 경로 제안
-│   │   ├── planner_worker.py    # 심화: Planner·Worker
-│   │   ├── llm.py · prompts.py · state.py
-│   ├── tools/                   # Tool (공통 ok/fail 규약, 캐시·한도는 budget.py)
-│   │   ├── base.py · registry.py · http.py · budget.py · catalog_all.py
-│   │   ├── kakao_local.py       # 장소 검색
-│   │   ├── stations.py          # 근처 기차역(KTX 우선)
-│   │   ├── tago_train.py        # 열차 시간표·운임
-│   │   ├── tago_bus.py          # 고속버스 터미널·시간표
-│   │   ├── odsay.py             # 대중교통 구간(정류장 좌표 포함)
-│   │   ├── kakao_mobility.py    # 택시 구간 · 버스 동선 도로 좌표
-│   │   ├── osm_walk.py          # 도보 동선 보행로 좌표(지도용)
-│   │   ├── kma_weather.py       # 날씨
-│   │   ├── its_events.py        # 도로 돌발정보
-│   │   ├── tour_festival.py     # 도착지 근처 행사
-│   │   ├── rag.py               # 심화: 규정 검색(RAG)
-│   │   └── calendar_tools.py    # 심화: 캘린더 조회·등록
-│   ├── events/                  # 이벤트 버스 · 로깅 Agent · 이상 징후 판정
-│   ├── db/                      # SQLite 연결·스키마(database.py) · 저장소(repositories.py)
-│   └── calendar/                # 캘린더 구현체(base · local · google)
-├── frontend/                    # Vue 3 화면(빌드 없음, CDN + 주소별 페이지)
-│   ├── index.html               # 라이브러리 로드(버전 고정·무결성 해시)
-│   ├── css/app.css
-│   └── js/
-│       ├── main.js              # 라우터 · 상단 메뉴 · 로그인 게이트 · 알림
-│       ├── api.js · store.js · format.js
-│       ├── question.js · tradeoff.js · reminder.js   # 순수 계산(의존성 없음, node 테스트)
-│       ├── components/
-│       │   ├── RouteMap.js      # 경로 지도(Leaflet + OSM, 도로·보행로 동선)
-│       │   ├── common.js        # 경로 카드 · 수단 막대 · 실행 과정 타임라인
-│       │   ├── PlanBuilder.js · TimeInput.js        # 질문 만들기(끌어 놓기·숫자 시각)
-│       │   ├── TripResult.js    # 여러 동선 결과
-│       │   ├── TradeoffChart.js # 시간·요금 그래프
-│       │   ├── CalendarSuggestions.js · DepartureBanner.js   # 일정 제안 · 출발 알림
-│       │   ├── IntroGuide.js    # 처음 안내(코치마크)
-│       │   └── ModeIcon.js · NavIcon.js              # 직접 그린 SVG 아이콘
-│       └── pages/
-│           ├── ChatPage.js      # 대화 + 오른쪽(질문 만들기 · 지도 · 실행 과정)
-│           ├── PlacesPage.js · PlansPage.js · PlanDetailPage.js · LogsPage.js
-│           └── SharedPlanPage.js# 공유받은 계획(로그인 없이 읽기 전용)
-├── scripts/                     # 실행·확인용 스크립트(serve_frontend · build_index · field_check · compare_modes …)
-├── data/docs/                   # 규정 원문(색인 대상) · 출처(SOURCES.md)
+├── backend/
+│   ├── main.py · container.py · settings.py · schemas.py · share.py
+│   ├── api/routes.py            # HTTP API
+│   ├── auth/                    # Google 로그인 → JWT 쿠키 → 현재 사용자
+│   ├── agent/                   # 메인 Agent: graph · executor · judge · conditions · ko_time
+│   │                            #   service · trip · recheck · suggest · planner_worker · llm · prompts
+│   ├── tools/                   # Tool 13종 + base · registry · http · budget(캐시·한도)
+│   ├── events/                  # 이벤트 버스 · 로깅 Agent · 이상 징후
+│   ├── db/                      # SQLite 스키마 · 저장소
+│   └── calendar/                # 캘린더 구현체(local · google)
+├── frontend/
+│   ├── index.html · css/app.css
+│   └── js/  main · api · store · format · question · tradeoff · reminder
+│       ├── components/          # RouteMap · common · PlanBuilder · TradeoffChart · TripResult 등
+│       └── pages/               # Chat · Places · Plans · PlanDetail · Logs · SharedPlan
+├── scripts/                     # serve_frontend · build_index · field_check · compare_modes · make_readme_images 등
 ├── tests/                       # pytest(외부 호출 차단) · tests/frontend(node --test)
-└── docs/                        # 산출물 문서 · 증거 · 스크린샷 · 인계가이드
+├── data/docs/                   # RAG 원문 · 출처
+└── docs/                        # 산출물 · 증거 · 스크린샷 · images
 ```
+</details>
