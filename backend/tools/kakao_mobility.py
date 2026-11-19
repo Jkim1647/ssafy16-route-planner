@@ -1,7 +1,7 @@
 """카카오 모빌리티 자동차 길찾기 Tool (F3003 보충: 택시 소요시간·요금, 대중교통 대체)."""
 import math
 
-from backend.tools.base import INVALID_KEY, NO_DATA, Tool, fail, ok
+from backend.tools.base import BAD_ARGUMENT, INVALID_KEY, NO_DATA, Tool, fail, ok
 from backend.tools.budget import default_budget
 from backend.tools.http import fetch_json
 from backend.tools.kakao_local import kakao_headers
@@ -44,6 +44,50 @@ def get_car_route(sx: float, sy: float, ex: float, ey: float) -> dict:
                "bbox": [b.get("min_x"), b.get("min_y"), b.get("max_x"), b.get("max_y")],
                "path": _road_path(routes[0]),
                "cached": r.get("cached", False)})
+
+
+MAX_WAYPOINTS = 5  # 카카오 길찾기 경유지 상한
+MAX_SHAPE_POINTS = 400
+
+
+def _thin(pts: list, limit: int) -> list:
+    if len(pts) <= limit:
+        return pts
+    step = (len(pts) - 1) / (limit - 1)
+    return [pts[round(i * step)] for i in range(limit)]
+
+
+def road_shape(points: list[list[float]]) -> dict:
+    """버스 정류장 좌표를 차례로 경유하는 도로 좌표(지도 표시용). 정류장 사이를 직선으로 잇는 대신 도로를 따라간다.
+
+    경유지 상한 때문에 7점(출발 + 경유 5 + 도착)씩 나눠 부르고, 앞 조각의 끝을 다음 조각의 시작으로 잇는다.
+    한 조각이라도 실패하면 실패(화면은 정류장 직선으로 둔다). 결과는 캐시된다(같은 정류장 열은 다시 부르지 않음).
+    """
+    if not isinstance(points, list) or len(points) < 2:
+        return fail(BAD_ARGUMENT, "좌표가 두 개 이상 필요합니다.")
+    headers = kakao_headers()
+    if headers is None:
+        return fail(INVALID_KEY, "KAKAO_REST_KEY가 설정되지 않았습니다.")
+    pts = [[round(float(x), 6), round(float(y), 6)] for x, y in points]
+    size = MAX_WAYPOINTS + 1
+    path = []
+    for i in range(0, len(pts) - 1, size):
+        chunk = pts[i:i + size + 1]
+        params = {"origin": f"{chunk[0][0]},{chunk[0][1]}", "destination": f"{chunk[-1][0]},{chunk[-1][1]}"}
+        if len(chunk) > 2:
+            params["waypoints"] = "|".join(f"{x},{y}" for x, y in chunk[1:-1])
+        r = default_budget().cached_call("kakao_mobility", {"shape": params}, TTL,
+                                         lambda params=params: fetch_json(URL, params=params, headers=headers))
+        routes = ((r.get("data") or {}).get("routes") or []) if r["ok"] else []
+        if not routes or routes[0].get("result_code") != 0:
+            return fail(NO_DATA, "도로 경로를 찾지 못했습니다.")
+        piece = []
+        for sec in routes[0].get("sections") or []:
+            for road in sec.get("roads") or []:
+                v = road.get("vertexes") or []
+                piece += [[round(v[j], 5), round(v[j + 1], 5)] for j in range(0, len(v) - 1, 2)]
+        path += piece[1:] if path and piece and piece[0] == path[-1] else piece
+    return ok({"path": _thin(path, MAX_SHAPE_POINTS)})
 
 
 register(Tool(

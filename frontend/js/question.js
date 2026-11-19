@@ -45,3 +45,17 @@ export function buildQuestion({ date, stops, budget, priority }, todayIso) {
   const text = `${when.join(" ")} ${placeName(from)}에서 ${placeName(to)} 가야 해` + (tail ? `. ${tail}` : "");
   return { ok: true, text };
 }
+
+/** 숫자로 친 시각을 HH:MM으로: "7"→07:00, "730"·"0730"·"7:30"→07:30, "19시"→19:00. 빈 값은 "", 없는 시각은 null. */
+export function parseTimeInput(text) {
+  const s = String(text ?? "").trim().replace(/시$/, "");
+  if (!s) return "";
+  let h, m;
+  const colon = s.match(/^(\d{1,2}):(\d{1,2})$/);
+  if (colon) { h = +colon[1]; m = +colon[2]; }
+  else if (/^\d{1,2}$/.test(s)) { h = +s; m = 0; }
+  else if (/^\d{3,4}$/.test(s)) { h = +s.slice(0, -2); m = +s.slice(-2); }
+  else return null;
+  if (h > 23 || m > 59) return null;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}

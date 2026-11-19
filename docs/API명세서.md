@@ -103,7 +103,12 @@
 → `{legs: [{index, from, to, depart_after, arrive_by, status: done·walk·no_option·skipped, cards, decision, excluded, reason}], total_fare, start_at, end_at, warnings, run_id, session_id, status}`.
 첫 구간의 출발 시각이나 첫 도착지 마감이 없으면 400. 앞 구간 도착 + 머무는 시간 = 다음 구간 출발 하한. LLM 없음, 실행 로그(세션 `trip-…`)에 기록.
 
-## 7. 메타
+## 7. 지도 (`/api/map`)
+| 경로 | 요청 | 응답 |
+|---|---|---|
+| `POST /api/map/road-shape` | `{points: [[경도, 위도], …]}` 2~80개, 국내 좌표만 | `{path: [[경도, 위도], …]}`(최대 400점) — 버스 정류장을 차례로 경유하는 도로 좌표(카카오 길찾기, 경유지 5개씩 나눠 부르고 이어 붙임, 캐시). 못 찾으면 404 → 화면은 정류장 직선 유지 |
+
+## 8. 메타
 
 | 메서드·경로 | 응답 |
 |---|---|

@@ -430,6 +430,46 @@
     }
    }
   },
+  "/api/map/road-shape": {
+   "post": {
+    "tags": [
+     "지도"
+    ],
+    "summary": "Map Road Shape",
+    "description": "버스 구간을 도로를 따라 그리기 위한 좌표(카카오 길찾기, 캐시). 정류장 좌표 [[경도, 위도], ...]를 받는다.",
+    "operationId": "map_road_shape_api_map_road_shape_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ShapeIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
   "/api/places": {
    "get": {
     "tags": [
@@ -1374,6 +1414,31 @@
      "y"
     ],
     "title": "PointIn"
+   },
+   "ShapeIn": {
+    "properties": {
+     "points": {
+      "items": {
+       "items": {
+        "type": "number",
+        "maximum": 132.0,
+        "minimum": 33.0
+       },
+       "type": "array",
+       "maxItems": 2,
+       "minItems": 2
+      },
+      "type": "array",
+      "maxItems": 80,
+      "minItems": 2,
+      "title": "Points"
+     }
+    },
+    "type": "object",
+    "required": [
+     "points"
+    ],
+    "title": "ShapeIn"
    },
    "StopIn": {
     "properties": {

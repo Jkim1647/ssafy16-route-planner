@@ -1,13 +1,27 @@
 // 경로 지도(Leaflet + OpenStreetMap). 출발지·역·도착지를 찍고 실제 동선에 가깝게 그린다.
-// - 버스·지하철: ODsay가 준 지나는 정류장·역 좌표를 차례로 이은 선
+// - 버스: ODsay 정류장 좌표를 카카오 길찾기 경유지로 넣어 도로를 따라 그린다(받기 전·실패 시 정류장 직선)
+// - 지하철: 지나는 역 좌표를 차례로 이은 선
 // - 택시: 카카오 모빌리티가 준 도로 좌표
 // - 열차·고속버스: 선로 좌표가 공개 API에 없어 출발역~도착역 직선
 // - 도보·좌표가 없는 구간: 앞뒤 지점을 잇는 점선
 import { onMounted, onBeforeUnmount, ref, watch } from "vue";
+import { api } from "../api.js";
 import { POINT_LABEL, legColor } from "../format.js";
 
 const COLOR = { trunk: "#1f5f4a", bus: "#4f9a3a", subway: "#3d4fa1", taxi: "#c07a12", car: "#c07a12", walk: "#7d8783" };
 const GHOST = "#9aa5a0";   // 다른 후보
+const WALK = "#4b5551";
+const shapes = new Map();  // 정류장 열(JSON) → 도로 좌표 | "fail" | Promise — 페이지 사이에도 재사용
+const keyOf = (coords) => JSON.stringify(coords);
+
+// 버스 구간의 도로 좌표를 받아 둔다. 받으면 onReady()로 다시 그린다.
+function fetchShape(coords, onReady) {
+  const k = keyOf(coords);
+  if (shapes.has(k)) return;
+  shapes.set(k, api("/map/road-shape", { method: "POST", body: { points: coords.slice(0, 80) } })
+    .then((r) => { shapes.set(k, r.path && r.path.length >= 2 ? r.path : "fail"); onReady(); })
+    .catch(() => shapes.set(k, "fail")));
+}
 
 function label(p) {
   const el = document.createElement("span");  // 툴팁은 HTML로 해석되므로 텍스트 노드로 넣는다
@@ -67,6 +81,7 @@ export default {
       if (map && pts.length) map.fitBounds(pts, { padding: [30, 30], maxZoom: 16 });
     }
 
+    let lastFit = "";
     function draw() {
       if (!map) return;
       layer.clearLayers();
@@ -86,11 +101,20 @@ export default {
         end: t >= 0 ? pieces.slice(t).flatMap((pc, i) => (i === 0 ? [pc.coords[pc.coords.length - 1]] : pc.coords)).map(([x, y]) => [y, x]) : [],
       };
       for (const pc of pieces) {
-        const ll = pc.coords.map(([x, y]) => [y, x]);
-        const style = pc.kind === "walk"
-          ? { color: COLOR.walk, weight: 3, opacity: 0.9, dashArray: "4 6" }
-          : { color: pc.color || COLOR[pc.kind] || COLOR.trunk, weight: pc.kind === "trunk" ? 5 : 4, opacity: 0.9 };
-        L.polyline(ll, style).addTo(layer);
+        let coords = pc.coords;
+        if (pc.kind === "bus" && coords.length >= 2) {
+          const s = shapes.get(keyOf(coords));
+          if (Array.isArray(s)) coords = s;
+          else if (!s) fetchShape(coords, draw);
+        }
+        const ll = coords.map(([x, y]) => [y, x]);
+        // 흰 테두리를 깔아 지도 위에서 동선이 묻히지 않게 한다
+        const walk = pc.kind === "walk";
+        const weight = walk ? 4 : pc.kind === "trunk" ? 7 : 6;
+        L.polyline(ll, { color: "#fff", weight: weight + 4, opacity: 0.95, lineCap: "round", lineJoin: "round" }).addTo(layer);
+        L.polyline(ll, walk
+          ? { color: WALK, weight, opacity: 1, dashArray: "2 8", lineCap: "round" }
+          : { color: pc.color || COLOR[pc.kind] || COLOR.trunk, weight, opacity: 1, lineCap: "round", lineJoin: "round" }).addTo(layer);
         ll.forEach((p) => all.push(p));
       }
       props.points.forEach((p, i) => {
@@ -102,7 +126,9 @@ export default {
         all.push([p.y, p.x]);
       });
       views.all = all;
-      if (all.length) map.fitBounds(all, { padding: [36, 36], maxZoom: 15 });
+      // 도로 좌표가 늦게 도착해 다시 그릴 때는 사용자가 옮긴 화면을 그대로 둔다
+      const fitKey = keyOf([props.points, props.legs.length]);
+      if (all.length && fitKey !== lastFit) { map.fitBounds(all, { padding: [36, 36], maxZoom: 15 }); lastFit = fitKey; }
     }
 
     onMounted(() => {
@@ -134,7 +160,8 @@ export default {
       <p class="map-legend">
         <span class="lg trunk"></span>열차·고속버스 <span class="lg taxi"></span>택시 <span class="lg walk"></span>도보
         <span class="lg-note">· 지하철은 노선 고유색, 버스는 종류별 색(간선 파랑·지선 초록·광역·급행 빨강)이에요.
-          버스·지하철은 정류장을, 택시는 도로를 따라 그렸고 열차는 역 사이 직선이에요</span>
+          버스·택시는 도로를 따라(버스는 정류장을 경유지로 넣은 길찾기 추정), 지하철은 역을 이어, 열차는 역 사이 직선으로 그려요.
+          도보는 점선이고 보행 경로 API가 없어 직선이에요</span>
       </p>
     </div>`,
 };

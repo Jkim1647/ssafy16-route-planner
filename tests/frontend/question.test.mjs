@@ -1,7 +1,7 @@
-// 화면의 '조건으로 질문 만들기'가 만드는 문장. 실행: node --test tests/frontend/
+// 화면의 '조건으로 질문 만들기'가 만드는 문장. 실행: node --test tests/frontend/question.test.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { buildQuestion, koDate, koTime, wonText } from "../../frontend/js/question.js";
+import { buildQuestion, koDate, koTime, parseTimeInput, wonText } from "../../frontend/js/question.js";
 
 const TODAY = "2026-11-19";
 const home = { label: "집", name: "쌍암공원 분수광장" };
@@ -49,4 +49,19 @@ test("출발 시각만", () => {
 test("시각이 없거나 곳이 모자라면 이유와 함께 실패", () => {
   assert.equal(buildQuestion({ date: "2026-11-20", stops: [{ ...home }, { ...gangnam }] }, TODAY).ok, false);
   assert.match(buildQuestion({ date: "2026-11-20", stops: [{ ...home }] }, TODAY).reason, /두 곳/);
+});
+
+test("시각은 숫자로 입력: 7 · 730 · 0730 · 7:30 · 1930 · 19시 → HH:MM", () => {
+  assert.equal(parseTimeInput("7"), "07:00");
+  assert.equal(parseTimeInput("730"), "07:30");
+  assert.equal(parseTimeInput("0730"), "07:30");
+  assert.equal(parseTimeInput("7:30"), "07:30");
+  assert.equal(parseTimeInput("1930"), "19:30");
+  assert.equal(parseTimeInput("19시"), "19:00");
+  assert.equal(parseTimeInput(" 22:5 "), "22:05");
+  assert.equal(parseTimeInput(""), "");
+});
+
+test("없는 시각은 읽지 않는다", () => {
+  for (const v of ["25", "2460", "7:75", "abc", "12345"]) assert.equal(parseTimeInput(v), null, v);
 });

@@ -27,7 +27,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
 - 화면은 빌드 없이 CDN의 Vue 3·Vue Router·Leaflet(버전 고정·무결성 해시)과 OpenStreetMap 지도 타일을 불러오므로 **인터넷 연결이 필요**합니다. `python -m http.server`는 Windows에서 `.js`를 `text/plain`으로 보내 화면이 뜨지 않을 수 있어 `serve_frontend.py`를 씁니다.
-- 테스트: `pytest` (306개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs` (7개)
+- 테스트: `pytest` (311개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs` (9개)
 - 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능
@@ -56,7 +56,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | 로그인 | Google 로그인(OpenID Connect, 인가 코드 방식) → 서버가 id_token 검증(서명·발급자·대상·만료·이메일 인증) → HS256 JWT를 HttpOnly·SameSite=Lax 쿠키로. 계획·내 장소·실행 로그·로컬 캘린더는 사용자별로 분리. `AUTH_REQUIRED=false`면 로그인 없이 이 컴퓨터 사용자 한 명 |
 | 내 장소 | 집·교육장처럼 이름을 붙여 저장(장소 검색으로 고름). 대화에서 그 이름을 말하면 검색 없이 저장한 좌표 사용 |
 | 행사 참고 안내 | 이동하는 날 도착지 1km 안에서 열리는 축제·행사(한국관광공사 TourAPI)를 카드에 "주변이 붐빌 수 있어요"로 안내. 후보는 거르지 않음, 상설 공연 제외 |
-| 조건으로 질문 만들기 | 대화 화면 아래 패널. 내 장소를 끌어다 놓거나 눌러서 들를 곳을 넣고(순서는 끌기·↑↓), 날짜는 달력·시각은 시계로 고름. **두 곳**이면 "내일 오전 9시까지 집에서 교육장 가야 해" 같은 질문을 만들어 바로 보내거나 입력창에서 고쳐 보냄(대화 Agent가 처리) |
+| 조건으로 질문 만들기 | 대화 화면 아래 패널. 내 장소를 끌어다 놓거나 눌러서 들를 곳을 넣고(순서는 끌기·↑↓), 날짜는 달력, 시각은 숫자로 입력(0730·7:30·19 → 07:30). **두 곳**이면 "내일 오전 9시까지 집에서 교육장 가야 해" 같은 질문을 만들어 바로 보내거나 입력창에서 고쳐 보냄(대화 Agent가 처리) |
 | 여러 동선 | 같은 패널에 **세 곳 이상**(최대 6곳) 넣으면 대화 안에서 한꺼번에 길찾기. 곳마다 도착 마감·머무는 시간, 구간마다 기존 판단을 쓰고 앞 구간 도착 + 머무는 시간이 다음 출발 하한(LLM 없음, 실행 로그 기록). 옛 주소 `#/trip`은 대화 화면으로 이동 |
 
 ## 3. API 키 설정

@@ -1,4 +1,6 @@
 """백엔드 API(F3017): 대화 · 계획 관리 · 실행 로그 · 메타 정보를 서로 다른 경로로 제공."""
+from typing import Annotated
+
 from fastapi import APIRouter, HTTPException, Query, Request, Response
 from pydantic import BaseModel, Field
 
@@ -90,6 +92,27 @@ def plan_trip(body: TripIn, request: Request):
 
 
 # ---------------------------------------------------------------- 저장한 장소(집·교육장 등)
+# ---------------------------------------------------------------- 지도
+KoreaPoint = Annotated[list[Annotated[float, Field(ge=33, le=132)]], Field(min_length=2, max_length=2)]
+
+
+class ShapeIn(BaseModel):
+    points: list[KoreaPoint] = Field(min_length=2, max_length=80)
+
+
+@router.post("/map/road-shape", tags=["지도"])
+def map_road_shape(body: ShapeIn):
+    """버스 구간을 도로를 따라 그리기 위한 좌표(카카오 길찾기, 캐시). 정류장 좌표 [[경도, 위도], ...]를 받는다."""
+    from backend.tools.kakao_mobility import road_shape
+    for x, y in body.points:
+        if not (124 <= x <= 132 and 33 <= y <= 39):
+            raise HTTPException(422, "국내 좌표만 받을 수 있습니다.")
+    r = road_shape(body.points)
+    if not r["ok"]:
+        raise HTTPException(404 if r["error"]["code"] in ("NO_DATA", "BAD_ARGUMENT") else 502, r["error"]["message"])
+    return r["data"]
+
+
 @router.get("/places", response_model=list[PlaceOut], tags=["장소"])
 def list_places(request: Request):
     return _c(request).places.list()

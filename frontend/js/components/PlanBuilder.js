@@ -5,6 +5,7 @@ import { api } from "../api.js";
 import { buildQuestion } from "../question.js";
 import { store, toast } from "../store.js";
 import { KIND_ICON } from "../pages/PlacesPage.js";
+import TimeInput from "./TimeInput.js";
 
 const MAX_STOPS = 6;
 const iso = (d) => d.toLocaleDateString("sv-SE");
@@ -12,6 +13,7 @@ let seq = 0;
 
 export default {
   name: "PlanBuilder",
+  components: { TimeInput },
   props: { busy: Boolean },
   emits: ["question", "trip"],
   setup(props, { emit }) {
@@ -78,7 +80,7 @@ export default {
   },
   template: `
     <details class="builder" :open="b.open" @toggle="b.open = $event.target.open" data-tour="builder">
-      <summary>조건으로 질문 만들기 <span class="hint">내 장소 끌어 놓기 · 달력 · 시계</span></summary>
+      <summary>조건으로 질문 만들기 <span class="hint">내 장소 끌어 놓기 · 달력 · 시각은 숫자로(0730)</span></summary>
       <div class="builder-body">
         <div class="saved-chips" v-if="store.places.length">
           <span class="hint">내 장소(끌어서 순서에 놓거나 눌러서 추가)</span>
@@ -106,8 +108,8 @@ export default {
             <span class="stop-main"><strong>{{ s.label ? KIND_ICON[s.kind] + ' ' + s.label : s.name }}</strong>
               <span class="basis">{{ s.label ? s.name : s.address }}</span></span>
             <span class="stop-opts">
-              <label v-if="i === 0">출발 시각 <input type="time" v-model="s.depart"></label>
-              <label v-else>도착 마감 <input type="time" v-model="s.arrive_by"></label>
+              <TimeInput v-if="i === 0" label="출발 시각" v-model="s.depart" />
+              <TimeInput v-else label="도착 마감" v-model="s.arrive_by" />
               <label v-if="i > 0 && i < b.stops.length - 1">머묾(분) <input type="number" min="0" max="720" step="10" v-model="s.stay_min"></label>
             </span>
             <span class="stop-move">
