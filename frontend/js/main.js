@@ -11,6 +11,7 @@ import PlacesPage from "./pages/PlacesPage.js";
 import SharedPlanPage from "./pages/SharedPlanPage.js";
 import IntroGuide, { introHiddenToday } from "./components/IntroGuide.js";
 import DepartureBanner from "./components/DepartureBanner.js";
+import NavIcon from "./components/NavIcon.js";
 
 const NotFound = {
   template: `<section class="page empty-state"><p>없는 페이지예요.</p><router-link to="/" class="button">대화로 가기</router-link></section>`,
@@ -35,7 +36,7 @@ router.afterEach((to) => {
 });
 
 const App = {
-  components: { IntroGuide, DepartureBanner },
+  components: { IntroGuide, DepartureBanner, NavIcon },
   setup() {
     const introOpen = ref(!introHiddenToday() && (location.hash === "" || location.hash === "#/"));
     // 안내는 대화 화면의 요소를 비추므로, 다른 페이지에서 누르면 대화 화면으로 옮긴 뒤 연다
@@ -73,10 +74,12 @@ const App = {
         <p>확인한 시간표·요금으로만 계획하는 Agent</p>
       </router-link>
       <nav class="nav" aria-label="주 메뉴">
-        <router-link to="/" exact-active-class="active">대화</router-link>
-        <router-link to="/places" active-class="active" data-tour="places">내 장소</router-link>
-        <router-link to="/plans" active-class="active" data-tour="plans">이동 계획</router-link>
-        <router-link to="/logs" active-class="active" data-tour="logs">실행 로그</router-link>
+        <router-link to="/" exact-active-class="active"><NavIcon name="chat" />대화</router-link>
+        <router-link to="/places" active-class="active" data-tour="places"><NavIcon name="places" />내 장소</router-link>
+        <router-link to="/plans" active-class="active" data-tour="plans"><NavIcon name="plans" />이동 계획</router-link>
+        <router-link to="/logs" active-class="active" data-tour="logs"><NavIcon name="logs" />실행 로그</router-link>
+      </nav>
+      <div class="top-actions">
         <button type="button" class="nav-intro" data-tour="help" @click="openIntro">소개</button>
         <span v-if="store.auth && store.auth.user" class="user-box" data-tour="user">
           <img v-if="store.auth.user.picture" :src="store.auth.user.picture" alt="" referrerpolicy="no-referrer">
@@ -84,7 +87,7 @@ const App = {
           <button type="button" class="ghost small" @click="logout">로그아웃</button>
         </span>
         <a v-else-if="store.auth && store.auth.google_configured" class="button small login-link" :href="loginUrl" data-tour="user">Google로 로그인</a>
-      </nav>
+      </div>
     </header>
     <div v-if="store.statusError" class="banner">{{ store.statusError }}</div>
     <div v-else-if="missing.length" class="banner">API 키가 설정되지 않았어요: {{ missing.join(', ') }} — .env 파일을 확인해 주세요.</div>
