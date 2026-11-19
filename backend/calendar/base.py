@@ -14,6 +14,8 @@ class CalendarBackend(Protocol):
 
     def create_event(self, plan) -> str: ...
 
+    def upcoming_events(self, start: dt.datetime, days: int = 2) -> list[dict]: ...
+
 
 def plan_span(plan) -> tuple[dt.datetime, dt.datetime]:
     """계획의 [출발, 도착). 도착이 출발보다 이르면 다음 날 도착."""

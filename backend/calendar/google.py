@@ -51,6 +51,21 @@ class GoogleCalendar:
             return t.astimezone(dt.timezone(dt.timedelta(hours=9))).replace(tzinfo=None)
         return [Busy("일정", local(b["start"]), local(b["end"])) for b in busy]  # freeBusy는 제목을 주지 않는다
 
+    def upcoming_events(self, start: dt.datetime, days: int = 2) -> list[dict]:
+        """앞으로 days일 일정(제목·시작·끝·장소). 종일 일정은 도착 시각이 없어 뺀다. 경로 제안에만 쓴다."""
+        lo = start.isoformat(timespec="seconds") + "+09:00"
+        hi = (start + dt.timedelta(days=days)).isoformat(timespec="seconds") + "+09:00"
+        res = self._service().events().list(calendarId=self.calendar_id, timeMin=lo, timeMax=hi, singleEvents=True,
+                                            orderBy="startTime", maxResults=20,
+                                            fields="items(summary,location,start,end)").execute()
+
+        def local(v):
+            t = dt.datetime.fromisoformat(v.replace("Z", "+00:00"))
+            return t.astimezone(dt.timezone(dt.timedelta(hours=9))).replace(tzinfo=None)
+        return [{"title": it.get("summary") or "", "start": local(it["start"]["dateTime"]), "end": local(it["end"]["dateTime"]),
+                 "location": it.get("location")}
+                for it in res.get("items", []) if "dateTime" in it.get("start", {})]
+
     def create_event(self, plan) -> str:
         start, end = plan_span(plan)
         body = {"summary": f"이동: {plan.title}",

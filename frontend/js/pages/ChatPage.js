@@ -8,6 +8,7 @@ import { Excluded, RouteCard, TraceList } from "../components/common.js";
 import PlanBuilder from "../components/PlanBuilder.js";
 import TripResult from "../components/TripResult.js";
 import TradeoffChart from "../components/TradeoffChart.js";
+import CalendarSuggestions from "../components/CalendarSuggestions.js";
 
 const EXAMPLES = [
   "토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하",
@@ -17,7 +18,7 @@ const EXAMPLES = [
 
 export default {
   name: "ChatPage",
-  components: { RouteMap, RouteCard, Excluded, TraceList, PlanBuilder, TripResult, TradeoffChart },
+  components: { RouteMap, RouteCard, Excluded, TraceList, PlanBuilder, TripResult, TradeoffChart, CalendarSuggestions },
   setup() {
     const input = ref("");
     const inputEl = ref(null);
@@ -183,6 +184,7 @@ export default {
             <li title="마감까지 여유·남는 예산을 보여 주고, 맞는 게 없으면 다시 찾아요">✓ 고른 이유·뺀 이유</li>
             <li title="시간표·요금은 공공·지도 API로 확인한 값만 쓰고, 좌석·지연은 확인 불가로 밝혀요">🔎 확인한 값만</li>
           </ul>
+          <CalendarSuggestions />
           <div class="examples" data-tour="examples">
             <span class="hint">예시</span>
             <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>

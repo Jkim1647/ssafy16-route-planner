@@ -30,6 +30,11 @@ class LocalCalendar:
                              'ORDER BY start', (hi, lo, current_user_id())).fetchall()
         return [Busy(r["title"], dt.datetime.fromisoformat(r["start"]), dt.datetime.fromisoformat(r["end"])) for r in rows]
 
+    def upcoming_events(self, start: dt.datetime, days: int = 2) -> list[dict]:
+        """로컬 캘린더에는 장소가 없다(이 서비스가 넣은 이동 일정뿐) → 경로 제안 대상 없음."""
+        return [{"title": b.title, "start": b.start, "end": b.end, "location": None}
+                for b in self.get_free_busy(start.date(), days=days + 1) if b.start >= start]
+
     def create_event(self, plan) -> str:
         start, end = plan_span(plan)
         return self.add(f"이동: {plan.title}", start, end, plan.id)

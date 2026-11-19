@@ -93,6 +93,16 @@ def recheck_plan_api(plan_id: int, request: Request):
     return recheck_plan(plan, calendar=get_calendar(c.settings), now=c.deps.now())
 
 
+@router.get("/suggestions/calendar", tags=["계획"])
+def calendar_suggestions_api(request: Request):
+    """앞으로 이틀 안의 장소 있는 캘린더 일정 → 경로 찾기 제안(LLM·경로 계산 없음)."""
+    from backend.agent.suggest import calendar_suggestions
+    from backend.calendar.base import get_calendar
+
+    c = _c(request)
+    return calendar_suggestions(get_calendar(c.settings), c.deps.now())
+
+
 # ---------------------------------------------------------------- 여러 동선 한꺼번에
 @router.post("/trips/plan", tags=["여러 동선"])
 def plan_trip(body: TripIn, request: Request):
