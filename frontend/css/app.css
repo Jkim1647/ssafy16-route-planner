@@ -402,3 +402,9 @@ select { font: inherit; padding: 7px 8px; border: 1px solid var(--line); border-
 .tradeoff .pt circle { fill: #fff; stroke: var(--accent); stroke-width: 2.5; }
 .tradeoff .pt.on circle, .tradeoff .pt:hover circle, .tradeoff .pt:focus-visible circle { fill: var(--accent); }
 .tradeoff .pt-label { font-size: 9px; fill: var(--ink); font-weight: 600; }
+
+/* 출발 알림 */
+.departure { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 0 16px 10px; padding: 8px 14px;
+  border-radius: var(--radius); background: #fff3d6; border: 1px solid #e3b44a; font-size: 14px; }
+.departure-item { display: inline-flex; gap: 6px; align-items: baseline; }
+.departure button { margin-left: auto; }

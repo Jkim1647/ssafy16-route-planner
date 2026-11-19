@@ -13,6 +13,7 @@ from backend.calendar.base import plan_span
 ROOT = Path(__file__).resolve().parents[2]
 SCOPES = ["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/calendar.readonly"]
 TZ = "Asia/Seoul"
+REMINDER_MIN = (15, 5)
 
 
 class GoogleCalendar:
@@ -55,5 +56,7 @@ class GoogleCalendar:
         body = {"summary": f"이동: {plan.title}",
                 "description": " → ".join(f"{leg.name or leg.mode}" for leg in (plan.legs or [])),
                 "start": {"dateTime": start.isoformat(), "timeZone": TZ},
-                "end": {"dateTime": end.isoformat(), "timeZone": TZ}}
+                "end": {"dateTime": end.isoformat(), "timeZone": TZ},
+                # 출발 알림: 이동 일정의 시작 = 나갈 시각이라 15분·5분 전 팝업
+                "reminders": {"useDefault": False, "overrides": [{"method": "popup", "minutes": m} for m in REMINDER_MIN]}}
         return self._service().events().insert(calendarId=self.calendar_id, body=body).execute()["id"]

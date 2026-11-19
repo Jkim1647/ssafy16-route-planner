@@ -9,6 +9,7 @@ import PlanDetailPage from "./pages/PlanDetailPage.js";
 import { LogDetailPage, LogsPage } from "./pages/LogsPage.js";
 import PlacesPage from "./pages/PlacesPage.js";
 import IntroGuide, { introHiddenToday } from "./components/IntroGuide.js";
+import DepartureBanner from "./components/DepartureBanner.js";
 
 const NotFound = {
   template: `<section class="page empty-state"><p>없는 페이지예요.</p><router-link to="/" class="button">대화로 가기</router-link></section>`,
@@ -32,7 +33,7 @@ router.afterEach((to) => {
 });
 
 const App = {
-  components: { IntroGuide },
+  components: { IntroGuide, DepartureBanner },
   setup() {
     const introOpen = ref(!introHiddenToday() && (location.hash === "" || location.hash === "#/"));
     // 안내는 대화 화면의 요소를 비추므로, 다른 페이지에서 누르면 대화 화면으로 옮긴 뒤 연다
@@ -83,6 +84,7 @@ const App = {
     <div v-if="store.statusError" class="banner">{{ store.statusError }}</div>
     <div v-else-if="missing.length" class="banner">API 키가 설정되지 않았어요: {{ missing.join(', ') }} — .env 파일을 확인해 주세요.</div>
     <div class="quota" aria-live="polite"><span data-tour="quota">{{ quota }}</span></div>
+    <DepartureBanner v-if="store.auth && !needLogin" />
     <main v-if="needLogin" id="main" tabindex="-1" class="login-page">
       <section class="login-card">
         <h2>로그인이 필요해요</h2>
