@@ -149,71 +149,9 @@ flowchart TD
 
 ## ERD
 
-```mermaid
-erDiagram
-  users ||--o{ places : "저장"
-  users ||--o{ plans : "소유"
-  users ||--o{ runs : "요청"
-  runs ||--o{ run_events : "단계 기록"
-  runs ||--o| anomaly_reports : "이상 징후"
-  runs ||--o{ plans : "출처"
-  plans ||--o| local_calendar : "캘린더 등록"
-  users {
-    TEXT id PK "google:sub 또는 local"
-    TEXT email
-    TEXT name
-    TEXT last_login
-  }
-  places {
-    INTEGER id PK
-    TEXT user_id FK
-    TEXT label "집·교육장(사용자별 고유)"
-    TEXT kind "home·school·work·pin"
-    REAL x
-    REAL y
-  }
-  plans {
-    INTEGER id PK
-    TEXT user_id FK
-    TEXT date
-    TEXT leave_at
-    TEXT arrive_at
-    TEXT legs_json "구간(수단·소요·동선)"
-    INTEGER total_fare
-    TEXT source_run_id FK
-    TEXT calendar_event_id
-    TEXT share_token "읽기 전용 공유"
-  }
-  runs {
-    TEXT run_id PK
-    TEXT session_id
-    TEXT user_id FK
-    TEXT status
-    INTEGER replan_count
-    INTEGER llm_calls
-  }
-  run_events {
-    INTEGER id PK
-    TEXT run_id FK
-    INTEGER seq
-    TEXT type "tool_call·replan 등"
-    TEXT payload_json
-  }
-  anomaly_reports {
-    TEXT run_id PK
-    TEXT verdict "ok·warn·판정 불가"
-    TEXT findings_json
-    TEXT diagnosis "LLM 원인 진단"
-  }
-  local_calendar {
-    INTEGER id PK
-    TEXT user_id FK
-    TEXT title
-    TEXT start
-    INTEGER plan_id FK
-  }
-```
-외부 API 캐시·호출 수는 별도 DB(`api_cache`, `api_quota`)에 둡니다(`tools/budget.py`).
+![ERD](docs/images/erd.svg)
+
+계획·장소·실행 로그·로컬 캘린더는 모두 `user_id`로 사용자별로 나뉩니다. 계획은 그것을 만든 실행(`source_run_id`)을 가리켜, 화면의 계획에서 판단 근거 로그까지 거슬러 올라갈 수 있습니다.
 
 ## 확장성
 

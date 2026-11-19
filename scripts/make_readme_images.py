@@ -118,7 +118,95 @@ def architecture() -> str:
     return "\n".join(p)
 
 
+# ---------------------------------------------------------------- ERD
+# 테이블: (이름, 설명, x, y, [(키, 열, 타입, 메모)]) — backend/db/database.py 스키마의 주요 열
+TABLES = [
+    ("users", "사용자", 40, 70, [("PK", "id", "TEXT", "google:sub · local"), ("", "email", "TEXT", ""),
+                                 ("", "name", "TEXT", ""), ("", "last_login", "TEXT", "")]),
+    ("places", "내 장소", 40, 360, [("PK", "id", "INTEGER", ""), ("FK", "user_id", "TEXT", ""),
+                                   ("", "label", "TEXT", "집·교육장(사용자별 고유)"), ("", "kind", "TEXT", "home·school·work·pin"),
+                                   ("", "x, y", "REAL", "좌표")]),
+    ("plans", "이동 계획", 440, 70, [("PK", "id", "INTEGER", ""), ("FK", "user_id", "TEXT", ""),
+                                     ("", "date · leave_at · arrive_at", "TEXT", ""), ("", "legs_json", "TEXT", "구간·동선"),
+                                     ("", "total_fare", "INTEGER", ""), ("FK", "source_run_id", "TEXT", "만든 실행"),
+                                     ("", "calendar_event_id", "TEXT", ""), ("", "share_token", "TEXT", "읽기 전용 공유")]),
+    ("local_calendar", "로컬 캘린더", 440, 400, [("PK", "id", "INTEGER", ""), ("FK", "user_id", "TEXT", ""),
+                                               ("", "title · start · end", "TEXT", ""), ("FK", "plan_id", "INTEGER", "")]),
+    ("runs", "실행(요청 1건)", 840, 70, [("PK", "run_id", "TEXT", ""), ("FK", "user_id", "TEXT", ""),
+                                       ("", "session_id", "TEXT", "대화 세션"), ("", "status", "TEXT", ""),
+                                       ("", "replan_count", "INTEGER", ""), ("", "llm_calls", "INTEGER", "")]),
+    ("run_events", "실행 단계 이벤트", 840, 360, [("PK", "id", "INTEGER", ""), ("FK", "run_id", "TEXT", ""),
+                                               ("", "seq", "INTEGER", "순서"), ("", "type", "TEXT", "tool_call·replan…"),
+                                               ("", "payload_json", "TEXT", "")]),
+    ("anomaly_reports", "이상 징후 판정", 1180, 360, [("PK", "run_id", "TEXT", ""), ("", "verdict", "TEXT", "ok·warn·불가"),
+                                                   ("", "findings_json", "TEXT", ""), ("", "diagnosis", "TEXT", "LLM 원인 진단")]),
+]
+TW, HEAD, ROW = 300, 40, 24
+
+
+def table_box(name, desc, x, y, rows, w=TW):
+    h = HEAD + ROW * len(rows) + 8
+    out = [f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" fill="#fff" stroke="{LINE}" stroke-width="1.4"/>',
+           f'<path d="M{x},{y + 10} a10,10 0 0 1 10,-10 h{w - 20} a10,10 0 0 1 10,10 v{HEAD - 10} h-{w} z" fill="{ACCENT}"/>',
+           f'<text x="{x + 14}" y="{y + 26}" font-size="15" font-weight="700" fill="#fff">{esc(name)}</text>',
+           f'<text x="{x + w - 14}" y="{y + 26}" font-size="12" fill="#d9ece4" text-anchor="end">{esc(desc)}</text>']
+    for i, (key, col, typ, note) in enumerate(rows):
+        ry = y + HEAD + 18 + i * ROW
+        color = "#b5651d" if key == "PK" else "#2f6fde" if key == "FK" else MUTED
+        out.append(f'<text x="{x + 12}" y="{ry}" font-size="10.5" font-weight="700" fill="{color}">{key}</text>')
+        out.append(f'<text x="{x + 40}" y="{ry}" font-size="13" fill="{INK}">{esc(col)}</text>')
+        out.append(f'<text x="{x + w - 12}" y="{ry}" font-size="11" fill="{MUTED}" text-anchor="end">'
+                   f'{esc(note + " · " if note else "")}{typ}</text>')
+    return "\n".join(out), h
+
+
+def rel(points, label):
+    d = "M" + " L".join(f"{x},{y}" for x, y in points)
+    # 라벨은 가장 긴 선분 가운데에
+    segs = list(zip(points, points[1:]))
+    (ax, ay), (bx, by) = max(segs, key=lambda s: abs(s[0][0] - s[1][0]) + abs(s[0][1] - s[1][1]))
+    mx, my = (ax + bx) / 2, (ay + by) / 2
+    return (f'<path d="{d}" fill="none" stroke="{MUTED}" stroke-width="1.5" marker-end="url(#many)"/>'
+            f'<circle cx="{points[0][0]}" cy="{points[0][1]}" r="3.5" fill="{MUTED}"/>'
+            f'<text x="{mx}" y="{my - 6}" font-size="11.5" fill="{MUTED}" text-anchor="middle" paint-order="stroke" '
+            f'stroke="#fff" stroke-width="4">{esc(label)}</text>')
+
+
+def erd() -> str:
+    W, H = 1520, 600
+    p = [f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" font-family="{FONT}">',
+         # N쪽 끝: 까마귀발(crow's foot)
+         f'<defs><marker id="many" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" orient="auto">'
+         f'<path d="M0,6 L11,6 M11,1 L4,6 L11,11" fill="none" stroke="{MUTED}" stroke-width="1.5"/></marker></defs>',
+         '<rect width="100%" height="100%" fill="#ffffff"/>',
+         f'<text x="40" y="24" font-size="13" fill="{MUTED}">● 한쪽(1) — ⟨ 여러 쪽(N) · PK 기본키 · FK 참조키 · 모든 데이터 테이블은 user_id로 사용자별 분리</text>']
+    boxes = {}
+    for name, desc, x, y, rows in TABLES:
+        s, h = table_box(name, desc, x, y, rows)
+        p.append(s)
+        boxes[name] = (x, y, h)
+    ux, uy, uh = boxes["users"]
+    px, py, ph = boxes["plans"]
+    rx, ry, rh = boxes["runs"]
+    # users 1:N places · plans · runs
+    p.append(rel([(ux + 150, uy + uh), (ux + 150, boxes["places"][1])], "저장 1:N"))
+    p.append(rel([(ux + TW, uy + 40), (px, uy + 40)], "소유 1:N"))
+    p.append(rel([(ux + 120, uy), (ux + 120, 54), (rx + 150, 54), (rx + 150, ry)], "요청 1:N"))
+    # runs 1:N plans(source_run_id), runs 1:N run_events, runs 1:1 anomaly
+    p.append(rel([(rx, ry + 100), (px + TW, ry + 100)], "출처 1:N"))
+    p.append(rel([(rx + 150, ry + rh), (rx + 150, boxes["run_events"][1])], "단계 1:N"))
+    ax, ay, _ = boxes["anomaly_reports"]
+    p.append(rel([(rx + TW, ry + 60), (ax + 150, ry + 60), (ax + 150, ay)], "판정 1:0..1"))
+    # plans 1:N local_calendar(plan_id)
+    p.append(rel([(px + 150, py + ph), (px + 150, boxes["local_calendar"][1])], "캘린더 등록"))
+    p.append(f'<text x="1180" y="560" font-size="12" fill="{MUTED}">외부 API 캐시·호출 수는 별도 DB</text>'
+             f'<text x="1180" y="578" font-size="12" fill="{MUTED}">(api_cache · api_quota, tools/budget.py)</text>')
+    p.append("</svg>")
+    return "\n".join(p)
+
+
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)
-    (OUT / "architecture.svg").write_text(architecture(), encoding="utf-8")
-    print("wrote", OUT / "architecture.svg")
+    for name, fn in (("architecture.svg", architecture), ("erd.svg", erd)):
+        (OUT / name).write_text(fn(), encoding="utf-8")
+        print("wrote", OUT / name)

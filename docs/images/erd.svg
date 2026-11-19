@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1520 600" width="1520" height="600" font-family="Pretendard, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif">
+<defs><marker id="many" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" orient="auto"><path d="M0,6 L11,6 M11,1 L4,6 L11,11" fill="none" stroke="#5c6763" stroke-width="1.5"/></marker></defs>
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="40" y="24" font-size="13" fill="#5c6763">● 한쪽(1) — ⟨ 여러 쪽(N) · PK 기본키 · FK 참조키 · 모든 데이터 테이블은 user_id로 사용자별 분리</text>
+<rect x="40" y="70" width="300" height="144" rx="10" fill="#fff" stroke="#c9d3ce" stroke-width="1.4"/>
+<path d="M40,80 a10,10 0 0 1 10,-10 h280 a10,10 0 0 1 10,10 v30 h-300 z" fill="#1f5f4a"/>
+<text x="54" y="96" font-size="15" font-weight="700" fill="#fff">users</text>
+<text x="326" y="96" font-size="12" fill="#d9ece4" text-anchor="end">사용자</text>
+<text x="52" y="128" font-size="10.5" font-weight="700" fill="#b5651d">PK</text>
+<text x="80" y="128" font-size="13" fill="#1d2421">id</text>
+<text x="328" y="128" font-size="11" fill="#5c6763" text-anchor="end">google:sub · local · TEXT</text>
+<text x="52" y="152" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="80" y="152" font-size="13" fill="#1d2421">email</text>
+<text x="328" y="152" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="52" y="176" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="80" y="176" font-size="13" fill="#1d2421">name</text>
+<text x="328" y="176" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="52" y="200" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="80" y="200" font-size="13" fill="#1d2421">last_login</text>
+<text x="328" y="200" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<rect x="40" y="360" width="300" height="168" rx="10" fill="#fff" stroke="#c9d3ce" stroke-width="1.4"/>
+<path d="M40,370 a10,10 0 0 1 10,-10 h280 a10,10 0 0 1 10,10 v30 h-300 z" fill="#1f5f4a"/>
+<text x="54" y="386" font-size="15" font-weight="700" fill="#fff">places</text>
+<text x="326" y="386" font-size="12" fill="#d9ece4" text-anchor="end">내 장소</text>
+<text x="52" y="418" font-size="10.5" font-weight="700" fill="#b5651d">PK</text>
+<text x="80" y="418" font-size="13" fill="#1d2421">id</text>
+<text x="328" y="418" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<text x="52" y="442" font-size="10.5" font-weight="700" fill="#2f6fde">FK</text>
+<text x="80" y="442" font-size="13" fill="#1d2421">user_id</text>
+<text x="328" y="442" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="52" y="466" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="80" y="466" font-size="13" fill="#1d2421">label</text>
+<text x="328" y="466" font-size="11" fill="#5c6763" text-anchor="end">집·교육장(사용자별 고유) · TEXT</text>
+<text x="52" y="490" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="80" y="490" font-size="13" fill="#1d2421">kind</text>
+<text x="328" y="490" font-size="11" fill="#5c6763" text-anchor="end">home·school·work·pin · TEXT</text>
+<text x="52" y="514" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="80" y="514" font-size="13" fill="#1d2421">x, y</text>
+<text x="328" y="514" font-size="11" fill="#5c6763" text-anchor="end">좌표 · REAL</text>
+<rect x="440" y="70" width="300" height="240" rx="10" fill="#fff" stroke="#c9d3ce" stroke-width="1.4"/>
+<path d="M440,80 a10,10 0 0 1 10,-10 h280 a10,10 0 0 1 10,10 v30 h-300 z" fill="#1f5f4a"/>
+<text x="454" y="96" font-size="15" font-weight="700" fill="#fff">plans</text>
+<text x="726" y="96" font-size="12" fill="#d9ece4" text-anchor="end">이동 계획</text>
+<text x="452" y="128" font-size="10.5" font-weight="700" fill="#b5651d">PK</text>
+<text x="480" y="128" font-size="13" fill="#1d2421">id</text>
+<text x="728" y="128" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<text x="452" y="152" font-size="10.5" font-weight="700" fill="#2f6fde">FK</text>
+<text x="480" y="152" font-size="13" fill="#1d2421">user_id</text>
+<text x="728" y="152" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="452" y="176" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="480" y="176" font-size="13" fill="#1d2421">date · leave_at · arrive_at</text>
+<text x="728" y="176" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="452" y="200" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="480" y="200" font-size="13" fill="#1d2421">legs_json</text>
+<text x="728" y="200" font-size="11" fill="#5c6763" text-anchor="end">구간·동선 · TEXT</text>
+<text x="452" y="224" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="480" y="224" font-size="13" fill="#1d2421">total_fare</text>
+<text x="728" y="224" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<text x="452" y="248" font-size="10.5" font-weight="700" fill="#2f6fde">FK</text>
+<text x="480" y="248" font-size="13" fill="#1d2421">source_run_id</text>
+<text x="728" y="248" font-size="11" fill="#5c6763" text-anchor="end">만든 실행 · TEXT</text>
+<text x="452" y="272" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="480" y="272" font-size="13" fill="#1d2421">calendar_event_id</text>
+<text x="728" y="272" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="452" y="296" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="480" y="296" font-size="13" fill="#1d2421">share_token</text>
+<text x="728" y="296" font-size="11" fill="#5c6763" text-anchor="end">읽기 전용 공유 · TEXT</text>
+<rect x="440" y="400" width="300" height="144" rx="10" fill="#fff" stroke="#c9d3ce" stroke-width="1.4"/>
+<path d="M440,410 a10,10 0 0 1 10,-10 h280 a10,10 0 0 1 10,10 v30 h-300 z" fill="#1f5f4a"/>
+<text x="454" y="426" font-size="15" font-weight="700" fill="#fff">local_calendar</text>
+<text x="726" y="426" font-size="12" fill="#d9ece4" text-anchor="end">로컬 캘린더</text>
+<text x="452" y="458" font-size="10.5" font-weight="700" fill="#b5651d">PK</text>
+<text x="480" y="458" font-size="13" fill="#1d2421">id</text>
+<text x="728" y="458" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<text x="452" y="482" font-size="10.5" font-weight="700" fill="#2f6fde">FK</text>
+<text x="480" y="482" font-size="13" fill="#1d2421">user_id</text>
+<text x="728" y="482" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="452" y="506" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="480" y="506" font-size="13" fill="#1d2421">title · start · end</text>
+<text x="728" y="506" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="452" y="530" font-size="10.5" font-weight="700" fill="#2f6fde">FK</text>
+<text x="480" y="530" font-size="13" fill="#1d2421">plan_id</text>
+<text x="728" y="530" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<rect x="840" y="70" width="300" height="192" rx="10" fill="#fff" stroke="#c9d3ce" stroke-width="1.4"/>
+<path d="M840,80 a10,10 0 0 1 10,-10 h280 a10,10 0 0 1 10,10 v30 h-300 z" fill="#1f5f4a"/>
+<text x="854" y="96" font-size="15" font-weight="700" fill="#fff">runs</text>
+<text x="1126" y="96" font-size="12" fill="#d9ece4" text-anchor="end">실행(요청 1건)</text>
+<text x="852" y="128" font-size="10.5" font-weight="700" fill="#b5651d">PK</text>
+<text x="880" y="128" font-size="13" fill="#1d2421">run_id</text>
+<text x="1128" y="128" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="852" y="152" font-size="10.5" font-weight="700" fill="#2f6fde">FK</text>
+<text x="880" y="152" font-size="13" fill="#1d2421">user_id</text>
+<text x="1128" y="152" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="852" y="176" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="880" y="176" font-size="13" fill="#1d2421">session_id</text>
+<text x="1128" y="176" font-size="11" fill="#5c6763" text-anchor="end">대화 세션 · TEXT</text>
+<text x="852" y="200" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="880" y="200" font-size="13" fill="#1d2421">status</text>
+<text x="1128" y="200" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="852" y="224" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="880" y="224" font-size="13" fill="#1d2421">replan_count</text>
+<text x="1128" y="224" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<text x="852" y="248" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="880" y="248" font-size="13" fill="#1d2421">llm_calls</text>
+<text x="1128" y="248" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<rect x="840" y="360" width="300" height="168" rx="10" fill="#fff" stroke="#c9d3ce" stroke-width="1.4"/>
+<path d="M840,370 a10,10 0 0 1 10,-10 h280 a10,10 0 0 1 10,10 v30 h-300 z" fill="#1f5f4a"/>
+<text x="854" y="386" font-size="15" font-weight="700" fill="#fff">run_events</text>
+<text x="1126" y="386" font-size="12" fill="#d9ece4" text-anchor="end">실행 단계 이벤트</text>
+<text x="852" y="418" font-size="10.5" font-weight="700" fill="#b5651d">PK</text>
+<text x="880" y="418" font-size="13" fill="#1d2421">id</text>
+<text x="1128" y="418" font-size="11" fill="#5c6763" text-anchor="end">INTEGER</text>
+<text x="852" y="442" font-size="10.5" font-weight="700" fill="#2f6fde">FK</text>
+<text x="880" y="442" font-size="13" fill="#1d2421">run_id</text>
+<text x="1128" y="442" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="852" y="466" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="880" y="466" font-size="13" fill="#1d2421">seq</text>
+<text x="1128" y="466" font-size="11" fill="#5c6763" text-anchor="end">순서 · INTEGER</text>
+<text x="852" y="490" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="880" y="490" font-size="13" fill="#1d2421">type</text>
+<text x="1128" y="490" font-size="11" fill="#5c6763" text-anchor="end">tool_call·replan… · TEXT</text>
+<text x="852" y="514" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="880" y="514" font-size="13" fill="#1d2421">payload_json</text>
+<text x="1128" y="514" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<rect x="1180" y="360" width="300" height="144" rx="10" fill="#fff" stroke="#c9d3ce" stroke-width="1.4"/>
+<path d="M1180,370 a10,10 0 0 1 10,-10 h280 a10,10 0 0 1 10,10 v30 h-300 z" fill="#1f5f4a"/>
+<text x="1194" y="386" font-size="15" font-weight="700" fill="#fff">anomaly_reports</text>
+<text x="1466" y="386" font-size="12" fill="#d9ece4" text-anchor="end">이상 징후 판정</text>
+<text x="1192" y="418" font-size="10.5" font-weight="700" fill="#b5651d">PK</text>
+<text x="1220" y="418" font-size="13" fill="#1d2421">run_id</text>
+<text x="1468" y="418" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="1192" y="442" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="1220" y="442" font-size="13" fill="#1d2421">verdict</text>
+<text x="1468" y="442" font-size="11" fill="#5c6763" text-anchor="end">ok·warn·불가 · TEXT</text>
+<text x="1192" y="466" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="1220" y="466" font-size="13" fill="#1d2421">findings_json</text>
+<text x="1468" y="466" font-size="11" fill="#5c6763" text-anchor="end">TEXT</text>
+<text x="1192" y="490" font-size="10.5" font-weight="700" fill="#5c6763"></text>
+<text x="1220" y="490" font-size="13" fill="#1d2421">diagnosis</text>
+<text x="1468" y="490" font-size="11" fill="#5c6763" text-anchor="end">LLM 원인 진단 · TEXT</text>
+<path d="M190,214 L190,360" fill="none" stroke="#5c6763" stroke-width="1.5" marker-end="url(#many)"/><circle cx="190" cy="214" r="3.5" fill="#5c6763"/><text x="190.0" y="281.0" font-size="11.5" fill="#5c6763" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">저장 1:N</text>
+<path d="M340,110 L440,110" fill="none" stroke="#5c6763" stroke-width="1.5" marker-end="url(#many)"/><circle cx="340" cy="110" r="3.5" fill="#5c6763"/><text x="390.0" y="104.0" font-size="11.5" fill="#5c6763" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">소유 1:N</text>
+<path d="M160,70 L160,54 L990,54 L990,70" fill="none" stroke="#5c6763" stroke-width="1.5" marker-end="url(#many)"/><circle cx="160" cy="70" r="3.5" fill="#5c6763"/><text x="575.0" y="48.0" font-size="11.5" fill="#5c6763" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">요청 1:N</text>
+<path d="M840,170 L740,170" fill="none" stroke="#5c6763" stroke-width="1.5" marker-end="url(#many)"/><circle cx="840" cy="170" r="3.5" fill="#5c6763"/><text x="790.0" y="164.0" font-size="11.5" fill="#5c6763" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">출처 1:N</text>
+<path d="M990,262 L990,360" fill="none" stroke="#5c6763" stroke-width="1.5" marker-end="url(#many)"/><circle cx="990" cy="262" r="3.5" fill="#5c6763"/><text x="990.0" y="305.0" font-size="11.5" fill="#5c6763" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">단계 1:N</text>
+<path d="M1140,130 L1330,130 L1330,360" fill="none" stroke="#5c6763" stroke-width="1.5" marker-end="url(#many)"/><circle cx="1140" cy="130" r="3.5" fill="#5c6763"/><text x="1330.0" y="239.0" font-size="11.5" fill="#5c6763" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">판정 1:0..1</text>
+<path d="M590,310 L590,400" fill="none" stroke="#5c6763" stroke-width="1.5" marker-end="url(#many)"/><circle cx="590" cy="310" r="3.5" fill="#5c6763"/><text x="590.0" y="349.0" font-size="11.5" fill="#5c6763" text-anchor="middle" paint-order="stroke" stroke="#fff" stroke-width="4">캘린더 등록</text>
+<text x="1180" y="560" font-size="12" fill="#5c6763">외부 API 캐시·호출 수는 별도 DB</text><text x="1180" y="578" font-size="12" fill="#5c6763">(api_cache · api_quota, tools/budget.py)</text>
+</svg>
