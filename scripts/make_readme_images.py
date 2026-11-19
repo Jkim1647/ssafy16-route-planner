@@ -49,21 +49,31 @@ def box(x, y, w, h, ico, title, sub="", fill="#fff", stroke=LINE, title_color=IN
     return "\n".join(out)
 
 
-def arrow(points, label="", dashed=False, lx=None, ly=None):
+def arrow(points, label="", dashed=False, lx=None, ly=None, anchor="middle"):
+    """선 + 화살촉. 라벨은 선 위가 아니라 옆(lx, ly)에 둔다 — 선이 글자 사이를 지나가지 않게."""
     d = "M" + " L".join(f"{x},{y}" for x, y in points)
     dash = ' stroke-dasharray="5 5"' if dashed else ""
     out = [f'<path d="{d}" fill="none" stroke="{MUTED}" stroke-width="1.6"{dash} marker-end="url(#arrow)"/>']
     if label:
         x = lx if lx is not None else (points[0][0] + points[-1][0]) / 2
-        y = ly if ly is not None else (points[0][1] + points[-1][1]) / 2 - 6
-        out.append(f'<text x="{x}" y="{y}" font-size="11.5" fill="{MUTED}" text-anchor="middle" '
-                   f'paint-order="stroke" stroke="#fff" stroke-width="4">{esc(label)}</text>')
+        y = ly if ly is not None else (points[0][1] + points[-1][1]) / 2 - 8
+        out.append(f'<text x="{x}" y="{y}" font-size="11.5" fill="{MUTED}" text-anchor="{anchor}">{esc(label)}</text>')
     return "\n".join(out)
 
 
-def band(y, h, title, fill):
+def band(y, h, title, fill, tx=34):
     return (f'<rect x="16" y="{y}" width="1248" height="{h}" rx="16" fill="{fill}"/>'
-            f'<text x="34" y="{y + 24}" font-size="13" font-weight="700" fill="{ACCENT}">{esc(title)}</text>')
+            f'<text x="{tx}" y="{y + 22}" font-size="13" font-weight="700" fill="{ACCENT}">{esc(title)}</text>')
+
+
+def ext_box(x, y, w, h, ico, title, sub):
+    """외부 서비스: 아이콘 위, 글자 가운데 — 좁은 칸에서도 글자가 넘치지 않게."""
+    cx = x + w / 2
+    return "\n".join([
+        f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" fill="#fff" stroke="{LINE}" stroke-width="1.4"/>',
+        icon(ico, cx - 13, y + 12),
+        f'<text x="{cx}" y="{y + 58}" font-size="14" font-weight="700" fill="{INK}" text-anchor="middle">{esc(title)}</text>',
+        f'<text x="{cx}" y="{y + 77}" font-size="11.5" fill="{MUTED}" text-anchor="middle">{esc(sub)}</text>'])
 
 
 def architecture() -> str:
@@ -74,46 +84,50 @@ def architecture() -> str:
          '<rect width="100%" height="100%" fill="#ffffff"/>',
          band(16, 124, "① 화면 · frontend/ (Vue 3 SPA, 빌드 없음)", "#eef5f1"),
          band(156, 300, "② 백엔드 · backend/ (FastAPI)", "#f3f5f9"),
-         band(472, 232, "③ 외부 서비스 (백엔드에서만 호출 · 캐시·호출 한도 budget.py)", "#fbf6ec")]
+         # ③ 제목은 GMS로 내려가는 선(x=124) 오른쪽에서 시작
+         band(472, 232, "③ 외부 서비스 — 백엔드에서만 호출, 캐시·호출 한도(budget.py)를 거침", "#fbf6ec", tx=160)]
     # ① 화면
-    p.append(box(40, 52, 150, 70, "user", "사용자", "말하거나 골라서 묻기"))
-    p.append(box(240, 52, 560, 70, "browser", "화면 (Vue 3 · Vue Router · Leaflet)",
+    p.append(box(40, 52, 190, 70, "user", "사용자", "말하거나 골라서"))
+    p.append(box(270, 52, 560, 70, "browser", "화면 (Vue 3 · Vue Router · Leaflet)",
                  "대화·질문 만들기·지도 · 내 장소 · 이동 계획 · 실행 로그 · 공유 링크"))
-    p.append(box(850, 52, 390, 70, "pin", "지도 동선", "버스=도로 · 도보=보행로 · 노선별 색", fill="#fff"))
-    p.append(arrow([(190, 87), (240, 87)]))
-    # ② 백엔드
-    p.append(box(40, 196, 200, 74, "shield", "로그인", "Google OAuth → JWT 쿠키"))
-    p.append(box(290, 196, 230, 74, "api", "API 라우터", "chat · plans · places · logs"))
-    p.append(box(570, 190, 320, 86, "agent", "메인 Agent (LangGraph)", "분석→계획→실행→판단→재계획→응답",
+    p.append(box(870, 52, 370, 70, "pin", "지도 동선", "버스=도로 · 도보=보행로 · 노선별 색"))
+    p.append(arrow([(230, 87), (270, 87)]))
+    # ② 백엔드 — 1줄: 로그인 → API → Agent ⇢ 로깅, 2줄: 판단 · Tool · SQLite
+    p.append(box(40, 196, 250, 74, "shield", "로그인", "Google OAuth → JWT 쿠키"))
+    p.append(box(330, 196, 220, 74, "api", "API 라우터", "chat · plans · places · logs"))
+    p.append(box(590, 190, 320, 86, "agent", "메인 Agent (LangGraph)", "분석→계획→실행→판단→재계획→응답",
                  fill="#e7f1ec", stroke=ACCENT, title_color=ACCENT))
-    p.append(box(960, 196, 280, 74, "log", "로깅 Agent", "이벤트 저장 · 이상 징후 판정"))
-    p.append(box(470, 350, 220, 74, "scale", "판단 엔진 (코드)", "마감·예산·일정·파레토"))
-    p.append(box(730, 350, 270, 74, "tool", "Tool 13종", "ok/fail 규약 · 레지스트리"))
-    p.append(box(1040, 350, 200, 74, "db", "SQLite", "계획·장소·로그·사용자"))
-    p.append(arrow([(400, 122), (400, 160), (140, 160), (140, 196)], "fetch (쿠키 포함)", lx=270, ly=154))
-    p.append(arrow([(240, 233), (290, 233)]))
-    p.append(arrow([(520, 233), (570, 233)]))
-    p.append(arrow([(890, 233), (960, 233)], "이벤트", dashed=True, ly=222))
-    p.append(arrow([(620, 276), (620, 350)], "후보 판정", lx=660, ly=318))
-    p.append(arrow([(840, 276), (840, 350)], "작업 t1~t15", lx=884, ly=318))
-    p.append(arrow([(1100, 270), (1100, 350)]))
-    # ③ 외부
-    ext = [("chip", "SSAFY GMS", "LLM · 요청당 ≤2회"), ("pin", "카카오", "장소 · 택시 · 도로"),
-           ("train", "TAGO", "열차 · 고속버스"), ("bus", "ODsay", "대중교통 · 하루 30회"),
-           ("weather", "날씨·돌발·행사", "기상청 · ITS · TourAPI"), ("walk", "OSM 보행 경로", "도보 동선(지도)"),
-           ("calendar", "Google Calendar", "일정 조회 · 등록")]
-    xs = [40 + i * 175 for i in range(len(ext))]
+    p.append(box(970, 196, 270, 74, "log", "로깅 Agent", "이벤트 저장 · 이상 징후 판정"))
+    p.append(box(500, 350, 230, 74, "scale", "판단 엔진 (코드)", "마감·예산·일정·파레토"))
+    p.append(box(770, 350, 250, 74, "tool", "Tool 13종", "ok/fail 규약 · 레지스트리"))
+    p.append(box(1060, 350, 180, 74, "db", "SQLite", "계획·장소·로그·사용자"))
+    # 화면 → 로그인: ② 제목(왼쪽 끝) 오른쪽으로 곧게 내려간다. 라벨은 띠 사이 빈칸에
+    p.append(arrow([(284, 122), (284, 196)], "fetch (쿠키 포함)", lx=294, ly=152, anchor="start"))
+    p.append(arrow([(290, 233), (330, 233)]))
+    p.append(arrow([(550, 233), (590, 233)]))
+    p.append(arrow([(910, 233), (970, 233)], "이벤트", dashed=True, ly=222))
+    p.append(arrow([(640, 276), (640, 350)], "후보 판정", lx=650, ly=318, anchor="start"))
+    p.append(arrow([(860, 276), (860, 350)], "작업 t1~t15", lx=870, ly=318, anchor="start"))
+    p.append(arrow([(1150, 270), (1150, 350)]))
+    # ③ 외부 — 아이콘 위·글자 아래 상자 7개
+    ext = [("chip", "SSAFY GMS", "LLM · 요청당 2회 이하"), ("pin", "카카오", "장소 · 택시 · 도로"),
+           ("train", "TAGO", "열차 · 고속버스"), ("bus", "ODsay", "대중교통(하루 30회)"),
+           ("weather", "날씨·돌발·행사", "기상청·ITS·TourAPI"), ("walk", "OSM 보행 경로", "도보 동선(지도)"),
+           ("calendar", "Google 캘린더", "일정 조회 · 등록")]
+    BW, STEP, TOP = 168, 174, 592
+    xs = [40 + i * STEP for i in range(len(ext))]
     for x, (ico, t, s) in zip(xs, ext):
-        p.append(box(x, 600, 160, 74, ico, t, s))
-    # LLM: Agent → (아래로 돌아) GMS
-    p.append(arrow([(590, 276), (590, 300), (120, 300), (120, 600)], "조건 뽑기 · 답장", lx=300, ly=294))
-    # Tool → 나머지 외부 서비스(버스 선)
-    bus_y = 540
-    p.append(f'<path d="M865,424 L865,{bus_y}" stroke="{MUTED}" stroke-width="1.6" fill="none"/>')
-    p.append(f'<path d="M{xs[1] + 80},{bus_y} L{xs[-1] + 80},{bus_y}" stroke="{MUTED}" stroke-width="1.6" fill="none"/>')
-    for x in xs[1:]:
-        p.append(arrow([(x + 80, bus_y), (x + 80, 600)]))
-    p.append(f'<text x="{xs[1] + 84}" y="{bus_y - 8}" font-size="11.5" fill="{MUTED}">Tool 호출 · 같은 입력은 캐시 재사용</text>')
+        p.append(ext_box(x, TOP, BW, 96, ico, t, s))
+    cx = [x + BW / 2 for x in xs]
+    # Agent → GMS: Agent 아래에서 왼쪽으로 돌아 GMS 위로. 라벨은 선 아래 빈칸에
+    p.append(arrow([(600, 276), (600, 306), (cx[0], 306), (cx[0], TOP)], "조건 뽑기 · 답장", lx=340, ly=326))
+    # Tool → 나머지 외부 서비스(버스 선). 라벨은 선 위 왼쪽, 세로선과 겹치지 않는 자리
+    bus_y = 548
+    p.append(f'<path d="M895,424 L895,{bus_y}" stroke="{MUTED}" stroke-width="1.6" fill="none"/>')
+    p.append(f'<path d="M{cx[1]},{bus_y} L{cx[-1]},{bus_y}" stroke="{MUTED}" stroke-width="1.6" fill="none"/>')
+    for x in cx[1:]:
+        p.append(arrow([(x, bus_y), (x, TOP)]))
+    p.append(f'<text x="{cx[1] + 10}" y="{bus_y - 9}" font-size="11.5" fill="{MUTED}">Tool 호출 · 같은 입력은 캐시 재사용</text>')
     p.append("</svg>")
     return "\n".join(p)
 
@@ -166,10 +180,14 @@ def rel(points, label):
     segs = list(zip(points, points[1:]))
     (ax, ay), (bx, by) = max(segs, key=lambda s: abs(s[0][0] - s[1][0]) + abs(s[0][1] - s[1][1]))
     mx, my = (ax + bx) / 2, (ay + by) / 2
+    # 세로 선분이면 선 오른쪽에, 가로면 선 위에 — 선이 글자를 지나가지 않게
+    if ax == bx:
+        tx, ty, anchor = mx + 8, my + 4, "start"
+    else:
+        tx, ty, anchor = mx, my - 8, "middle"
     return (f'<path d="{d}" fill="none" stroke="{MUTED}" stroke-width="1.5" marker-end="url(#many)"/>'
             f'<circle cx="{points[0][0]}" cy="{points[0][1]}" r="3.5" fill="{MUTED}"/>'
-            f'<text x="{mx}" y="{my - 6}" font-size="11.5" fill="{MUTED}" text-anchor="middle" paint-order="stroke" '
-            f'stroke="#fff" stroke-width="4">{esc(label)}</text>')
+            f'<text x="{tx}" y="{ty}" font-size="11.5" fill="{MUTED}" text-anchor="{anchor}">{esc(label)}</text>')
 
 
 def erd() -> str:
