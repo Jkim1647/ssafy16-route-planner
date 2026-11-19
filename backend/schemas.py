@@ -67,6 +67,7 @@ class PlanUpdate(BaseModel):
 class PlanOut(PlanIn):
     id: int
     calendar_event_id: str | None = None
+    share_token: str | None = None  # 주인에게만 보인다(공유 화면 응답에는 넣지 않음)
     created_at: dt.datetime
     updated_at: dt.datetime
 

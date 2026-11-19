@@ -43,6 +43,9 @@ def init_db(path: str) -> None:
         cols = {r[1] for r in c.execute("PRAGMA table_info(plans)")}
         if "points_json" not in cols:
             c.execute("ALTER TABLE plans ADD COLUMN points_json TEXT NOT NULL DEFAULT '[]'")
+        if "share_token" not in cols:  # 읽기 전용 공유 링크(없으면 공유 안 함)
+            c.execute("ALTER TABLE plans ADD COLUMN share_token TEXT")
+        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS plans_share_token ON plans(share_token) WHERE share_token IS NOT NULL")
         # 로그인 도입 전 데이터는 이 컴퓨터 사용자("local") 것으로 둔다
         for table in ("plans", "runs", "local_calendar"):
             if "user_id" not in {r[1] for r in c.execute(f"PRAGMA table_info({table})")}:

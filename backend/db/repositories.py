@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import secrets
 
 from backend.auth.context import current_user_id
 from backend.db.database import connect
@@ -93,6 +94,29 @@ class PlanRepo:
     def delete(self, plan_id: int) -> bool:
         with connect(self.db) as c:
             return c.execute("DELETE FROM plans WHERE id=? AND user_id=?", (plan_id, current_user_id())).rowcount > 0
+
+    def share(self, plan_id: int) -> str | None:
+        """읽기 전용 공유 토큰(이미 있으면 그대로). 주인 계획이 아니면 None."""
+        plan = self.get(plan_id)
+        if plan is None:
+            return None
+        if plan.share_token:
+            return plan.share_token
+        token = secrets.token_urlsafe(18)  # 144비트 — 추측 불가
+        with connect(self.db) as c:
+            c.execute("UPDATE plans SET share_token=? WHERE id=? AND user_id=?", (token, plan_id, current_user_id()))
+        return token
+
+    def unshare(self, plan_id: int) -> bool:
+        with connect(self.db) as c:
+            return c.execute("UPDATE plans SET share_token=NULL WHERE id=? AND user_id=?",
+                             (plan_id, current_user_id())).rowcount > 0
+
+    def get_shared(self, token: str) -> PlanOut | None:
+        """공유 토큰으로 조회(사용자 구분 없음 — 링크를 가진 사람은 누구나)."""
+        with connect(self.db) as c:
+            r = c.execute("SELECT * FROM plans WHERE share_token=?", (token,)).fetchone()
+        return self._row(r) if r else None
 
     def set_calendar_event(self, plan_id: int, event_id: str) -> None:
         with connect(self.db) as c:

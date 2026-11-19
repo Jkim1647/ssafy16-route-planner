@@ -92,6 +92,29 @@ export default {
     }
     const CHECK_ICON = { ok: "✓", warn: "⚠", info: "·" };
 
+    // 읽기 전용 공유 링크
+    const shareUrl = computed(() => (plan.value?.share_token
+      ? `${location.origin}${location.pathname}#/s/${plan.value.share_token}` : ""));
+    async function share() {
+      busy.value = true;
+      try {
+        const r = await api(`/plans/${props.id}/share`, { method: "POST", body: {} });
+        plan.value = { ...plan.value, share_token: r.token };
+      } catch (e) { notice.value = { kind: "bad", text: e.message }; } finally { busy.value = false; }
+    }
+    async function unshare() {
+      busy.value = true;
+      try {
+        await api(`/plans/${props.id}/share`, { method: "DELETE" });
+        plan.value = { ...plan.value, share_token: null };
+        toast("공유를 끊었어요. 이전 링크는 더 이상 열리지 않아요.");
+      } catch (e) { notice.value = { kind: "bad", text: e.message }; } finally { busy.value = false; }
+    }
+    async function copyLink() {
+      try { await navigator.clipboard.writeText(shareUrl.value); toast("링크를 복사했어요."); }
+      catch { toast("복사하지 못했어요. 링크를 직접 선택해 복사해 주세요.", "warn"); }
+    }
+
     async function remove() {
       busy.value = true;
       try {
@@ -105,7 +128,7 @@ export default {
     }
 
     return { plan, error, editing, form, busy, notice, confirmDelete, totalMin, startEdit, saveEdit, addCalendar, remove,
-      check, checking, recheck, replan, CHECK_ICON,
+      check, checking, recheck, replan, CHECK_ICON, shareUrl, share, unshare, copyLink,
       dateLabel, legLabel, mins, won, POINT_LABEL, legColor, busTypeLabel };
   },
   template: `
@@ -127,11 +150,19 @@ export default {
             <button type="button" :disabled="checking" @click="recheck">{{ checking ? '확인하는 중…' : '다시 확인' }}</button>
             <span v-if="plan.calendar_event_id" class="tag ok">캘린더 등록됨</span>
             <button v-else type="button" class="ghost" :disabled="busy" @click="addCalendar">캘린더에 등록</button>
+            <button v-if="!plan.share_token" type="button" class="ghost" :disabled="busy" @click="share">공유 링크</button>
             <button type="button" class="ghost" :disabled="busy" @click="startEdit">수정</button>
             <button type="button" class="danger" :disabled="busy" @click="confirmDelete = true">삭제</button>
           </div>
         </div>
         <div v-if="notice" class="notice" :class="notice.kind" role="status">{{ notice.text }}</div>
+        <section v-if="plan.share_token" class="share-box" aria-label="공유 링크">
+          <label class="sr-only" for="share-url">공유 링크</label>
+          <input id="share-url" :value="shareUrl" readonly @focus="$event.target.select()">
+          <button type="button" class="small" @click="copyLink">복사</button>
+          <button type="button" class="danger small" :disabled="busy" @click="unshare">공유 끊기</button>
+          <p class="hint">링크를 가진 사람은 로그인 없이 이 계획의 경로·시각·지도(출발지 위치 포함)를 볼 수 있어요. 수정은 할 수 없어요.</p>
+        </section>
         <section v-if="check" class="recheck" :class="check.status" aria-live="polite">
           <div class="recheck-head">
             <strong>{{ check.status === 'ok' ? '그대로 가도 돼요' : check.status === 'past' ? '출발 시각이 지났어요' : '확인할 게 있어요' }}</strong>

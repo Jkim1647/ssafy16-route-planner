@@ -8,6 +8,7 @@ import PlansPage from "./pages/PlansPage.js";
 import PlanDetailPage from "./pages/PlanDetailPage.js";
 import { LogDetailPage, LogsPage } from "./pages/LogsPage.js";
 import PlacesPage from "./pages/PlacesPage.js";
+import SharedPlanPage from "./pages/SharedPlanPage.js";
 import IntroGuide, { introHiddenToday } from "./components/IntroGuide.js";
 import DepartureBanner from "./components/DepartureBanner.js";
 
@@ -22,6 +23,7 @@ const routes = [
   { path: "/trip", redirect: "/" },  // 여러 동선은 대화 화면의 '조건으로 질문 만들기'로 합침(옛 주소 호환)
   { path: "/places", component: PlacesPage, meta: { title: "내 장소" } },
   { path: "/logs", component: LogsPage, meta: { title: "실행 로그" } },
+  { path: "/s/:token", component: SharedPlanPage, props: true, meta: { title: "공유받은 계획", public: true } },
   { path: "/logs/:sid", component: LogDetailPage, props: true, meta: { title: "실행 로그 상세" } },
   { path: "/:rest(.*)*", component: NotFound, meta: { title: "없는 페이지" } },
 ];
@@ -50,15 +52,18 @@ const App = {
         : "";
     });
     // 로그인: 로그인이 필수인데 안 했으면 로그인 화면만 보여 준다(데이터 API는 서버가 401로 막음)
-    const needLogin = computed(() => !!store.auth && store.auth.auth_required && !store.auth.user);
+    const loggedOut = computed(() => !!store.auth && store.auth.auth_required && !store.auth.user);
+    // 공유 링크(/s/…)는 로그인 없이 볼 수 있다
+    const isPublic = computed(() => !!router.currentRoute.value.meta.public);
+    const needLogin = computed(() => loggedOut.value && !isPublic.value);
     const loginUrl = API_BASE + "/auth/google/login";
     async function logout() {
       try { await api("/auth/logout", { method: "POST", body: {} }); } catch { /* 이미 만료 */ }
       location.reload();
     }
     window.addEventListener("rp:unauthorized", loadMe);
-    onMounted(async () => { await loadMe(); loadStatus(); if (!needLogin.value) loadPlaces(); });
-    return { store, missing, quota, introOpen, openIntro, needLogin, loginUrl, logout };
+    onMounted(async () => { await loadMe(); loadStatus(); if (!loggedOut.value) loadPlaces(); });
+    return { store, missing, quota, introOpen, openIntro, needLogin, loggedOut, loginUrl, logout };
   },
   template: `
     <a href="#main" class="skip">본문으로 건너뛰기</a>
@@ -84,7 +89,7 @@ const App = {
     <div v-if="store.statusError" class="banner">{{ store.statusError }}</div>
     <div v-else-if="missing.length" class="banner">API 키가 설정되지 않았어요: {{ missing.join(', ') }} — .env 파일을 확인해 주세요.</div>
     <div class="quota" aria-live="polite"><span data-tour="quota">{{ quota }}</span></div>
-    <DepartureBanner v-if="store.auth && !needLogin" />
+    <DepartureBanner v-if="store.auth && !loggedOut" />
     <main v-if="needLogin" id="main" tabindex="-1" class="login-page">
       <section class="login-card">
         <h2>로그인이 필요해요</h2>

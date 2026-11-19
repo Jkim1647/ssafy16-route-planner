@@ -6,7 +6,7 @@ from backend.auth import jwt
 from backend.auth.context import LOCAL, reset_user, set_user
 
 COOKIE = "rp_session"
-PUBLIC = ("/api/auth/", "/api/config/status")
+PUBLIC = ("/api/auth/", "/api/config/status", "/api/shared/")  # 공유 링크는 로그인 없이(읽기 전용, 토큰으로만)
 
 
 def session_claims(scope, secret: str) -> dict | None:

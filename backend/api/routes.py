@@ -1,4 +1,5 @@
 """백엔드 API(F3017): 대화 · 계획 관리 · 실행 로그 · 메타 정보를 서로 다른 경로로 제공."""
+import re
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
@@ -78,6 +79,38 @@ def register_plan_calendar(plan_id: int, request: Request):
         status = {"NOT_FOUND": 404, "CONFLICT": 409, "BAD_ARGUMENT": 400}.get(r["error"]["code"], 502)
         raise HTTPException(status, r["error"]["message"])
     return r["data"]
+
+
+@router.post("/plans/{plan_id}/share", tags=["계획"])
+def share_plan(plan_id: int, request: Request):
+    """읽기 전용 공유 링크 토큰을 만든다(이미 있으면 그대로). JSON 요청만 — 다른 사이트 폼으로 링크가 생기지 않게."""
+    if not request.headers.get("content-type", "").startswith("application/json"):
+        raise HTTPException(415, "Content-Type: application/json 요청만 받습니다.")
+    token = _c(request).plans.share(plan_id)
+    if token is None:
+        raise HTTPException(404, "그런 이동 계획이 없습니다.")
+    return {"token": token}
+
+
+@router.delete("/plans/{plan_id}/share", status_code=204, tags=["계획"])
+def unshare_plan(plan_id: int, request: Request):
+    if not _c(request).plans.unshare(plan_id):
+        raise HTTPException(404, "그런 이동 계획이 없습니다.")
+    return Response(status_code=204)
+
+
+SHARE_TOKEN = re.compile(r"^[A-Za-z0-9_-]{20,40}$")
+SHARED_FIELDS = ("title", "date", "leave_at", "arrive_at", "origin_name", "destination_name", "legs", "total_fare", "points")
+
+
+@router.get("/shared/{token}", tags=["계획"])
+def view_shared(token: str, request: Request):
+    """공유 링크로 보는 계획(로그인 없이, 읽기 전용). 사용자·캘린더·실행 ID는 보내지 않는다."""
+    plan = _c(request).plans.get_shared(token) if SHARE_TOKEN.match(token) else None
+    if plan is None:
+        raise HTTPException(404, "공유가 끝났거나 없는 링크예요.")
+    data = plan.model_dump(mode="json")
+    return {k: data[k] for k in SHARED_FIELDS}
 
 
 @router.post("/plans/{plan_id}/recheck", tags=["계획"])

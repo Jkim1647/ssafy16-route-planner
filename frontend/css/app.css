@@ -415,3 +415,9 @@ select { font: inherit; padding: 7px 8px; border: 1px solid var(--line); border-
 .cal-suggest li { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .cal-suggest .when { font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
 .cal-suggest button { margin-left: auto; }
+
+/* 공유 링크 */
+.share-box { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 14px; padding: 10px 14px;
+  border: 1px solid var(--line); border-radius: var(--radius); background: #fff; }
+.share-box input { flex: 1; min-width: 240px; font-size: 13px; }
+.share-box .hint { flex-basis: 100%; margin: 0; }
