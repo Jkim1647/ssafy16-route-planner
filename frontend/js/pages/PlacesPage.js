@@ -5,6 +5,19 @@ import { loadPlaces, store, toast } from "../store.js";
 
 export const KINDS = [["home", "집"], ["school", "교육장·학교"], ["work", "회사"], ["pin", "기타"]];
 export const KIND_ICON = { home: "🏠", school: "🎓", work: "🏢", pin: "📍" };
+const DEFAULT_LABEL = { home: "집", school: "교육장" };
+
+// 검색 결과를 골랐을 때 이름·종류 기본값: 아직 없는 집·교육장부터, 둘 다 있으면 장소 이름(기타).
+// 이미 있는 이름이면 뒤에 번호를 붙여 저장 시 이름 중복(409)이 나지 않게 한다.
+export function suggestPlace(saved, result) {
+  const kinds = new Set(saved.map((p) => p.kind));
+  const labels = new Set(saved.map((p) => p.label));
+  const kind = ["home", "school"].find((k) => !kinds.has(k)) || "pin";
+  const base = (DEFAULT_LABEL[kind] || result.name || "장소").slice(0, 17);
+  let label = base;
+  for (let n = 2; labels.has(label); n++) label = `${base} ${n}`;
+  return { label, kind };
+}
 
 export default {
   name: "PlacesPage",
@@ -14,7 +27,7 @@ export default {
     const searching = ref(false);
     const searchError = ref("");
     const picked = ref(null);
-    const form = ref({ label: "", kind: "home" });
+    const form = ref({ label: "", kind: "pin" });
     const editing = ref(null);
     const saving = ref(false);
 
@@ -33,7 +46,7 @@ export default {
     }
     function pick(r) {
       picked.value = r;
-      if (!form.value.label) form.value.label = KINDS.find((k) => k[0] === form.value.kind)?.[1].split("·")[0] || "";
+      form.value = suggestPlace(store.places, r);
     }
     async function save() {
       if (!picked.value) return;
