@@ -112,11 +112,11 @@ class PlanRepo:
             return c.execute("UPDATE plans SET share_token=NULL WHERE id=? AND user_id=?",
                              (plan_id, current_user_id())).rowcount > 0
 
-    def get_shared(self, token: str) -> PlanOut | None:
-        """공유 토큰으로 조회(사용자 구분 없음 — 링크를 가진 사람은 누구나)."""
+    def get_shared(self, token: str) -> tuple[PlanOut, str] | None:
+        """공유 토큰으로 조회(사용자 구분 없음 — 링크를 가진 사람은 누구나). (계획, 주인 ID)."""
         with connect(self.db) as c:
             r = c.execute("SELECT * FROM plans WHERE share_token=?", (token,)).fetchone()
-        return self._row(r) if r else None
+        return (self._row(r), r["user_id"]) if r else None
 
     def set_calendar_event(self, plan_id: int, event_id: str) -> None:
         with connect(self.db) as c:

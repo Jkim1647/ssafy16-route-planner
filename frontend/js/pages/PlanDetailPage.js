@@ -161,7 +161,8 @@ export default {
           <input id="share-url" :value="shareUrl" readonly @focus="$event.target.select()">
           <button type="button" class="small" @click="copyLink">복사</button>
           <button type="button" class="danger small" :disabled="busy" @click="unshare">공유 끊기</button>
-          <p class="hint">링크를 가진 사람은 로그인 없이 이 계획의 경로·시각·지도(출발지 위치 포함)를 볼 수 있어요. 수정은 할 수 없어요.</p>
+          <p class="hint">링크를 가진 사람은 로그인 없이 이 계획의 경로·시각·지도를 볼 수 있어요(수정 불가).
+            '내 장소'에 집으로 저장한 곳 근처는 약 500m 단위로 흐리게, 이름은 '집 근처'로 보여요. 그 밖의 장소는 그대로 보여요.</p>
         </section>
         <section v-if="check" class="recheck" :class="check.status" aria-live="polite">
           <div class="recheck-head">

@@ -33,6 +33,7 @@ export default {
         </div></div>
         <div class="detail-grid">
           <div class="panel">
+            <p v-if="plan.home_hidden" class="hint">🔒 공유한 사람의 집 위치는 동네 수준으로만 보여요.</p>
             <RouteMap v-if="plan.points && plan.points.length" :points="plan.points" :legs="plan.legs" height="380px" />
             <p v-else class="hint">지도 정보가 없는 계획이에요.</p>
           </div>

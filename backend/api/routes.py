@@ -106,11 +106,18 @@ SHARED_FIELDS = ("title", "date", "leave_at", "arrive_at", "origin_name", "desti
 @router.get("/shared/{token}", tags=["계획"])
 def view_shared(token: str, request: Request):
     """공유 링크로 보는 계획(로그인 없이, 읽기 전용). 사용자·캘린더·실행 ID는 보내지 않는다."""
-    plan = _c(request).plans.get_shared(token) if SHARE_TOKEN.match(token) else None
-    if plan is None:
+    from backend.auth.context import use_user
+    from backend.share import redact_home
+
+    c = _c(request)
+    found = c.plans.get_shared(token) if SHARE_TOKEN.match(token) else None
+    if found is None:
         raise HTTPException(404, "공유가 끝났거나 없는 링크예요.")
+    plan, owner = found
+    with use_user(owner):  # 주인이 '집'으로 저장한 곳은 흐리게(받는 사람에게 집 위치가 드러나지 않게)
+        homes = [(p.x, p.y, {p.name, p.label}) for p in c.places.list() if p.kind == "home"]
     data = plan.model_dump(mode="json")
-    return {k: data[k] for k in SHARED_FIELDS}
+    return redact_home({k: data[k] for k in SHARED_FIELDS}, homes)
 
 
 @router.post("/plans/{plan_id}/recheck", tags=["계획"])
