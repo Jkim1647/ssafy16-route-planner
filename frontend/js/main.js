@@ -8,7 +8,6 @@ import PlansPage from "./pages/PlansPage.js";
 import PlanDetailPage from "./pages/PlanDetailPage.js";
 import { LogDetailPage, LogsPage } from "./pages/LogsPage.js";
 import PlacesPage from "./pages/PlacesPage.js";
-import TripPage from "./pages/TripPage.js";
 import IntroGuide, { introHiddenToday } from "./components/IntroGuide.js";
 
 const NotFound = {
@@ -19,7 +18,7 @@ const routes = [
   { path: "/", component: ChatPage, meta: { title: "대화" } },
   { path: "/plans", component: PlansPage, meta: { title: "이동 계획" } },
   { path: "/plans/:id(\\d+)", component: PlanDetailPage, props: true, meta: { title: "이동 계획 상세" } },
-  { path: "/trip", component: TripPage, meta: { title: "여러 동선" } },
+  { path: "/trip", redirect: "/" },  // 여러 동선은 대화 화면의 '조건으로 질문 만들기'로 합침(옛 주소 호환)
   { path: "/places", component: PlacesPage, meta: { title: "내 장소" } },
   { path: "/logs", component: LogsPage, meta: { title: "실행 로그" } },
   { path: "/logs/:sid", component: LogDetailPage, props: true, meta: { title: "실행 로그 상세" } },
@@ -69,7 +68,6 @@ const App = {
       </router-link>
       <nav class="nav" aria-label="주 메뉴">
         <router-link to="/" exact-active-class="active">대화</router-link>
-        <router-link to="/trip" active-class="active" data-tour="trip">여러 동선</router-link>
         <router-link to="/places" active-class="active" data-tour="places">내 장소</router-link>
         <router-link to="/plans" active-class="active" data-tour="plans">이동 계획</router-link>
         <router-link to="/logs" active-class="active" data-tour="logs">실행 로그</router-link>

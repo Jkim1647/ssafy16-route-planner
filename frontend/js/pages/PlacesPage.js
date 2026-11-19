@@ -91,7 +91,7 @@ export default {
       <div class="page-head">
         <div>
           <h2>내 장소</h2>
-          <p class="hint">집·교육장처럼 자주 가는 곳을 이름으로 저장해요. 대화에서 "집에서 교육장까지"처럼 말하거나 여러 동선에서 바로 고를 수 있어요.</p>
+          <p class="hint">집·교육장처럼 자주 가는 곳을 이름으로 저장해요. 대화에서 "집에서 교육장까지"처럼 말하거나 '조건으로 질문 만들기'에서 끌어다 쓸 수 있어요.</p>
         </div>
       </div>
       <div class="detail-grid">

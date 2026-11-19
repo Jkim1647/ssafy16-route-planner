@@ -10,9 +10,9 @@
 |---|---|---|---|
 | ![대화](docs/screenshots/chat.jpg) | ![계획 상세](docs/screenshots/plan_detail.jpg) | ![계획](docs/screenshots/plans.jpg) | ![로그](docs/screenshots/logs_anomaly.jpg) |
 
-| 고속버스·행사 안내(부산 벡스코) | 여러 동선(집 → 교육장 → 강남역) | 내 장소 |
-|---|---|---|
-| ![행사 안내](docs/screenshots/festival.jpg) | ![여러 동선](docs/screenshots/trip.jpg) | ![내 장소](docs/screenshots/places.jpg) |
+| 조건으로 질문 만들기(끌어 놓기·달력·시계) | 여러 동선 결과(대화 안) | 고속버스·행사 안내(부산 벡스코) | 내 장소 |
+|---|---|---|---|
+| ![질문 만들기](docs/screenshots/builder.jpg) | ![여러 동선](docs/screenshots/trip.jpg) | ![행사 안내](docs/screenshots/festival.jpg) | ![내 장소](docs/screenshots/places.jpg) |
 
 ## 1. 실행 방법
 
@@ -27,7 +27,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 ```
 - 백엔드를 다른 포트로 띄웠다면 `http://127.0.0.1:5500/?api=http://127.0.0.1:8001/api` 처럼 지정합니다.
 - 화면은 빌드 없이 CDN의 Vue 3·Vue Router·Leaflet(버전 고정·무결성 해시)과 OpenStreetMap 지도 타일을 불러오므로 **인터넷 연결이 필요**합니다. `python -m http.server`는 Windows에서 `.js`를 `text/plain`으로 보내 화면이 뜨지 않을 수 있어 `serve_frontend.py`를 씁니다.
-- 테스트: `pytest` (306개, 외부 API를 부르지 않음)
+- 테스트: `pytest` (306개, 외부 API를 부르지 않음), 화면의 질문 문장 만들기 `node --test tests/frontend/question.test.mjs` (7개)
 - 확인용 스크립트: `scripts/tools_demo.py`·`scripts/tools_demo_extra.py`(Tool 단독, 12종), `scripts/smoke_run.py`(대화 1턴), `scripts/run_scenarios.py`(대표 시나리오), `scripts/compare_modes.py`(구조 비교)
 
 ## 2. 기능
@@ -56,7 +56,8 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | 로그인 | Google 로그인(OpenID Connect, 인가 코드 방식) → 서버가 id_token 검증(서명·발급자·대상·만료·이메일 인증) → HS256 JWT를 HttpOnly·SameSite=Lax 쿠키로. 계획·내 장소·실행 로그·로컬 캘린더는 사용자별로 분리. `AUTH_REQUIRED=false`면 로그인 없이 이 컴퓨터 사용자 한 명 |
 | 내 장소 | 집·교육장처럼 이름을 붙여 저장(장소 검색으로 고름). 대화에서 그 이름을 말하면 검색 없이 저장한 좌표 사용 |
 | 행사 참고 안내 | 이동하는 날 도착지 1km 안에서 열리는 축제·행사(한국관광공사 TourAPI)를 카드에 "주변이 붐빌 수 있어요"로 안내. 후보는 거르지 않음, 상설 공연 제외 |
-| 여러 동선 | 들를 곳 2~6곳을 끌어서 순서 정하기(키보드는 ↑↓), 곳마다 도착 마감·머무는 시간 → 한꺼번에 길찾기. 구간마다 기존 판단을 쓰고 앞 구간 도착 + 머무는 시간이 다음 출발 하한(LLM 없음, 실행 로그 기록) |
+| 조건으로 질문 만들기 | 대화 화면 아래 패널. 내 장소를 끌어다 놓거나 눌러서 들를 곳을 넣고(순서는 끌기·↑↓), 날짜는 달력·시각은 시계로 고름. **두 곳**이면 "내일 오전 9시까지 집에서 교육장 가야 해" 같은 질문을 만들어 바로 보내거나 입력창에서 고쳐 보냄(대화 Agent가 처리) |
+| 여러 동선 | 같은 패널에 **세 곳 이상**(최대 6곳) 넣으면 대화 안에서 한꺼번에 길찾기. 곳마다 도착 마감·머무는 시간, 구간마다 기존 판단을 쓰고 앞 구간 도착 + 머무는 시간이 다음 출발 하한(LLM 없음, 실행 로그 기록). 옛 주소 `#/trip`은 대화 화면으로 이동 |
 
 ## 3. API 키 설정
 `.env`(커밋 금지, `.gitignore` 등록)
@@ -149,12 +150,17 @@ route-planner/
 │   └── js/
 │       ├── main.js              # 라우터·상단바·알림
 │       ├── api.js · store.js · format.js
+│       ├── question.js          # 조건 → 대화 질문 문장(의존성 없음, node 테스트)
 │       ├── components/
 │       │   ├── RouteMap.js      # 경로 지도(Leaflet + OpenStreetMap)
 │       │   ├── ModeIcon.js      # 이동 수단 아이콘(직접 그린 SVG)
-│       │   └── common.js        # 경로 카드·수단 막대·아이콘 줄·실행 과정 타임라인
+│       │   ├── common.js        # 경로 카드·수단 막대·아이콘 줄·실행 과정 타임라인
+│       │   ├── PlanBuilder.js   # 조건으로 질문 만들기(끌어 놓기·달력·시계)
+│       │   ├── TripResult.js    # 여러 동선 결과(대화 안)
+│       │   └── IntroGuide.js    # 처음 안내(요소별 설명)
 │       └── pages/
-│           ├── ChatPage.js      # 대화 + 지도 + 실행 과정
+│           ├── ChatPage.js      # 대화 + 질문 만들기 + 지도 + 실행 과정
+│           ├── PlacesPage.js    # 내 장소(집·교육장 등 저장)
 │           ├── PlansPage.js     # 이동 계획 목록(검색·기간 필터)
 │           ├── PlanDetailPage.js# 계획 상세(지도·구간·캘린더·수정·삭제)
 │           └── LogsPage.js      # 실행 로그 목록·세션 상세

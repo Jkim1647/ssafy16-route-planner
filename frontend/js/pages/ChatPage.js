@@ -5,6 +5,8 @@ import { elapsedMs } from "../format.js";
 import { loadStatus, resetChat, setSession, store, toast } from "../store.js";
 import RouteMap from "../components/RouteMap.js";
 import { Excluded, RouteCard, TraceList } from "../components/common.js";
+import PlanBuilder from "../components/PlanBuilder.js";
+import TripResult from "../components/TripResult.js";
 
 const EXAMPLES = [
   "토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하",
@@ -14,7 +16,7 @@ const EXAMPLES = [
 
 export default {
   name: "ChatPage",
-  components: { RouteMap, RouteCard, Excluded, TraceList },
+  components: { RouteMap, RouteCard, Excluded, TraceList, PlanBuilder, TripResult },
   setup() {
     const input = ref("");
     const inputEl = ref(null);
@@ -97,9 +99,39 @@ export default {
         (d.undetermined ? ` · 판단 불가 ${d.undetermined}` : "");
     }
 
-    function insertPlace(label) {  // 저장한 장소 이름을 입력창에 넣는다(대화에서 그 이름으로 좌표를 씀)
-      input.value = (input.value ? input.value.trimEnd() + " " : "") + label;
+    // 조건 패널이 만든 질문: 바로 보내거나 입력창에 넣어 고치게 한다
+    function useQuestion(text, sendNow) {
+      if (sendNow) { send(text); return; }
+      input.value = text;
       nextTick(() => inputEl.value && inputEl.value.focus());
+    }
+
+    // 세 곳 이상: 대화 Agent는 한 구간만 다루므로 여러 동선 계산(LLM 없음)을 바로 부르고 결과를 대화에 붙인다
+    async function runTrip(body, route) {
+      if (store.sending) return;
+      store.messages.push({ role: "user", text: `여러 동선: ${route} (${body.date})` });
+      store.sending = true;
+      seconds.value = 0;
+      timer = setInterval(() => seconds.value++, 1000);
+      scrollDown();
+      try {
+        const r = await api("/trips/plan", { method: "POST", body });
+        const done = r.legs.filter((l) => l.status === "done").length;
+        store.messages.push({ role: "agent", trip: r,
+          text: done === r.legs.length ? `구간 ${r.legs.length}개를 모두 찾았어요. 구간마다 대표 경로를 보여 드려요.`
+            : `구간 ${r.legs.length}개 중 ${done}개를 찾았어요. 못 찾은 구간은 이유를 확인해 주세요.` });
+        store.selected = r.legs.find((l) => l.cards && l.cards.length)?.cards[0] || null;
+        store.lastEvents = [];
+        store.lastMeta = `여러 동선 · 구간 ${r.legs.length}개 · LLM 0회`;
+        panel.value = store.selected ? "map" : "trace";
+        loadStatus();
+      } catch (e) {
+        store.messages.push({ role: "agent", text: e.message, error: true });
+      } finally {
+        clearInterval(timer);
+        store.sending = false;
+        scrollDown();
+      }
     }
 
     function select(card) { store.selected = card; panel.value = "map"; }
@@ -108,7 +140,7 @@ export default {
     onBeforeUnmount(() => clearInterval(timer));
     scrollDown();
     return { store, input, inputEl, list, panel, seconds, savingKey, EXAMPLES, mapPoints, otherPoints,
-      send, save, select, newChat, decisionText, insertPlace };
+      send, save, select, newChat, decisionText, useQuestion, runTrip };
   },
   template: `
     <section class="chat-page">
@@ -125,6 +157,7 @@ export default {
               <RouteCard v-for="c in m.cards" :key="c.index + c.leave_at" :card="c" :selected="c === store.selected"
                          :saving="savingKey === c.index + c.leave_at" @select="select" @save="save($event, m.conds)" />
             </template>
+            <TripResult v-if="m.trip" :trip="m.trip" :selected="store.selected" @select="select" />
             <p v-for="s in m.sources || []" :key="s.title + s.page" class="hint">출처: {{ s.title }}<span v-if="s.page"> p.{{ s.page }}</span></p>
             <Excluded title="제외된 후보" :items="m.excluded" />
             <Excluded title="판단하지 않은 후보" :items="m.undetermined" />
@@ -148,10 +181,7 @@ export default {
           <span class="hint">이렇게 물어보세요</span>
           <button v-for="ex in EXAMPLES" :key="ex" type="button" class="chip" @click="send(ex)">{{ ex }}</button>
         </div>
-        <div v-if="store.places.length" class="saved-chips" aria-label="내 장소 넣기">
-          <span class="hint">내 장소</span>
-          <button v-for="p in store.places" :key="p.id" type="button" class="chip" @click="insertPlace(p.label)">{{ p.label }}</button>
-        </div>
+        <PlanBuilder :busy="store.sending" @question="useQuestion" @trip="runTrip" />
         <form class="composer" @submit.prevent="send()" data-tour="ask">
           <label for="chat-input" class="sr-only">메시지</label>
           <input id="chat-input" ref="inputEl" v-model="input" autocomplete="off" maxlength="500" :disabled="store.sending"
