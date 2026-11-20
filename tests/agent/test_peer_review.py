@@ -156,3 +156,12 @@ def test_recheck_weather_one_side_missing_is_partial(tools):
     r = recheck_plan(plan(), calendar=FakeCal(), now=RNOW)
     assert r["status"] == "partial" and "weather" in kinds(r, "unknown")
     assert any("도착지" in i["text"] for i in r["items"] if i["kind"] == "weather")
+
+
+# 3차 상호 점검. 좌표가 없어 예보 조회를 건너뛴 지점도 '확인 못 함'이다
+def test_recheck_weather_point_without_coords_is_partial(tools):
+    p = plan()
+    p = p.model_copy(update={"points": [pt for pt in p.points if pt.kind != "destination"]})
+    r = recheck_plan(p, calendar=FakeCal(), now=RNOW)
+    assert r["status"] == "partial"
+    assert any(i["level"] == "unknown" and "도착지" in i["text"] for i in r["items"] if i["kind"] == "weather")

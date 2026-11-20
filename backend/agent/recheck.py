@@ -81,7 +81,8 @@ def _weather_items(plan, start: dt.datetime, end: dt.datetime) -> list[dict]:
     pops, got, missed = [], [], []
     for kind, at, label in (("origin", start, "출발지"), ("destination", end, "도착지")):
         p = pts.get(kind)
-        if not p:
+        if not p:  # 좌표 없이 저장된 지점도 조회 실패와 같이 '확인 못 함'으로 남긴다
+            missed.append(label)
             continue
         r = _run("get_weather", lat=p.y, lon=p.x, at=at.strftime("%Y-%m-%dT%H:%M"))
         if r and r["ok"] and r["data"].get("pop") is not None:

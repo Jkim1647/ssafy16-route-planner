@@ -66,7 +66,7 @@
 ```
 - `points`(선택, 기본 `[]`): 지도 표시용 지점. 경로 카드의 `points`를 그대로 넘긴다. 같은 도시 안 이동은 출발지·도착지 2개.
 - `leave_at`/`arrive_at`은 `HH:MM`, 도착이 출발보다 이르면 다음 날 도착(자정 넘김)으로 본다.
-| `POST /api/plans/{plan_id}/recheck` | `{}` | 다시 확인(당일 재확인, LLM 없음) `{plan_id, status: ok·warn·partial·past, checked_at, items[{kind: time·train·calendar·weather·festival, level: ok·warn·info·unknown, text}]}` — ok는 모든 항목을 확인했을 때만, 확인 못 한 항목(unknown — 출발지·도착지 중 한쪽 예보만 받은 경우 포함)이 있으면 partial. 열차 시간표는 캐시 없이 조회 — 열차 번호가 그날 시간표에 남았는지, 이동 시간과 겹치는 일정('이동:' 일정 제외), 강수확률+도보, 도착지 행사, 출발 시각 경과 / 404 |
+| `POST /api/plans/{plan_id}/recheck` | `{}` | 다시 확인(당일 재확인, LLM 없음) `{plan_id, status: ok·warn·partial·past, checked_at, items[{kind: time·train·calendar·weather·festival, level: ok·warn·info·unknown, text}]}` — ok는 모든 항목을 확인했을 때만, 확인 못 한 항목(unknown — 출발지·도착지 중 한쪽 예보만 받았거나 좌표가 없어 조회하지 못한 경우 포함)이 있으면 partial. 열차 시간표는 캐시 없이 조회 — 열차 번호가 그날 시간표에 남았는지, 이동 시간과 겹치는 일정('이동:' 일정 제외), 강수확률+도보, 도착지 행사, 출발 시각 경과 / 404 |
 | `POST /api/plans/{plan_id}/share` | `{}` (JSON 필수) | `{token}` 읽기 전용 공유 토큰(144비트 무작위, 이미 있으면 그대로) / 404 내 계획 아님 / 415 |
 | `DELETE /api/plans/{plan_id}/share` | - | 204 공유 끊기(이전 링크 즉시 무효) / 404 |
 | `GET /api/shared/{token}` | **로그인 없이** | `{title, date, leave_at, arrive_at, origin_name, destination_name, legs, total_fare, points}` — 사용자·계획·캘린더·실행 ID는 보내지 않음. 주인이 '집'으로 저장한 곳 300m 안 지점은 약 500m 격자로 반올림·이름 '집 근처', 그 근처 동선 좌표는 제거(`home_hidden: true`) / 404 끊김·없음·형식 오류 |
