@@ -1,0 +1,55 @@
+[
+  {
+    "request": "태안 → 서울역",
+    "message": "토요일 오후 3시까지 충남 태안군청에서 서울역 가야 해",
+    "condition": "single",
+    "status": "no_option",
+    "replans": 3,
+    "replan_src": {
+      "no_option": 3
+    },
+    "llm": 1,
+    "worker_llm": 0,
+    "tool_calls": 22,
+    "ms": 4043,
+    "cards": 0,
+    "verify": []
+  },
+  {
+    "request": "태안 → 서울역",
+    "message": "토요일 오후 3시까지 충남 태안군청에서 서울역 가야 해",
+    "condition": "PW·Worker LLM off",
+    "status": "no_option",
+    "replans": 3,
+    "replan_src": {
+      "no_option": 3
+    },
+    "llm": 1,
+    "worker_llm": 0,
+    "tool_calls": 22,
+    "ms": 3146,
+    "cards": 0,
+    "verify": [
+      "ok",
+      "ok",
+      "warn",
+      "warn"
+    ]
+  },
+  {
+    "request": "태안 → 서울역",
+    "message": "토요일 오후 3시까지 충남 태안군청에서 서울역 가야 해",
+    "condition": "PW·Worker LLM on",
+    "status": "done",
+    "replans": 0,
+    "replan_src": {},
+    "llm": 3,
+    "worker_llm": 1,
+    "tool_calls": 17,
+    "ms": 12611,
+    "cards": 3,
+    "verify": [
+      "ok"
+    ]
+  }
+]

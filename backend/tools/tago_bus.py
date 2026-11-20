@@ -8,7 +8,7 @@ from pathlib import Path
 from backend.tools.base import BAD_ARGUMENT, INVALID_KEY, NO_DATA, UPSTREAM_ERROR, Tool, fail, ok
 from backend.tools.budget import default_budget
 from backend.tools.http import fetch_json
-from backend.tools.kakao_local import keyword_search
+from backend.tools.kakao_local import keyword_search, radius_params
 from backend.tools.registry import register
 from backend.tools.stations import haversine_km
 
@@ -73,7 +73,7 @@ def find_terminals(x: float, y: float, radius_km: float = 15) -> dict:
     docs, cached = [], True
     # 터미널 근처 가게("…고속터미널점")가 앞쪽을 채우므로 3쪽까지 보고 버스터미널 분류만 남긴다.
     for page in range(1, PAGES + 1):
-        r = keyword_search({"query": "버스터미널", "x": x, "y": y, "radius": int(radius_km * 1000),
+        r = keyword_search({"query": "버스터미널", "x": x, "y": y, **radius_params(radius_km),
                             "sort": "distance", "page": page})
         if not r["ok"]:
             if page == 1:
@@ -91,6 +91,8 @@ def find_terminals(x: float, y: float, radius_km: float = 15) -> dict:
                 continue
             seen.add(t["terminal_id"])
             tx, ty = float(d["x"]), float(d["y"])
+            if haversine_km(x, y, tx, ty) > radius_km:  # 반경 20km 초과 요청은 카카오에 반경 없이 묻는다
+                continue
             found.append({**t, "x": tx, "y": ty, "distance_km": round(haversine_km(x, y, tx, ty), 2)})
     if not found:
         return fail(NO_DATA, "근처에서 고속버스 터미널을 찾지 못했습니다.")

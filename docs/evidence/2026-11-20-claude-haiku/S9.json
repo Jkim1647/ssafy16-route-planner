@@ -51,8 +51,8 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 09:49 출발 → 13:01 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 09:21 출발 → 12:37 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "e9a756e25ba7",
-  "session_id": "67805a366d98",
+  "run_id": "2d4292fc729e",
+  "session_id": "f13b1de926f1",
   "anomaly": {
    "verdict": "ok",
    "rules": [],
@@ -60,8 +60,8 @@
   }
  },
  "result": {
-  "run_id": "e9a756e25ba7",
-  "session_id": "67805a366d98",
+  "run_id": "2d4292fc729e",
+  "session_id": "f13b1de926f1",
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 09:49 출발 → 13:01 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 09:21 출발 → 12:37 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
   "cards": [
    {
@@ -1233,10 +1233,10 @@
   "llm_calls": 2,
   "events": [
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 1,
-    "ts": "2026-11-20T14:09:18.537",
+    "ts": "2026-11-20T14:53:29.524",
     "agent": "main",
     "type": "run_start",
     "node": null,
@@ -1247,10 +1247,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 2,
-    "ts": "2026-11-20T14:09:18.541",
+    "ts": "2026-11-20T14:53:29.529",
     "agent": "main",
     "type": "node_start",
     "node": "analyze",
@@ -1258,17 +1258,17 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 3,
-    "ts": "2026-11-20T14:09:20.261",
+    "ts": "2026-11-20T14:53:31.357",
     "agent": "main",
     "type": "llm_decision",
     "node": "analyze",
     "payload": {
      "decision": "intent",
      "value": "plan_trip",
-     "reason": "어디서 어디로 언제까지 도착해야 하는 이동 계획 요청",
+     "reason": "출발지와 도착지, 도착 시각을 주고 이동 계획을 요청함",
      "changes": {
       "origin": "광주 첨단동",
       "destination": "서울 강남역",
@@ -1280,16 +1280,16 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 4,
-    "ts": "2026-11-20T14:09:20.268",
+    "ts": "2026-11-20T14:53:31.364",
     "agent": "main",
     "type": "node_end",
     "node": "analyze",
     "payload": {
      "intent": "plan_trip",
-     "intent_reason": "어디서 어디로 언제까지 도착해야 하는 이동 계획 요청",
+     "intent_reason": "출발지와 도착지, 도착 시각을 주고 이동 계획을 요청함",
      "conditions": {
       "origin": "광주 첨단동",
       "destination": "서울 강남역",
@@ -1304,13 +1304,13 @@
      },
      "missing": []
     },
-    "duration_ms": 1723
+    "duration_ms": 1832
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 5,
-    "ts": "2026-11-20T14:09:20.272",
+    "ts": "2026-11-20T14:53:31.370",
     "agent": "main",
     "type": "node_start",
     "node": "plan",
@@ -1318,10 +1318,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 6,
-    "ts": "2026-11-20T14:09:20.276",
+    "ts": "2026-11-20T14:53:31.374",
     "agent": "main",
     "type": "plan_tasks",
     "node": "plan",
@@ -1331,7 +1331,7 @@
        "id": "t1",
        "tool": "search_places",
        "purpose": "출발지 이름 → 좌표",
-       "when": null,
+       "when": "always",
        "fixed_args": [
         "query"
        ]
@@ -1340,16 +1340,47 @@
        "id": "t2",
        "tool": "search_places",
        "purpose": "도착지 이름 → 좌표",
-       "when": null,
+       "when": "always",
        "fixed_args": [
         "query"
+       ]
+      },
+      {
+       "id": "t10",
+       "tool": "get_weather",
+       "purpose": "출발·도착 지점 강수확률",
+       "when": "always",
+       "fixed_args": [
+        "lat",
+        "lon",
+        "at"
+       ]
+      },
+      {
+       "id": "t11",
+       "tool": "get_free_busy",
+       "purpose": "그날 캘린더 일정",
+       "when": "always",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t15",
+       "tool": "get_festivals",
+       "purpose": "도착지 근처 그날 행사(혼잡 참고)",
+       "when": "always",
+       "fixed_args": [
+        "x",
+        "y",
+        "date"
        ]
       },
       {
        "id": "t3",
        "tool": "find_stations",
        "purpose": "출발지 근처 기차역(역 ID)",
-       "when": "intercity",
+       "when": "train",
        "fixed_args": [
         "x",
         "y"
@@ -1359,19 +1390,10 @@
        "id": "t4",
        "tool": "find_stations",
        "purpose": "도착지 근처 기차역(역 ID)",
-       "when": "intercity",
+       "when": "train",
        "fixed_args": [
         "x",
         "y"
-       ]
-      },
-      {
-       "id": "t5",
-       "tool": "search_trains",
-       "purpose": "역 쌍별 열차 시간표·운임",
-       "when": "intercity",
-       "fixed_args": [
-        "date"
        ]
       },
       {
@@ -1389,13 +1411,22 @@
       {
        "id": "t7",
        "tool": "get_car_route",
-       "purpose": "장소↔역 구간 택시(대체·변형)",
-       "when": "intercity",
+       "purpose": "장소↔역 구간 택시",
+       "when": "taxi",
        "fixed_args": [
         "sx",
         "sy",
         "ex",
         "ey"
+       ]
+      },
+      {
+       "id": "t5",
+       "tool": "search_trains",
+       "purpose": "역 쌍별 열차 시간표·운임",
+       "when": "train",
+       "fixed_args": [
+        "date"
        ]
       },
       {
@@ -1423,61 +1454,11 @@
        ]
       },
       {
-       "id": "t10",
-       "tool": "get_weather",
-       "purpose": "출발·도착 지점 강수확률",
-       "when": null,
-       "fixed_args": [
-        "lat",
-        "lon",
-        "at"
-       ]
-      },
-      {
-       "id": "t11",
-       "tool": "get_free_busy",
-       "purpose": "그날 캘린더 일정",
-       "when": null,
-       "fixed_args": [
-        "date"
-       ]
-      },
-      {
        "id": "t12",
        "tool": "get_road_events",
        "purpose": "최종 후보 도로 구간 돌발정보(판단 후 1회)",
-       "when": null,
+       "when": "after",
        "fixed_args": [
-        "date"
-       ]
-      },
-      {
-       "id": "t13",
-       "tool": "find_terminals",
-       "purpose": "고속버스 터미널(재계획 수단 확장)",
-       "when": "intercity",
-       "fixed_args": [
-        "x",
-        "y"
-       ]
-      },
-      {
-       "id": "t14",
-       "tool": "search_express_bus",
-       "purpose": "고속버스 시간표·요금(재계획 수단 확장)",
-       "when": "intercity",
-       "fixed_args": [
-        "date"
-       ]
-      },
-      {
-       "id": "t15",
-       "tool": "get_festivals",
-       "purpose": "도착지 근처 그날 행사(혼잡 참고)",
-       "when": null,
-       "fixed_args": [
-        "x",
-        "y",
         "date"
        ]
       }
@@ -1487,21 +1468,21 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 7,
-    "ts": "2026-11-20T14:09:20.279",
+    "ts": "2026-11-20T14:53:31.387",
     "agent": "main",
     "type": "node_end",
     "node": "plan",
     "payload": {},
-    "duration_ms": 3
+    "duration_ms": 13
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 8,
-    "ts": "2026-11-20T14:09:20.283",
+    "ts": "2026-11-20T14:53:31.390",
     "agent": "main",
     "type": "node_start",
     "node": "execute",
@@ -1509,10 +1490,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 9,
-    "ts": "2026-11-20T14:09:20.287",
+    "ts": "2026-11-20T14:53:31.394",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1526,10 +1507,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 10,
-    "ts": "2026-11-20T14:09:20.291",
+    "ts": "2026-11-20T14:53:31.398",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1545,10 +1526,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 11,
-    "ts": "2026-11-20T14:09:20.294",
+    "ts": "2026-11-20T14:53:31.401",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1562,10 +1543,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 12,
-    "ts": "2026-11-20T14:09:20.297",
+    "ts": "2026-11-20T14:53:31.405",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1581,10 +1562,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 13,
-    "ts": "2026-11-20T14:09:20.300",
+    "ts": "2026-11-20T14:53:31.408",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1600,10 +1581,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 14,
-    "ts": "2026-11-20T14:09:20.308",
+    "ts": "2026-11-20T14:53:31.416",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1619,10 +1600,10 @@
     "duration_ms": 4
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 15,
-    "ts": "2026-11-20T14:09:20.311",
+    "ts": "2026-11-20T14:53:31.419",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1638,10 +1619,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 16,
-    "ts": "2026-11-20T14:09:20.319",
+    "ts": "2026-11-20T14:53:31.426",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1657,10 +1638,10 @@
     "duration_ms": 4
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 17,
-    "ts": "2026-11-20T14:09:20.322",
+    "ts": "2026-11-20T14:53:31.429",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1674,10 +1655,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 18,
-    "ts": "2026-11-20T14:09:20.327",
+    "ts": "2026-11-20T14:53:31.435",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1693,10 +1674,10 @@
     "duration_ms": 1
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 19,
-    "ts": "2026-11-20T14:09:20.331",
+    "ts": "2026-11-20T14:53:31.438",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1712,10 +1693,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 20,
-    "ts": "2026-11-20T14:09:20.334",
+    "ts": "2026-11-20T14:53:31.442",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1731,10 +1712,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 21,
-    "ts": "2026-11-20T14:09:20.337",
+    "ts": "2026-11-20T14:53:31.445",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1749,10 +1730,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 22,
-    "ts": "2026-11-20T14:09:20.342",
+    "ts": "2026-11-20T14:53:31.449",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1768,10 +1749,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 23,
-    "ts": "2026-11-20T14:09:20.344",
+    "ts": "2026-11-20T14:53:31.452",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1786,10 +1767,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 24,
-    "ts": "2026-11-20T14:09:20.349",
+    "ts": "2026-11-20T14:53:31.456",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1805,10 +1786,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 25,
-    "ts": "2026-11-20T14:09:20.352",
+    "ts": "2026-11-20T14:53:31.460",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1825,10 +1806,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 26,
-    "ts": "2026-11-20T14:09:20.355",
+    "ts": "2026-11-20T14:53:31.463",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1844,10 +1825,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 27,
-    "ts": "2026-11-20T14:09:20.358",
+    "ts": "2026-11-20T14:53:31.466",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1864,10 +1845,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 28,
-    "ts": "2026-11-20T14:09:20.361",
+    "ts": "2026-11-20T14:53:31.470",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1883,10 +1864,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 29,
-    "ts": "2026-11-20T14:09:20.364",
+    "ts": "2026-11-20T14:53:31.473",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1903,10 +1884,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 30,
-    "ts": "2026-11-20T14:09:20.368",
+    "ts": "2026-11-20T14:53:31.476",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1922,10 +1903,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 31,
-    "ts": "2026-11-20T14:09:20.371",
+    "ts": "2026-11-20T14:53:31.479",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1942,10 +1923,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 32,
-    "ts": "2026-11-20T14:09:20.376",
+    "ts": "2026-11-20T14:53:31.483",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1961,10 +1942,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 33,
-    "ts": "2026-11-20T14:09:20.379",
+    "ts": "2026-11-20T14:53:31.486",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1980,10 +1961,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 34,
-    "ts": "2026-11-20T14:09:20.382",
+    "ts": "2026-11-20T14:53:31.489",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1999,10 +1980,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 35,
-    "ts": "2026-11-20T14:09:20.386",
+    "ts": "2026-11-20T14:53:31.494",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2018,10 +1999,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 36,
-    "ts": "2026-11-20T14:09:20.390",
+    "ts": "2026-11-20T14:53:31.498",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2037,10 +2018,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 37,
-    "ts": "2026-11-20T14:09:20.393",
+    "ts": "2026-11-20T14:53:31.502",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2056,10 +2037,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 38,
-    "ts": "2026-11-20T14:09:20.397",
+    "ts": "2026-11-20T14:53:31.506",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2075,10 +2056,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 39,
-    "ts": "2026-11-20T14:09:20.400",
+    "ts": "2026-11-20T14:53:31.510",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2094,10 +2075,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 40,
-    "ts": "2026-11-20T14:09:20.405",
+    "ts": "2026-11-20T14:53:31.513",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2113,21 +2094,21 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 41,
-    "ts": "2026-11-20T14:09:20.408",
+    "ts": "2026-11-20T14:53:31.517",
     "agent": "main",
     "type": "node_end",
     "node": "execute",
     "payload": {},
-    "duration_ms": 121
+    "duration_ms": 122
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 42,
-    "ts": "2026-11-20T14:09:20.412",
+    "ts": "2026-11-20T14:53:31.520",
     "agent": "main",
     "type": "node_start",
     "node": "judge",
@@ -2135,10 +2116,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 43,
-    "ts": "2026-11-20T14:09:20.416",
+    "ts": "2026-11-20T14:53:31.524",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2158,10 +2139,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 44,
-    "ts": "2026-11-20T14:09:20.419",
+    "ts": "2026-11-20T14:53:31.528",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2177,21 +2158,105 @@
     "duration_ms": 0
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
     "seq": 45,
-    "ts": "2026-11-20T14:09:20.423",
+    "ts": "2026-11-20T14:53:31.531",
+    "agent": "main",
+    "type": "plan_result",
+    "node": "judge",
+    "payload": {
+     "tasks": [
+      {
+       "id": "t1",
+       "tool": "search_places",
+       "status": "done"
+      },
+      {
+       "id": "t2",
+       "tool": "search_places",
+       "status": "done"
+      },
+      {
+       "id": "t10",
+       "tool": "get_weather",
+       "status": "done"
+      },
+      {
+       "id": "t11",
+       "tool": "get_free_busy",
+       "status": "done"
+      },
+      {
+       "id": "t15",
+       "tool": "get_festivals",
+       "status": "done"
+      },
+      {
+       "id": "t3",
+       "tool": "find_stations",
+       "status": "done"
+      },
+      {
+       "id": "t4",
+       "tool": "find_stations",
+       "status": "done"
+      },
+      {
+       "id": "t6",
+       "tool": "get_transit_route",
+       "status": "done"
+      },
+      {
+       "id": "t7",
+       "tool": "get_car_route",
+       "status": "skipped",
+       "reason": "대중교통 경로가 있어 택시 대체 불필요(택시 변형은 수단 확장 단계에서만)"
+      },
+      {
+       "id": "t5",
+       "tool": "search_trains",
+       "status": "done"
+      },
+      {
+       "id": "t8",
+       "tool": "get_transit_route",
+       "status": "skipped",
+       "reason": "시외 이동이라 해당 없음"
+      },
+      {
+       "id": "t9",
+       "tool": "get_car_route",
+       "status": "skipped",
+       "reason": "시외 이동이라 해당 없음"
+      },
+      {
+       "id": "t12",
+       "tool": "get_road_events",
+       "status": "done"
+      }
+     ],
+     "done": 10,
+     "skipped": 3
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
+    "seq": 46,
+    "ts": "2026-11-20T14:53:31.534",
     "agent": "main",
     "type": "node_end",
     "node": "judge",
     "payload": {},
-    "duration_ms": 7
+    "duration_ms": 10
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
-    "seq": 46,
-    "ts": "2026-11-20T14:09:20.426",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
+    "seq": 47,
+    "ts": "2026-11-20T14:53:31.539",
     "agent": "main",
     "type": "node_start",
     "node": "respond",
@@ -2199,10 +2264,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
-    "seq": 47,
-    "ts": "2026-11-20T14:09:22.214",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
+    "seq": 48,
+    "ts": "2026-11-20T14:53:33.385",
     "agent": "main",
     "type": "llm_decision",
     "node": "respond",
@@ -2213,23 +2278,23 @@
     "duration_ms": null
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
-    "seq": 48,
-    "ts": "2026-11-20T14:09:22.218",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
+    "seq": 49,
+    "ts": "2026-11-20T14:53:33.405",
     "agent": "main",
     "type": "node_end",
     "node": "respond",
     "payload": {
      "status": "done"
     },
-    "duration_ms": 1788
+    "duration_ms": 1862
    },
    {
-    "session_id": "67805a366d98",
-    "run_id": "e9a756e25ba7",
-    "seq": 49,
-    "ts": "2026-11-20T14:09:22.222",
+    "session_id": "f13b1de926f1",
+    "run_id": "2d4292fc729e",
+    "seq": 50,
+    "ts": "2026-11-20T14:53:33.410",
     "agent": "main",
     "type": "run_end",
     "node": null,

@@ -54,6 +54,11 @@ export function buildTrace(events) {
     } else if (e.type === "plan_tasks") {
       const tools = [...new Set((p.tasks || []).map((t) => t.tool))];
       items.push({ kind: "node", agent: agent(e), role: e.agent, title: "작업 목록", details: [tools.join(" → ")] });
+    } else if (e.type === "plan_result") {
+      // 계획 ↔ 실행 대조(F3006): 건너뛴 작업은 사유와 함께
+      const skipped = (p.tasks || []).filter((t) => t.status === "skipped").map((t) => `${t.tool}(${t.id}) — ${t.reason}`);
+      items.push({ kind: "node", agent: agent(e), role: e.agent, title: `작업 결과 · 수행 ${p.done} · 건너뜀 ${p.skipped}`,
+        details: skipped.length ? skipped : ["계획한 작업을 모두 수행"] });
     } else if (e.type === "tool_result") {
       const call = (events || []).find((x) => x.type === "tool_call" && x.seq === e.seq - 1);
       items.push({ kind: p.ok ? "tool" : "tool fail", agent: agent(e), role: e.agent, title: `Tool ${p.tool}`,

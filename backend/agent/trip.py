@@ -29,7 +29,7 @@ def _plan_leg(n: int, conds: Conditions, places: dict, settings, emitter, db_pat
     for strategy in range(settings.MAX_REPLAN + 1):
         ctx = RunCtx(emitter=emitter, counter=LLMCounter(), db_path=db_path, reuse=reuse)
         ctx.today = now().date()
-        emitter.emit("plan_tasks", node="plan", payload={"tasks": make_plan("plan_trip"), "strategy": strategy, "leg": n})
+        emitter.emit("plan_tasks", node="plan", payload={"tasks": make_plan("plan_trip", strategy, conds.modes), "strategy": strategy, "leg": n})
         res = run_plan_trip(ctx, conds, strategy, dict(places))
         if res.get("walk_m") is not None:
             return {"status": "walk", "cards": [], "reason": f"직선거리 약 {res['walk_m']}m — 걸어서 이동하면 돼요"}

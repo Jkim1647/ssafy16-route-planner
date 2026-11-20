@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 RECOVERABLE = {"NO_DATA", "NOT_FOUND", "BAD_ARGUMENT"}
 # 인자를 고치면 결과가 달라질 수 있는 Tool과 그 조정 가능 인자. 이 밖의 Tool은 규칙으로 건너뛴다(LLM 0회).
@@ -28,18 +28,35 @@ FIXED_ARGS = {
 PROMPT = """너는 이동 플래너의 Worker다. Tool 호출이 실패했다. 인자를 고쳐 같은 Tool을 다시 부를지(retry),
 이 작업을 건너뛸지(skip), Planner에게 계획 변경을 요청할지(request_replan) 하나를 고른다.
 - 고정 인자 {fixed}는 절대 바꾸지 마라. 바꿀 수 있는 인자만 new_args에 넣는다.
-- 예: 근처 역·터미널이 없으면 radius_km를 넓혀 retry.
+- 예: 근처 역·터미널이 없으면 radius_km를 입력의 현재 값보다 크게(예: 2배) 넓혀 retry. 줄이면 무효다.
 Tool: {tool}
 입력: {args}
 실패: {code} — {message}
 Tool 입력 규격: {schema}"""
 
 
+class ArgChange(BaseModel):
+    """재시도 때 바꿀 인자 하나."""
+    name: str
+    value: float | str
+
+
 class WorkerDecision(BaseModel):
     """Worker LLM의 실패 대응 판단: retry(new_args로 같은 Tool 재호출)·skip·request_replan. executor._worker_on_failure가 쓴다."""
     action: Literal["retry", "skip", "request_replan"]
-    new_args: dict = Field(default_factory=dict)
+    # 자유 dict는 JSON Schema가 additionalProperties: true가 되어 Anthropic 경로가 400으로 거절한다 → 이름·값 목록
+    new_args: list[ArgChange] = Field(default_factory=list, description="바꿀 인자 목록(retry일 때만)")
     reason: str
+
+    @field_validator("new_args", mode="before")
+    @classmethod
+    def _from_dict(cls, v):
+        return [{"name": k, "value": val} for k, val in v.items()] if isinstance(v, dict) else v
+
+    @property
+    def args(self) -> dict:
+        """new_args를 Tool 인자 dict로."""
+        return {c.name: c.value for c in self.new_args}
 
 
 def decide(llm, counter, tool_name: str, args: dict, error: dict, schema: dict) -> WorkerDecision:

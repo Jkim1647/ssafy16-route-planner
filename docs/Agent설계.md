@@ -28,7 +28,7 @@
 |---|---|---|---|---|
 | `analyze` | 사용자 메시지, 직전 조건·카드(맥락) | 의도 분류(이유 포함), 조건 추출 → 형식 검사(`ko_time.fix_changes`로 날짜·시각 칸 정리) → 이전 조건에 바뀐 값만 병합 → 누락 검사 | `intent, intent_reason, conditions, missing, option_ref` | **1회** |
 | `clarify` | 누락 목록 | 출발지·날짜·시각 등 되묻기, 지난 마감은 다시 묻기 | `clarification` | 0 |
-| `plan` | 의도, 재계획 전략 | 의도별 작업 템플릿으로 Tool·순서·고정 인자 구성(등록된 Tool만) → `plan_tasks` 이벤트 | `tasks` | 0 |
+| `plan` | 의도, 재계획 전략, 허용 수단 | 의도별 작업 템플릿을 실제 호출 순서로, 이번 단계에 부를 수 있는 작업만(수단 확장 전 고속버스·허용 밖 수단 제외) 구성, 작업마다 호출 조건(when)·고정 인자 → `plan_tasks` 이벤트. 판단 단계 끝에 작업마다 수행/건너뜀(사유)을 `plan_result` 이벤트로 대조 | `tasks` | 0 |
 | `execute` | 조건, 전략, 이전 장소 결과 | 작업 순서대로 Tool 호출, 앞선 결과(좌표·역 ID)를 다음 입력으로, 실패는 기록 후 진행, 같은 입력 재사용 | 실행 문맥에 후보 옵션·날씨·일정. 직선 700m 미만이면 탐색 없이 도보 안내로 끝냄. 사실 질문은 t1~t5만 | 0 (PW 모드 Worker 예외 시 ≤2) |
 | `verify` (PW 모드) | 지금까지의 이벤트 | 로깅 Agent가 규칙 판정(중복·계획 외·과도 재계획) | `verify` 결과 | 0 |
 | `judge` | 후보 옵션, 조건, 일정, 날씨 | 계산·평가·정렬·경고, 판단 후 도로 돌발 1회 조회 | `cards, excluded, undetermined, estimated, warnings` | 0 |
@@ -68,7 +68,7 @@
 
 ## 5. 메인 Agent와 로깅 Agent의 관계·이벤트 흐름 (F3012~F3014, F3020)
 - 메인 Agent는 `Emitter.emit()`으로 이벤트를 발행할 뿐 구독자를 모른다. `EventBus.publish`는 구독자 예외를 삼켜 로깅 실패가 대화를 막지 않는다. `LOGGING_ENABLED=false`면 구독자 0명으로도 정상 동작(검증: `docs/evidence/no_logger.json`).
-- 이벤트: `run_start/run_end`, `node_start/node_end`(분석 종료에 의도·이유·조건), `llm_decision`(의도 판단, 응답 숫자 거부), `plan_tasks`(작업·고정 인자), `tool_call/tool_result`(입력·요약·캐시·소요 ms), `replan`(전략·사유·출처), `worker_decision`, `verify`, `error`.
+- 이벤트: `run_start/run_end`, `node_start/node_end`(분석 종료에 의도·이유·조건), `llm_decision`(의도 판단, 응답 숫자 거부), `plan_tasks`(작업·호출 조건·고정 인자), `plan_result`(작업별 수행/건너뜀·사유), `tool_call/tool_result`(입력·요약·캐시·소요 ms), `replan`(전략·사유·출처), `worker_decision`, `verify`, `error`.
 - 로깅 Agent: 받는 즉시 세션 단위로 발생 순서대로 SQLite에 append(LLM 미사용, 요약·가공 없음).
 - 이상 징후(F3020): 실행이 끝나면 규칙 판정(`DUPLICATE_CALL`·`UNPLANNED_CALL`·`EXCESSIVE_REPLAN`, 근거 없으면 `undetermined`) → `warn`일 때만 LLM이 3문장 이내 원인 진단, 판정과 분리 저장. 진단 실패해도 판정 유지. 진단은 대화 실행 잠금 밖에서 돌아 다른 요청을 막지 않는다.
 
@@ -100,7 +100,7 @@
 | Agent | 역할 | LLM 호출 조건 | LLM 안 부르는 경우 |
 |---|---|---|---|
 | Planner (`analyze`·`plan`·`replan`) | 요청 분해, 작업 목록(고정 인자 표시), 재구성 | 의도·조건 분석 1회 | 계획 템플릿·재계획 전략은 규칙 |
-| Worker (`execute`) | 작업 목록대로 Tool 호출 | 고칠 인자가 있는 Tool(`find_stations`·`find_terminals` 반경)이 `NO_DATA`·`NOT_FOUND`·`BAD_ARGUMENT`일 때 retry/skip/request_replan 판단(재시도 ≤2) | 정상 경로(0회), 치명적 실패(키·한도·서버), 장소 모호, 필수 인자 누락, 고칠 인자 없는 실패(열차 없음 등) |
+| Worker (`execute`) | 작업 목록대로 Tool 호출 | 고칠 인자가 있는 Tool(`find_stations`·`find_terminals` 반경)이 `NO_DATA`·`NOT_FOUND`·`BAD_ARGUMENT`일 때 retry/skip/request_replan 판단(재시도 ≤2, 기본값 포함 현재 인자를 보여 주고 반경을 넓히지 않는 재시도는 무효) | 정상 경로(0회), 치명적 실패(키·한도·서버), 장소 모호, 필수 인자 누락, 고칠 인자 없는 실패(열차 없음 등) |
 | 로깅 (`verify` + 실행 종료 판정) | 수행 결과 검증, 이상 징후 판정 | `warn` 실행의 원인 진단 | 수집·저장·규칙 판정 |
 
 - 고정 인자(`FIXED_ARGS`): 장소 검색어, 좌표, 날짜, 예보 시각 등 사용자 조건에서 온 값 — Worker가 바꾸려 하면 판단을 무효(skip) 처리.

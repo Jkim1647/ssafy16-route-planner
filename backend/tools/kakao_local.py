@@ -16,6 +16,15 @@ def kakao_headers() -> dict | None:
     return {"Authorization": f"KakaoAK {key}"} if key else None
 
 
+KAKAO_MAX_RADIUS_M = 20000  # 카카오 키워드 검색 radius 상한(넘으면 오류)
+
+
+def radius_params(radius_km: float) -> dict:
+    """반경 조건. 상한(20km) 안이면 radius로 보내고, 넘으면 보내지 않는다(거리순 결과를 받아 호출한 쪽이 거리로 거른다)."""
+    m = int(radius_km * 1000)
+    return {"radius": m} if m <= KAKAO_MAX_RADIUS_M else {}
+
+
 def keyword_search(params: dict) -> dict:
     """카카오 키워드 검색 원본 호출(캐시·쿼터 포함). documents 목록을 반환."""
     headers = kakao_headers()

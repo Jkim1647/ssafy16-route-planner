@@ -92,7 +92,7 @@ export default {
     }
     const CHECK_ICON = { ok: "✓", warn: "⚠", info: "·", unknown: "?" };
     // ok는 모든 항목을 확인했을 때만. 확인 못 한 항목이 있으면(partial) 괜찮다고 말하지 않는다
-    const CHECK_TITLE = { ok: "그대로 가도 돼요", warn: "확인할 게 있어요", partial: "일부는 확인하지 못했어요", past: "출발 시각이 지났어요" };
+    const CHECK_TITLE = { ok: "확인한 항목은 모두 그대로예요", warn: "확인할 게 있어요", partial: "일부는 확인하지 못했어요", past: "출발 시각이 지났어요" };
 
     // 읽기 전용 공유 링크
     const shareUrl = computed(() => (plan.value?.share_token

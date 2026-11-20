@@ -13,8 +13,8 @@
   "excluded_sample": [],
   "warnings": [],
   "reply": "출발지·도착지와 '언제까지 도착' 또는 '언제부터 출발'을 알려 주세요. 예) \"토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하\". 도보·지하철·버스·KTX·택시를 이어 붙여 시간과 요금을 계산해 드려요.",
-  "run_id": "e68e669f8f95",
-  "session_id": "227018a23234",
+  "run_id": "a53493ac5c8e",
+  "session_id": "4ef3d4d03182",
   "anomaly": {
    "verdict": "undetermined",
    "rules": [],
@@ -22,8 +22,8 @@
   }
  },
  "result": {
-  "run_id": "e68e669f8f95",
-  "session_id": "227018a23234",
+  "run_id": "a53493ac5c8e",
+  "session_id": "4ef3d4d03182",
   "reply": "출발지·도착지와 '언제까지 도착' 또는 '언제부터 출발'을 알려 주세요. 예) \"토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하\". 도보·지하철·버스·KTX·택시를 이어 붙여 시간과 요금을 계산해 드려요.",
   "cards": [],
   "excluded": [],
@@ -38,10 +38,10 @@
   "llm_calls": 1,
   "events": [
    {
-    "session_id": "227018a23234",
-    "run_id": "e68e669f8f95",
+    "session_id": "4ef3d4d03182",
+    "run_id": "a53493ac5c8e",
     "seq": 1,
-    "ts": "2026-11-20T14:09:11.212",
+    "ts": "2026-11-20T14:53:18.352",
     "agent": "main",
     "type": "run_start",
     "node": null,
@@ -52,10 +52,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "227018a23234",
-    "run_id": "e68e669f8f95",
+    "session_id": "4ef3d4d03182",
+    "run_id": "a53493ac5c8e",
     "seq": 2,
-    "ts": "2026-11-20T14:09:11.216",
+    "ts": "2026-11-20T14:53:18.357",
     "agent": "main",
     "type": "node_start",
     "node": "analyze",
@@ -63,32 +63,32 @@
     "duration_ms": null
    },
    {
-    "session_id": "227018a23234",
-    "run_id": "e68e669f8f95",
+    "session_id": "4ef3d4d03182",
+    "run_id": "a53493ac5c8e",
     "seq": 3,
-    "ts": "2026-11-20T14:09:12.687",
+    "ts": "2026-11-20T14:53:20.542",
     "agent": "main",
     "type": "llm_decision",
     "node": "analyze",
     "payload": {
      "decision": "intent",
      "value": "chat",
-     "reason": "인사 및 사용법 문의",
+     "reason": "사용자가 인사하며 사용법을 묻고 있어 이동 계획 요청이 아니다.",
      "changes": {}
     },
     "duration_ms": null
    },
    {
-    "session_id": "227018a23234",
-    "run_id": "e68e669f8f95",
+    "session_id": "4ef3d4d03182",
+    "run_id": "a53493ac5c8e",
     "seq": 4,
-    "ts": "2026-11-20T14:09:12.693",
+    "ts": "2026-11-20T14:53:20.551",
     "agent": "main",
     "type": "node_end",
     "node": "analyze",
     "payload": {
      "intent": "chat",
-     "intent_reason": "인사 및 사용법 문의",
+     "intent_reason": "사용자가 인사하며 사용법을 묻고 있어 이동 계획 요청이 아니다.",
      "conditions": {
       "origin": null,
       "destination": null,
@@ -103,13 +103,13 @@
      },
      "missing": []
     },
-    "duration_ms": 1473
+    "duration_ms": 2190
    },
    {
-    "session_id": "227018a23234",
-    "run_id": "e68e669f8f95",
+    "session_id": "4ef3d4d03182",
+    "run_id": "a53493ac5c8e",
     "seq": 5,
-    "ts": "2026-11-20T14:09:12.697",
+    "ts": "2026-11-20T14:53:20.557",
     "agent": "main",
     "type": "node_start",
     "node": "respond",
@@ -117,10 +117,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "227018a23234",
-    "run_id": "e68e669f8f95",
+    "session_id": "4ef3d4d03182",
+    "run_id": "a53493ac5c8e",
     "seq": 6,
-    "ts": "2026-11-20T14:09:12.700",
+    "ts": "2026-11-20T14:53:20.561",
     "agent": "main",
     "type": "node_end",
     "node": "respond",
@@ -130,10 +130,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "227018a23234",
-    "run_id": "e68e669f8f95",
+    "session_id": "4ef3d4d03182",
+    "run_id": "a53493ac5c8e",
     "seq": 7,
-    "ts": "2026-11-20T14:09:12.704",
+    "ts": "2026-11-20T14:53:20.565",
     "agent": "main",
     "type": "run_end",
     "node": null,

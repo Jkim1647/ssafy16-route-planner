@@ -1,6 +1,7 @@
 """저장한 계획 다시 확인(당일 재확인). 저장 뒤 바뀌었을 수 있는 것만 규칙으로 다시 본다(LLM 없음).
 
-- 시간표: 열차 구간의 열차 번호가 그날 시간표에 아직 있는지(TAGO)
+- 시간표: 열차 구간의 열차 번호가 그날 시간표에 아직 있는지, 소요 시간이 같은지(TAGO, 캐시 없이).
+  계획에 열차 출발 시각은 저장하지 않아 시각 자체는 비교하지 않는다(소요 시간이 같으면 시각 변경은 못 잡는다)
 - 캘린더: 이동 시간과 겹치는 일정(이 계획을 등록한 '이동:' 일정은 제외)
 - 날씨: 출발·도착 지점 강수확률, 도보가 길면 주의
 - 행사: 도착지 근처 그날 행사(혼잡 참고)
@@ -28,6 +29,13 @@ def _item(kind: str, level: str, text: str) -> dict:
     return {"kind": kind, "level": level, "text": text}
 
 
+def _minutes(dep: str | None, arr: str | None) -> int | None:
+    try:
+        return int((dt.datetime.fromisoformat(arr) - dt.datetime.fromisoformat(dep)).total_seconds() // 60)
+    except (TypeError, ValueError):
+        return None
+
+
 def _train_items(plan, day: dt.date) -> list[dict]:
     trains = [lg for lg in plan.legs if (lg.source or "") == "tago_train" and lg.name]
     if not trains:
@@ -50,12 +58,20 @@ def _train_items(plan, day: dt.date) -> list[dict]:
         r = _run("search_trains", dep_station_id=sid_dep, arr_station_id=sid_arr, date=day.isoformat())
     if not r or not r["ok"]:
         return [_item("train", "unknown", "열차 시간표를 지금 조회하지 못했어요")]
-    listed = {str(t.get("train_no")).lstrip("0") for t in r["data"]["trains"]}
+    listed = {str(t.get("train_no")).lstrip("0"): t for t in r["data"]["trains"]}
     out = []
     for lg in trains:
         no = lg.name.split()[-1].lstrip("0")
         if no in listed:
-            out.append(_item("train", "ok", f"{lg.name} 그날 시간표에 그대로 있어요"))
+            # 계획에는 열차 시각이 없고 소요 시간(분)만 있다 → 소요 시간이 달라졌으면 운행 시각이 바뀐 것으로 본다
+            t = listed[no]
+            now_min = _minutes(t.get("dep_at"), t.get("arr_at"))
+            if lg.minutes is not None and now_min is not None and abs(now_min - lg.minutes) >= 5:
+                out.append(_item("train", "warn", f"{lg.name} 소요 시간이 {lg.minutes}분 → {now_min}분으로 달라졌어요"
+                                                  "(운행 시각 변경 가능 — 예매처에서 시각을 확인하세요)"))
+            else:
+                same = "소요 시간도 같아요" if now_min is not None and lg.minutes is not None else "시각은 비교하지 못했어요"
+                out.append(_item("train", "ok", f"{lg.name} 열차 번호가 그날 시간표에 그대로 있어요({same})"))
         else:
             out.append(_item("train", "warn", f"{lg.name}을(를) 그날 시간표에서 찾지 못했어요(운휴·변경 가능)"))
     if r["data"].get("estimated"):

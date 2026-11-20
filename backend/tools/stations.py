@@ -7,7 +7,7 @@ from pathlib import Path
 
 from backend.tools.base import INVALID_KEY, NO_DATA, Tool, fail, ok
 from backend.tools.http import fetch_json
-from backend.tools.kakao_local import keyword_search
+from backend.tools.kakao_local import keyword_search, radius_params
 from backend.tools.registry import register
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -67,7 +67,7 @@ def find_stations(x: float, y: float, radius_km: float = 20) -> dict:
     index = load_station_index()
     if index is None:
         return fail(INVALID_KEY, "DATA_GO_KR_KEY가 없어 역 목록을 받을 수 없습니다.")
-    r = keyword_search({"query": "기차역", "x": x, "y": y, "radius": int(radius_km * 1000), "sort": "distance"})
+    r = keyword_search({"query": "기차역", "x": x, "y": y, **radius_params(radius_km), "sort": "distance"})
     if not r["ok"]:
         return r
     found, seen = [], set()
@@ -78,6 +78,8 @@ def find_stations(x: float, y: float, radius_km: float = 20) -> dict:
             continue  # 신호장·화물역 등 TAGO에 없는 곳은 후보에서 뺀다
         seen.add(info["station_id"])
         sx, sy = float(d["x"]), float(d["y"])
+        if haversine_km(x, y, sx, sy) > radius_km:  # 반경 20km 초과 요청은 카카오에 반경 없이 묻는다
+            continue
         found.append({"station_id": info["station_id"], "name": name, "x": sx, "y": sy,
                       "distance_km": round(haversine_km(x, y, sx, sy), 2),
                       "ktx": "KTX" in (d.get("category_name") or "")})

@@ -98,3 +98,21 @@ def test_find_stations_no_kakao_key(monkeypatch, station_cache):
 
 def test_haversine_seoul_busan():
     assert 315 <= haversine_km(126.9707, 37.5547, 129.0414, 35.1151) <= 335
+
+
+def test_find_stations_wider_than_kakao_limit(monkeypatch, station_cache):
+    # 4차 상호 점검 중 발견: 카카오 반경 상한은 20km라 Worker가 반경을 넓히면(40km) 실제 API가 오류를 냈다.
+    # 20km 넘는 반경은 반경 없이 거리순으로 받고 거리로 거른다.
+    sent = []
+    docs = {"documents": [
+        {"place_name": "광주송정역", "x": "126.79", "y": "35.13", "category_name": "기차역"},  # 약 33km
+        {"place_name": "서광주역", "x": "126.85", "y": "35.15", "category_name": "기차역"}], "meta": {}}
+
+    def match(u, p):
+        sent.append(dict(p or {}))
+        return KAKAO in u
+    route_get(monkeypatch, [(match, docs)])
+    r = find_stations(126.79, 35.43, radius_km=40)
+    assert r["ok"] and all(s["distance_km"] <= 40 for s in r["data"]["stations"])
+    assert all(int(p.get("radius", 0)) <= 20000 for p in sent)
+    assert find_stations(126.79, 35.43, radius_km=30)["error"]["code"] == "NO_DATA"  # 31~33km 역은 30km 밖

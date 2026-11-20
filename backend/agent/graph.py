@@ -19,7 +19,7 @@ from pydantic import BaseModel, Field
 from backend.agent import prompts
 from backend.agent.conditions import Conditions, merge, missing_fields
 from backend.agent.ko_time import fix_changes
-from backend.agent.executor import (FATAL, RunCtx, call_tool, make_plan, prev_day_ok, run_fact_query,
+from backend.agent.executor import (FATAL, RunCtx, call_tool, make_plan, plan_result, prev_day_ok, run_fact_query,
                                    run_plan_trip)
 from backend.agent.judge import (ROAD_MODES, Option, apply_warnings, checks_for, evaluate, exclusion_kind,
                                  pareto_front, rank, risk_for)
@@ -225,7 +225,7 @@ def build_graph(deps: Deps):
         return {"clarification": q, "final_reply": q, "status": "clarify"}
 
     def plan(state: AgentState):
-        tasks = make_plan(state["intent"])
+        tasks = make_plan(state["intent"], state.get("strategy", 0), _conds(state).modes)
         deps.ctx.emitter.emit("plan_tasks", agent="planner" if deps.settings.AGENT_MODE == "planner_worker"
                               else "main", node="plan",
                               payload={"tasks": tasks, "strategy": state.get("strategy", 0)})
@@ -268,6 +268,7 @@ def build_graph(deps: Deps):
         front = pareto_front(j.passed)  # 다른 후보에 모든 면에서 밀리는 후보는 추천하지 않는다
         ranked = rank(front, conds.priority)
         _road_events(ctx, ranked, conds)
+        _emit_plan_result(ctx, state.get("tasks") or [])
         cards = [card(o, i + 1) for i, o in enumerate(ranked)]
         for c, o in zip(cards, ranked):  # 판단 결과: 마감 여유·예산 남은 금액·일정 겹침 여부
             c["checks"] = checks_for(o, conds, ctx.busy, ctx.calendar_checked)
@@ -413,6 +414,17 @@ def build_graph(deps: Deps):
 
 
 # ---------------------------------------------------------------- 응답 보조
+def _emit_plan_result(ctx, tasks: list[dict]) -> None:
+    """작업 목록의 각 작업이 이번 단계에서 실제로 불렸는지(F3006 계획 ↔ 실행 대조)를 이벤트로 남긴다."""
+    if not tasks:
+        return
+    events = ctx.emitter.events
+    start = max((i for i, e in enumerate(events) if e["type"] == "plan_tasks"), default=0)
+    res = plan_result(tasks, events[start:])
+    ctx.emitter.emit("plan_result", node="judge", payload={
+        "tasks": res, "done": sum(t["status"] == "done" for t in res), "skipped": sum(t["status"] == "skipped" for t in res)})
+
+
 def _road_events(ctx: RunCtx, ranked: list[Option], conds: Conditions) -> None:
     """판단이 끝난 최종 후보에 도로 구간이 있을 때만, 출발지 주변(약 5km) 돌발정보를 실행당 1회 조회(설계 19-5)."""
     origin = (ctx.places or {}).get("origin")

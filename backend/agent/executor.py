@@ -6,6 +6,8 @@
 from __future__ import annotations
 
 import datetime as dt
+import inspect
+import logging
 import math
 import os
 import time
@@ -17,6 +19,8 @@ from backend.agent.judge import (Busy, Leg, Option, Segment, build_intercity_opt
 from backend.tools.budget import default_budget, normalize_args
 from backend.tools.registry import get_tool
 from backend.tools.stations import haversine_km
+
+log = logging.getLogger(__name__)
 
 ODSAY_PER_RUN = 4  # 설계 19-3
 WALK_KM = 0.7  # ODsay가 경로를 주지 않는 거리(-98: 700m 이내) — 걸어갈 거리로 안내
@@ -51,38 +55,70 @@ class RunCtx:
 
 
 # ---------------------------------------------------------------- 계획
+# 이동 계획 작업 목록 = 실행(run_plan_trip)이 부르는 순서. when은 그 작업을 실제로 부르는 조건(건너뛸 때 사유가 된다).
 PLAN_TRIP = [
-    ("t1", "search_places", "출발지 이름 → 좌표", None),
-    ("t2", "search_places", "도착지 이름 → 좌표", None),
-    ("t3", "find_stations", "출발지 근처 기차역(역 ID)", "intercity"),
-    ("t4", "find_stations", "도착지 근처 기차역(역 ID)", "intercity"),
-    ("t5", "search_trains", "역 쌍별 열차 시간표·운임", "intercity"),
+    ("t1", "search_places", "출발지 이름 → 좌표", "always"),
+    ("t2", "search_places", "도착지 이름 → 좌표", "always"),
+    ("t10", "get_weather", "출발·도착 지점 강수확률", "always"),
+    ("t11", "get_free_busy", "그날 캘린더 일정", "always"),
+    ("t15", "get_festivals", "도착지 근처 그날 행사(혼잡 참고)", "always"),
+    ("t3", "find_stations", "출발지 근처 기차역(역 ID)", "train"),
+    ("t4", "find_stations", "도착지 근처 기차역(역 ID)", "train"),
     ("t6", "get_transit_route", "장소↔역 구간 도보·지하철·버스", "intercity"),
-    ("t7", "get_car_route", "장소↔역 구간 택시(대체·변형)", "intercity"),
+    ("t7", "get_car_route", "장소↔역 구간 택시", "taxi"),
+    ("t5", "search_trains", "역 쌍별 열차 시간표·운임", "train"),
+    ("t13", "find_terminals", "고속버스 터미널", "bus"),
+    ("t14", "search_express_bus", "고속버스 시간표·요금", "bus"),
     ("t8", "get_transit_route", "같은 도시 안 대중교통", "intracity"),
     ("t9", "get_car_route", "같은 도시 안 택시", "intracity"),
-    ("t10", "get_weather", "출발·도착 지점 강수확률", None),
-    ("t11", "get_free_busy", "그날 캘린더 일정", None),
-    ("t12", "get_road_events", "최종 후보 도로 구간 돌발정보(판단 후 1회)", None),
-    ("t13", "find_terminals", "고속버스 터미널(재계획 수단 확장)", "intercity"),
-    ("t14", "search_express_bus", "고속버스 시간표·요금(재계획 수단 확장)", "intercity"),
-    ("t15", "get_festivals", "도착지 근처 그날 행사(혼잡 참고)", None),
+    ("t12", "get_road_events", "최종 후보 도로 구간 돌발정보(판단 후 1회)", "after"),
 ]
-FACT_QUERY = PLAN_TRIP[:5]
-TERMS_QUERY = [("t1", "search_terms", "운송약관·행동요령 문서 검색", None)]
-REGISTER = [("t1", "register_calendar", "최근 저장한 이동 계획을 캘린더에 등록", None)]
+FACT_QUERY = [("t1", "search_places", "출발지 이름 → 좌표", "always"),
+              ("t2", "search_places", "도착지 이름 → 좌표", "always"),
+              ("t3", "find_stations", "출발지 근처 기차역(역 ID)", "always"),
+              ("t4", "find_stations", "도착지 근처 기차역(역 ID)", "always"),
+              ("t5", "search_trains", "역 쌍별 열차 시간표·운임", "always")]
+TERMS_QUERY = [("t1", "search_terms", "운송약관·행동요령 문서 검색", "always")]
+REGISTER = [("t1", "register_calendar", "최근 저장한 이동 계획을 캘린더에 등록", "always")]
+
+# 작업을 부르지 않았을 때 남길 사유(when별)
+SKIP_REASON = {
+    "always": "앞 단계 결과를 재사용하거나 앞선 실패로 진행하지 않음",
+    "train": "시내 이동이거나 앞선 실패로 열차 조회까지 가지 않음",
+    "intercity": "시내 이동이거나 역이 바로 앞이라 길찾기 불필요",
+    "taxi": "대중교통 경로가 있어 택시 대체 불필요(택시 변형은 수단 확장 단계에서만)",
+    "bus": "고속버스 조회 조건이 아님",
+    "intracity": "시외 이동이라 해당 없음",
+    "after": "추천 후보가 없거나 도로 구간이 없음",
+}
 
 
-def make_plan(intent: str) -> list[dict]:
-    """의도별 규칙 템플릿으로 작업 목록을 만든다(LLM 없음). 모르는 의도면 빈 목록.
-    작업 = {id, tool, purpose, when, fixed_args}. 레지스트리에 없는 Tool 작업은 뺀다.
+def make_plan(intent: str, strategy: int = 0, modes: list[str] | None = None) -> list[dict]:
+    """의도·재계획 단계·허용 수단으로 작업 목록을 만든다(규칙, LLM 없음). 모르는 의도면 빈 목록.
+    작업 = {id, tool, purpose, when, fixed_args}, 실행 순서대로. 레지스트리에 없는 Tool과 이번 조건에서 부를 수 없는
+    작업(기차만 허용인데 고속버스, 수단 확장 전의 고속버스, 고속버스만 허용인데 기차)은 넣지 않는다.
     fixed_args는 Worker가 재시도할 때 바꾸면 안 되는 인자(사용자 조건).
     """
     from backend.agent.planner_worker import FIXED_ARGS
     template = {"plan_trip": PLAN_TRIP, "modify": PLAN_TRIP, "fact_query": FACT_QUERY,
                 "terms_query": TERMS_QUERY, "register_calendar": REGISTER}.get(intent, [])
+    train_ok = not modes or "train" in modes
+    bus_ok = not modes or "express_bus" in modes
+    bus_now = bus_ok and (strategy >= 2 or not train_ok)
+
+    def wanted(w: str) -> bool:
+        return {"train": train_ok, "bus": bus_now}.get(w, True)
     return [{"id": i, "tool": t, "purpose": p, "when": w, "fixed_args": FIXED_ARGS.get(t, [])}
-            for i, t, p, w in template if get_tool(t) is not None]
+            for i, t, p, w in template if get_tool(t) is not None and wanted(w)]
+
+
+def plan_result(tasks: list[dict], events: list[dict]) -> list[dict]:
+    """작업 목록의 각 작업을 실제로 불렀는지(done) 건너뛰었는지(skipped + 사유)로 정리한다.
+    events는 이 계획 이후의 이벤트(tool_call의 task_id로 대조)."""
+    called = {e["payload"].get("task_id") for e in events if e["type"] == "tool_call"}
+    return [{"id": t["id"], "tool": t["tool"], "status": "done"} if t["id"] in called else
+            {"id": t["id"], "tool": t["tool"], "status": "skipped", "reason": SKIP_REASON.get(t["when"], "조건에 해당 없음")}
+            for t in tasks]
 
 
 # ---------------------------------------------------------------- Tool 호출
@@ -134,28 +170,53 @@ def _worker_on_failure(ctx: RunCtx, task_id: str, name: str, args: dict, r: dict
         return r
     schema = get_tool(name).parameters if get_tool(name) else {}
     for _ in range(ctx.max_retry):
+        current = {**_defaults(name), **args}  # 기본값까지 보여 줘야 "넓히기"를 판단할 수 있다(기본 반경 20km)
         try:
-            d = decide(ctx.llm_factory(), ctx.counter, name, args, r["error"], schema)
-        except Exception:
+            d = decide(ctx.llm_factory(), ctx.counter, name, current, r["error"], schema)
+        except Exception as e:  # 판단 실패는 건너뛰되 원인을 남긴다(조용히 삼키면 Worker가 없는 것과 구별되지 않는다)
+            log.exception("worker decide failed: %s", name)
             em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "skip",
-                                                                "llm": True, "reason": "LLM 판단 실패"})
+                                                                "llm": True, "reason": f"LLM 판단 실패({type(e).__name__})"})
             return r
         action, reason = d.action, d.reason
-        bad = violates_fixed(name, d.new_args)
-        if action == "retry" and (bad or not d.new_args):
+        bad = violates_fixed(name, d.args)
+        narrower = [k for k in TUNABLE.get(name, []) if _num(d.args.get(k)) is not None and _num(current.get(k)) is not None
+                    and _num(d.args[k]) <= _num(current[k])]
+        if action == "retry" and (bad or not d.args):
             action, reason = "skip", f"고정 인자 변경 시도({', '.join(bad)}) → 무효" if bad else "바꿀 인자가 없음"
+        elif action == "retry" and narrower:  # 결과가 없을 때 검색 범위를 좁히면 다시 없다
+            action, reason = "skip", f"{', '.join(narrower)}를 넓히지 않는 재시도({current[narrower[0]]} → {d.args[narrower[0]]}) → 무효"
         em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": action, "llm": True,
-                                                            "new_args": d.new_args, "reason": reason})
+                                                            "new_args": d.args, "reason": reason})
         if action == "request_replan":
             ctx.replan_request = reason
             return r
         if action != "retry":
             return r
-        args = {**args, **d.new_args}
+        args = {**args, **d.args}
         r, _ = _call_once(ctx, task_id, name, args, retry_of=call_seq)
         if r.get("ok") or r["error"]["code"] not in RECOVERABLE:
             return r
     return r
+
+
+def _defaults(name: str) -> dict:
+    """Tool 함수의 기본 인자값(예: find_stations radius_km=20)."""
+    tool = get_tool(name)
+    if tool is None:
+        return {}
+    try:
+        params = inspect.signature(tool.func).parameters.values()
+    except (TypeError, ValueError):
+        return {}
+    return {p.name: p.default for p in params if p.default is not inspect.Parameter.empty}
+
+
+def _num(v) -> float | None:
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
 
 
 def _call_once(ctx: RunCtx, task_id: str, name: str, args: dict, retry_of: int | None) -> tuple[dict, int]:

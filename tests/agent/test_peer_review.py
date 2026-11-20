@@ -165,3 +165,92 @@ def test_recheck_weather_point_without_coords_is_partial(tools):
     r = recheck_plan(p, calendar=FakeCal(), now=RNOW)
     assert r["status"] == "partial"
     assert any(i["level"] == "unknown" and "도착지" in i["text"] for i in r["items"] if i["kind"] == "weather")
+
+
+# 4차 상호 점검(F3006). 작업 목록이 실제 호출 순서와 같고, 쓰지 않을 Tool은 넣지 않으며, 작업마다 결과가 남는다
+def _first_call_order(events):
+    order = []
+    for e in events:
+        if e["type"] == "tool_call" and e["payload"]["task_id"] not in order:
+            order.append(e["payload"]["task_id"])
+    return order
+
+
+def test_plan_order_matches_calls_and_every_task_accounted(env):
+    from tests.agent.test_graph import TRIP, A, Reply
+    world, llm, make, _ = env
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    plan = next(e for e in res.events if e["type"] == "plan_tasks")["payload"]["tasks"]
+    ids = [t["id"] for t in plan]
+    called = _first_call_order(res.events)
+    assert [i for i in ids if i in called] == called  # 호출 순서 = 계획 순서
+    assert not {"t13", "t14"} & set(ids)  # 첫 계획엔 재계획(수단 확장)용 고속버스 없음
+    result = next(e for e in res.events if e["type"] == "plan_result")["payload"]["tasks"]
+    assert [t["id"] for t in result] == ids
+    for t in result:
+        assert t["status"] == ("done" if t["id"] in called else "skipped")
+        assert t["status"] == "done" or t["reason"]
+
+
+def test_plan_follows_modes_and_strategy():
+    from backend.agent.executor import make_plan
+    tools = lambda ts: [t["tool"] for t in ts]  # noqa: E731
+    bus_only = tools(make_plan("plan_trip", strategy=0, modes=["express_bus"]))
+    assert "search_express_bus" in bus_only and "search_trains" not in bus_only and "find_stations" not in bus_only
+    train_only = tools(make_plan("plan_trip", strategy=2, modes=["train"]))
+    assert "search_express_bus" not in train_only and "search_trains" in train_only
+    assert "search_express_bus" in tools(make_plan("plan_trip", strategy=2))
+
+
+# 4차 상호 점검. 열차 번호가 그대로여도 운행 시각(소요 시간)이 바뀌면 '그대로'가 아니다
+def test_recheck_train_duration_changed_is_warn(tools):
+    p = plan()
+    legs = [lg.model_copy(update={"minutes": 140}) if lg.source == "tago_train" else lg for lg in p.legs]
+    tools["trains"] = [{"train_no": "00406", "dep_at": "2026-11-21T07:41", "arr_at": "2026-11-21T10:30"}]  # 169분
+    r = recheck_plan(p.model_copy(update={"legs": legs}), calendar=FakeCal(), now=RNOW)
+    assert r["status"] == "warn" and any("시각" in i["text"] for i in r["items"] if i["level"] == "warn")
+
+
+def test_recheck_says_train_times_not_compared(tools):
+    r = recheck_plan(plan(), calendar=FakeCal(), now=RNOW)
+    assert any(i["kind"] == "train" and "번호" in i["text"] for i in r["items"])
+
+
+# 4차 점검 중 발견: Worker 판단 출력에 자유 dict(additionalProperties: true)가 있어 Anthropic 경로가 400으로 거절
+# → Claude 전환 뒤 Worker LLM 판단이 늘 "LLM 판단 실패"로 끝났다. 모든 object 노드는 속성이 정해져 있어야 한다.
+def test_worker_decision_schema_has_no_free_form_object():
+    from backend.agent.planner_worker import WorkerDecision
+    schema = WorkerDecision.model_json_schema()
+
+    def objects(node):
+        if isinstance(node, dict):
+            if node.get("type") == "object":
+                yield node
+            for v in node.values():
+                yield from objects(v)
+        elif isinstance(node, list):
+            for v in node:
+                yield from objects(v)
+    for o in objects(schema):
+        assert o.get("properties") and o.get("additionalProperties") is not True
+
+
+def test_worker_decision_args_from_dict_still_work():
+    from backend.agent.planner_worker import WorkerDecision
+    d = WorkerDecision(action="retry", new_args={"radius_km": 40}, reason="반경")
+    assert d.args == {"radius_km": 40}
+
+
+# 실제 모델이 기본 반경(20km)을 몰라 10km로 '줄여' 재시도했다 → 현재 값(기본값 포함)을 알려 주고, 넓히지 않는 재시도는 무효
+def test_worker_retry_must_widen_radius(env, monkeypatch):
+    from backend.agent.planner_worker import WorkerDecision
+    from tests.agent.test_graph import TRIP, A, Reply
+    from tests.agent.test_planner_worker import _flaky_stations, pw
+    world, llm, make, _ = env
+    seen = _flaky_stations(world, monkeypatch)
+    llm.responses = [A("plan_trip", **TRIP), WorkerDecision(action="retry", new_args={"radius_km": 10}, reason="줄임"),
+                     Reply(text="ok")]
+    res = pw(make)("x")
+    dec = next(e for e in res.events if e["type"] == "worker_decision")["payload"]
+    assert dec["action"] == "skip" and "넓히" in dec["reason"] and 10 not in seen

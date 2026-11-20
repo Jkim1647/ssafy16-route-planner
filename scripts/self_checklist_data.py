@@ -3,7 +3,7 @@
 
 AUTHOR = "김진영"
 CHECKER = "김진영(셀프 점검)"
-CHECKED_AT = "2026-11-20 14:20"
+CHECKED_AT = "2026-11-20 15:40"
 
 E = "docs/evidence/2026-11-20-claude-haiku/"  # 3일차 재실행 증거(claude-haiku-5-5, 실제 API, 로컬 캘린더)
 
@@ -19,7 +19,7 @@ ITEMS = [
      "이름·주소·place_url 반환, 결과 없음은 NO_DATA"),
     (5, "통과", E + "S1.json, S6.json(analyze 종료 이벤트의 conditions)",
      "S1은 출발·도착·날짜·마감·예산 추출, 없는 depart_after 등은 null. S6(조건 부족)은 되묻기. 상호 점검 뒤 허용 수단(modes)도 추출해 판정까지 연결(test_analyze_schema_extracts_modes, test_train_only_excludes_express_bus, test_avoid_taxi_excludes_taxi_options, test_express_bus_only_not_blocked_by_station_failure)"),
-    (6, "통과", "docs/실행로그샘플.md(plan_tasks), " + E + "S5.json(Tool 0), README 'Agent 그래프'·docs/evidence/graph.mmd",
+    (6, "통과", E + "S1.json(plan_tasks 순서 = 실제 호출 순서, plan_result 수행 10·건너뜀 3과 사유), test_plan_order_matches_calls_and_every_task_accounted, test_plan_follows_modes_and_strategy, " + E + "S5.json(Tool 0), README 'Agent 그래프'·docs/evidence/graph.mmd",
      "인사 요청은 Tool 호출 0. 그래프 노드 = Agent 설계 문서 실행 단계"),
     (7, "통과", "docs/실행로그샘플.md($t1 참조 입력), " + E + "S4.json, docs/screenshots/key_missing.jpg, test_tool_failure_continues",
      "ODsay 키를 비운 실행(S4)도 택시 기준으로 응답, 이어서 다른 요청(S5~) 정상 처리"),
@@ -49,7 +49,7 @@ ITEMS = [
      "대화·계획·로그 화면이 /api/chat·/api/plans·/api/logs 호출(브라우저 네트워크 기록)"),
     (22, "통과", "docs/screenshots/trace_replan.jpg·processing.jpg·key_missing.jpg", "재계획 구분선, 처리 중 표시, 키 누락 배너, Tool 실패 시 카드 경고"),
     (23, "통과", "docs/검증결과.md 1장(S1~S10)·3일차 재실행 표, " + E + "scenarios.json",
-     "다섯 경우 모두 포함, 기대 vs 실제·차이·조치 기록. 처리 시간 1.5~5.5초(3일차 14:08 재실행)"),
+     "다섯 경우 모두 포함, 기대 vs 실제·차이·조치 기록. 처리 시간 2.2~8.0초(3일차 15:30 재실행)"),
     (24, "통과", "docs/실행로그샘플.md(S1 전체 이벤트 + S2 재계획)", "-"),
     (25, "통과", "비밀값 검사: .env 8종 × 추적 파일·커밋 이력 0건, test_500_hides_detail, docs/screenshots/key_missing.jpg",
      ".env·credentials.json·token.json 미추적. 화면엔 키 이름만, 오류 원문 없음"),
@@ -58,10 +58,10 @@ ITEMS = [
      "심화 4종은 docs/비교결과.md·검증결과 4.6에서 필수 결과와 비교"),
     (28, "통과", E + "F3020-duplicate.json·F3020-unplanned.json·F3020-replan.json(warn + 진단), test_no_evidence_undetermined, test_normal_run_ok, docs/screenshots/logs_anomaly.jpg",
      "판정(규칙)과 진단(LLM)을 따로 저장. 정상 실행은 LLM 0. Planner가 verify 단계에서 판정 결과를 참조(test_verify_warn_triggers_one_rebuild)"),
-    (29, "통과", E + "F3021-PW.json, test_agents_labeled_and_tasks_have_fixed_args, test_verify_warn_triggers_one_rebuild, test_worker_request_replan_reaches_planner",
+    (29, "통과", E + "F3021-PW.json, docs/evidence/2026-11-20-worker-on-events.json(Worker 판단·retry_of), test_agents_labeled_and_tasks_have_fixed_args, test_verify_warn_triggers_one_rebuild, test_worker_request_replan_reaches_planner",
      "agent=planner/worker/logger 이벤트, 작업 목록(fixed_args)·수행 결과 형식"),
-    (30, "통과", "test_worker_no_llm_on_success, test_worker_no_llm_on_invalid_key, test_worker_no_llm_on_missing_required_arg, test_worker_retry_on_no_data, test_worker_cannot_change_fixed_args, docs/비교결과.md",
-     "3일차 점검에서 '필수 인자 누락 시 Worker LLM 0회'를 보완(ab63a04). Worker LLM 끈/켠 비교는 비교결과.md — 비교 실행에선 Worker LLM 호출이 0회라 개입 효과는 자동 테스트로만 확인"),
+    (30, "통과", "test_worker_no_llm_on_success, test_worker_no_llm_on_invalid_key, test_worker_no_llm_on_missing_required_arg, test_worker_retry_on_no_data, test_worker_cannot_change_fixed_args, test_worker_retry_must_widen_radius, docs/비교결과.md(Worker 개입 요청 비교), docs/evidence/2026-11-20-worker-compare.json",
+     "3일차 점검에서 '필수 인자 누락 시 Worker LLM 0회'를 보완(ab63a04). Worker LLM 끈/켠 비교는 비교결과.md — 태안→서울역 실제 비교: off는 재계획 3회 후 후보 없음, on은 반경 20→40km 재시도로 재계획 0·카드 3. 이 비교로 Claude 경로에서 Worker 판단이 늘 실패하던 결함을 찾아 고침"),
     (31, "통과", E + "S8.json(근거 문단 + 출처 korail_terms.pdf p.14), test_no_index_code",
      "11/20 오전 GMS GPT 장애 동안 임베딩이 실패해 안내 문장으로 대체 → 복구 후 재실행해 확인"),
     (32, "통과", "test_backend_swap_same_shape, test_register_reads_plan_from_repo, " + E + "S9.json, docs/evidence/google_calendar.json",
