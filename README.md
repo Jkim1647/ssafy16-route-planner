@@ -215,7 +215,7 @@ python scripts/serve_frontend.py 5500        # 프론트 → http://127.0.0.1:55
 | API 명세서 | [API명세서](docs/API명세서.md) · `docs/openapi.json` |
 | 검증 결과 · 실행 로그 샘플 | [검증결과](docs/검증결과.md) · [실행로그샘플](docs/실행로그샘플.md) · `docs/evidence/` |
 | 심화 기능 비교 | [비교결과](docs/비교결과.md) |
-| 셀프 체크리스트 | [셀프체크리스트](docs/셀프체크리스트.md) |
+| 셀프 체크리스트 | 공식 양식 기입본 [셀프체크리스트.xlsx](docs/셀프체크리스트.xlsx) · 근거 정리 [셀프체크리스트.md](docs/셀프체크리스트.md) |
 | 인계 가이드 | [인계가이드](docs/인계가이드.md) |
 
 <details>
