@@ -62,28 +62,31 @@ def test_structured_other_errors_propagate():
 
 
 def test_get_llm_claude_uses_gms_anthropic_route(monkeypatch):
-    # 2026-11-20: GMS의 GPT 쪽이 한도로 막혀 Claude로 전환. GMS는 공급자별 경로를 쓰고 키는 x-api-key로 받는다.
-    from langchain_anthropic import ChatAnthropic
+    # 2026-11-20: GMS의 GPT 쪽이 한도로 막혀 Claude로 전환(강사 안내 방식). 같은 ChatOpenAI로 GMS Anthropic 경로를 부르고,
+    # GMS는 키를 x-api-key 헤더로 받는다. 명세 고정 버전(langchain-openai·langchain-core)을 그대로 쓰기 위해 새 패키지 없음.
+    from langchain_openai import ChatOpenAI
     monkeypatch.setenv("LLM_MODEL", "claude-haiku-5-5")
     monkeypatch.setenv("GMS_BASE_URL", "https://gms.ssafy.io/gmsapi/api.openai.com/v1")
     monkeypatch.setenv("LLM_REASONING_EFFORT", "")
     llm = get_llm()
-    assert isinstance(llm, ChatAnthropic)
-    assert llm.model == "claude-haiku-5-5"
-    assert llm.anthropic_api_url == "https://gms.ssafy.io/gmsapi/api.anthropic.com"
+    assert isinstance(llm, ChatOpenAI)
+    assert llm.model_name == "claude-haiku-5-5"
+    assert llm.openai_api_base == "https://gms.ssafy.io/gmsapi/api.anthropic.com/v1"
     assert llm.default_headers["x-api-key"] == "test-key"
 
 
 def test_get_llm_gpt_keeps_openai_route(monkeypatch):
     monkeypatch.setenv("LLM_MODEL", "gpt-6-luna")
     monkeypatch.setenv("LLM_REASONING_EFFORT", "")
-    assert type(get_llm()).__name__ == "ChatOpenAI"
+    llm = get_llm()
+    assert llm.openai_api_base == "https://gms.ssafy.io/gmsapi/api.openai.com/v1" or "api.openai.com" in str(llm.openai_api_base)
+    assert not (llm.default_headers or {}).get("x-api-key")
 
 
-def test_structured_anthropic_quota_error_becomes_unavailable():
-    import anthropic
-    import httpx
-    err = anthropic.RateLimitError("429", response=httpx.Response(429, request=_req()), body=None)
-    with pytest.raises(LLMUnavailable) as e:
-        structured(FakeLLM([err]), Out, ["a"])
-    assert e.value.reason == "quota"
+def test_requirements_keep_spec_pinned_versions():
+    # 명세서 1.2-5 필수 라이브러리 버전 고정 — LLM 전환으로 버전이 바뀌면 안 된다
+    from pathlib import Path
+    req = (Path(__file__).resolve().parents[2] / "requirements.txt").read_text(encoding="utf-8").split()
+    for pin in ("langchain-openai==1.4.3", "langchain-core==1.6.0", "openai==2.54.0"):
+        assert pin in req
+    assert not any(r.startswith(("langchain-anthropic", "anthropic==")) for r in req)
