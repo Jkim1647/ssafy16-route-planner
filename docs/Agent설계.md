@@ -36,7 +36,7 @@
 | `respond` | 카드·조건 | 요약 문장 생성 → **숫자 검사**(카드에 없는 시각·금액, "3시"·"9만원"처럼 대조 불가한 표현이면 템플릿으로 대체) + 고정 안내. 사실·규정 질문은 템플릿. 결과 없음이면 `last_cards` 비움 | `final_reply, last_cards` | **1회**(경로 응답일 때만) |
 | `action` | 카드 번호, 계획 | 계획 저장(겹침 알림, 자정 넘김 포함)·캘린더 등록(등록 작업 목록 발행) | `final_reply` | 0 |
 
-요청당 LLM 호출: 경로 요청 2회, 사용법·되묻기·규정·열차 시각 질문·상한 도달 1회(GMS 사용량 절약 설계, 모델 `gpt-6-luna`).
+요청당 LLM 호출: 경로 요청 2회, 사용법·되묻기·규정·열차 시각 질문·상한 도달 1회(GMS 사용량 절약 설계, 모델 `claude-haiku-5-5`, 2026-11-20 GMS GPT 한도 초과로 `gpt-6-luna`에서 전환 — `LLM_MODEL`만 바꾸면 되돌릴 수 있음).
 
 그래프 경로: `analyze → plan → execute → (PW: verify) → judge → replan|respond`. 사실 질문(열차 시각)·규정 질문·도보 거리는 판단할 후보가 없어 `execute → respond`로 바로 간다(`docs/evidence/graph.mmd`).
 

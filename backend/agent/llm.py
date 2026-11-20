@@ -1,4 +1,5 @@
-"""GMS(OpenAI 호환) LLM 클라이언트. GMS 한도가 작아 최소 모델 + 호출 수 계측(요청당 최대 2회 목표)."""
+"""GMS LLM 클라이언트. 모델 이름으로 공급자를 고른다: `claude-*` → GMS의 Anthropic 경로, 그 밖 → OpenAI 호환 경로.
+GMS 한도가 작아 최소 모델 + 호출 수 계측(요청당 최대 2회 목표)."""
 from dataclasses import dataclass
 
 from pydantic import BaseModel
@@ -20,13 +21,33 @@ class LLMCounter:
     count: int = 0
 
 
+def anthropic_base_url(gms_base_url: str | None) -> str:
+    """GMS는 공급자별 경로를 쓴다(.../gmsapi/api.openai.com/v1 ↔ .../gmsapi/api.anthropic.com).
+    OpenAI 경로 설정에서 Anthropic 경로를 만든다. SDK가 /v1/messages를 붙이므로 /v1은 넣지 않는다."""
+    base = (gms_base_url or "https://gms.ssafy.io/gmsapi/api.openai.com/v1").rstrip("/")
+    head = base.split("/api.openai.com")[0] if "/api.openai.com" in base else base.rsplit("/", 1)[0]
+    return f"{head}/api.anthropic.com"
+
+
 def get_llm(temperature: float | None = None):
-    """.env의 GMS 엔드포인트·모델로 ChatOpenAI를 만든다(timeout 30초, 재시도 1회).
+    """.env의 GMS 키·모델로 채팅 모델을 만든다(timeout 30초, 재시도 1회).
+    LLM_MODEL이 `claude-`로 시작하면 ChatAnthropic(GMS Anthropic 경로), 아니면 ChatOpenAI(GMS_BASE_URL).
     GMS_API_KEY가 없으면 LLMUnavailable — graph analyze가 잡아 키 설정 안내 응답으로 바꾼다.
     """
     s = get_settings()
     if not s.GMS_API_KEY:
         raise LLMUnavailable("GMS_API_KEY가 설정되지 않았습니다.")
+    if s.LLM_MODEL.startswith("claude-"):
+        from langchain_anthropic import ChatAnthropic
+
+        # GMS는 키를 x-api-key 헤더에서 찾는다(SDK 기본 Authorization 헤더만으로는 401).
+        # temperature는 넘기지 않는다: 최신 Claude 모델은 기본값이 아닌 샘플링 값을 400으로 거절한다.
+        kwargs = {"model": s.LLM_MODEL, "base_url": anthropic_base_url(s.GMS_BASE_URL), "api_key": s.GMS_API_KEY,
+                  "default_headers": {"x-api-key": s.GMS_API_KEY}, "timeout": 30, "max_retries": 1,
+                  "max_tokens": 4096}
+        if s.LLM_REASONING_EFFORT:
+            kwargs["reasoning_effort"] = s.LLM_REASONING_EFFORT
+        return ChatAnthropic(**kwargs)
     from langchain_openai import ChatOpenAI
 
     kwargs = {"model": s.LLM_MODEL, "base_url": s.GMS_BASE_URL, "api_key": s.GMS_API_KEY,
@@ -39,14 +60,16 @@ def get_llm(temperature: float | None = None):
 
 
 def structured(llm, schema: type[BaseModel], messages: list, counter: LLMCounter | None = None) -> BaseModel:
-    """LLM 구조화 출력 호출 1회. counter가 있으면 호출 전에 1 올린다(실패한 호출도 요청당 LLM 호출 수에 들어간다)."""
+    """LLM 구조화 출력 호출 1회. counter가 있으면 호출 전에 1 올린다(실패한 호출도 요청당 LLM 호출 수에 들어간다).
+    한도 초과·연결 실패는 공급자와 상관없이 LLMUnavailable(reason)로 바꿔 화면에서 사유를 안내한다."""
     if counter is not None:
         counter.count += 1
+    import anthropic
     import openai
 
     try:
         return llm.with_structured_output(schema).invoke(messages)
-    except openai.RateLimitError as e:  # 2026-11-20 실제 발생: GMS 뒤 조직 사용 한도 초과(429)
+    except (openai.RateLimitError, anthropic.RateLimitError) as e:  # 2026-11-20 실제 발생: GMS GPT 쪽 한도 초과(429)
         raise LLMUnavailable("GMS 사용 한도를 넘었습니다.", reason="quota") from e
-    except openai.APIConnectionError as e:  # 시간 초과(APITimeoutError)도 여기에 포함
+    except (openai.APIConnectionError, anthropic.APIConnectionError) as e:  # 시간 초과도 여기에 포함
         raise LLMUnavailable("GMS에 연결할 수 없습니다.", reason="connection") from e
