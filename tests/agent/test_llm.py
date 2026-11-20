@@ -90,3 +90,20 @@ def test_requirements_keep_spec_pinned_versions():
     for pin in ("langchain-openai==1.4.3", "langchain-core==1.6.0", "openai==2.54.0"):
         assert pin in req
     assert not any(r.startswith(("langchain-anthropic", "anthropic==")) for r in req)
+
+
+def test_structured_system_only_prompt_gets_user_turn():
+    # Claude(GMS Anthropic 경로)는 system 메시지만 있는 요청을 400으로 거절한다(2026-11-20 시나리오 재실행에서 발견:
+    # 답장·Worker 판단·이상 진단이 조용히 템플릿/건너뜀으로 떨어짐). system만 오면 마지막 것을 user로 보낸다.
+    llm = FakeLLM([Out(v=1)])
+    structured(llm, Out, [("system", "지시")])
+    roles = [m[0] for m in llm.prompts[0]]
+    assert any(r != "system" for r in roles)
+    assert llm.prompts[0][-1] == ("user", "지시")
+
+
+def test_structured_keeps_messages_with_user_turn():
+    llm = FakeLLM([Out(v=1)])
+    msgs = [("system", "규칙"), ("user", "질문")]
+    structured(llm, Out, msgs)
+    assert llm.prompts[0] == msgs

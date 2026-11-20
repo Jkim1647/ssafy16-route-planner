@@ -1,6 +1,6 @@
 """대표 시나리오(명세 4.7) + 검증용 실행(4.3·4.6)을 실제 API·GMS로 돌려 docs/evidence/에 기록한다.
 
-사용: python scripts/run_scenarios.py
+사용: python scripts/run_scenarios.py [출력 폴더]  — 기본 docs/evidence. 기존 증거를 덮지 않으려면 다른 폴더를 준다.
 """
 import datetime as dt
 import json
@@ -10,7 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-EVID = ROOT / "docs" / "evidence"
+EVID = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "docs" / "evidence"
 EVID.mkdir(parents=True, exist_ok=True)
 
 from backend.settings import get_settings  # noqa: E402

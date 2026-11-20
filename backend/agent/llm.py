@@ -59,6 +59,10 @@ def structured(llm, schema: type[BaseModel], messages: list, counter: LLMCounter
         counter.count += 1
     import openai
 
+    # Claude는 system 메시지만 있는 요청을 400으로 거절한다(GPT는 허용). 답장·Worker·진단 프롬프트가 system 하나라
+    # 마지막 메시지를 user로 보낸다 — 내용은 그대로라 GPT에서도 같은 동작.
+    if messages and all(isinstance(m, tuple) and m[0] == "system" for m in messages):
+        messages = [*messages[:-1], ("user", messages[-1][1])]
     try:
         return llm.with_structured_output(schema).invoke(messages)
     except openai.RateLimitError as e:  # 2026-11-20 실제 발생: GMS GPT 쪽 사용 한도 초과(429)
