@@ -3,13 +3,13 @@
 
 AUTHOR = "김진영"
 CHECKER = "김진영(셀프 점검)"
-CHECKED_AT = "2026-11-20 11:00"
+CHECKED_AT = "2026-11-20 14:20"
 
 E = "docs/evidence/2026-11-20-claude-haiku/"  # 3일차 재실행 증거(claude-haiku-5-5, 실제 API, 로컬 캘린더)
 
 # (번호, 결과, 증빙, 비고)
 ITEMS = [
-    (1, "통과", "docs/evidence/2026-11-20-checklist-live.md 1장(13종 × 정상·잘못된 입력·키 비움 실제 실행), GET /api/tools(13종: 외부 10·로컬 3), docs/Tool정의서.md, docs/day1_tools_demo.txt, docs/tools_demo_extra.txt, tests/tools/*",
+    (1, "통과", "docs/evidence/2026-11-20-checklist-live.md 1장(실제 실행: 정상 호출 12종 — register_calendar는 실제 일정이 생겨 자동 테스트 test_register_reads_plan_from_repo로 대체, 잘못된 입력 13종, 키 비움 외부 10종), GET /api/tools(13종: 외부 10·로컬 3), docs/Tool정의서.md, docs/day1_tools_demo.txt, docs/tools_demo_extra.txt, tests/tools/*",
      "실제 실행에서 예외 0, 모두 ok/fail 형식. 점검 중 잘못된 타입 입력이 UPSTREAM_ERROR로 나오던 것을 BAD_ARGUMENT로 보완(test_run_wrong_type_against_schema_is_bad_argument)"),
     (2, "통과", "docs/evidence/2026-11-20-checklist-live.md 2장, test_search_trains_default_date_is_today, test_search_trains_bad_date, test_weather_out_of_range, test_estimated_never_passed",
      "날짜 생략 시 오늘. 조회 불가 날짜는 BAD_ARGUMENT·OUT_OF_RANGE. TAGO가 +7일 시간표를 줘 대체 조회는 실제로 발생하지 않아, 추정 시간표 표시는 테스트로 확인"),
@@ -18,13 +18,13 @@ ITEMS = [
     (4, "통과", "docs/evidence/2026-11-20-checklist-live.md 4장, test_search_places_ok, test_search_places_no_data, test_festivals_near_and_on_date, test_festivals_none_is_ok_empty",
      "이름·주소·place_url 반환, 결과 없음은 NO_DATA"),
     (5, "통과", E + "S1.json, S6.json(analyze 종료 이벤트의 conditions)",
-     "S1은 출발·도착·날짜·마감·예산 추출, 없는 depart_after 등은 null. S6(조건 부족)은 되묻기"),
+     "S1은 출발·도착·날짜·마감·예산 추출, 없는 depart_after 등은 null. S6(조건 부족)은 되묻기. 상호 점검 뒤 허용 수단(modes)도 추출해 판정까지 연결(test_analyze_schema_extracts_modes, test_train_only_excludes_express_bus, test_avoid_taxi_excludes_taxi_options)"),
     (6, "통과", "docs/실행로그샘플.md(plan_tasks), " + E + "S5.json(Tool 0), README 'Agent 그래프'·docs/evidence/graph.mmd",
      "인사 요청은 Tool 호출 0. 그래프 노드 = Agent 설계 문서 실행 단계"),
     (7, "통과", "docs/실행로그샘플.md($t1 참조 입력), " + E + "S4.json, docs/screenshots/key_missing.jpg, test_tool_failure_continues",
      "ODsay 키를 비운 실행(S4)도 택시 기준으로 응답, 이어서 다른 요청(S5~) 정상 처리"),
     (8, "통과", "카드의 판단 근거(basis)·docs/screenshots/chat.jpg, test_card_numbers_from_tools, " + E + "S7.json",
-     "출발=열차 출발−접근 구간−탑승 여유로 역산해 제시. 좌석 잔여·실시간 지연은 '확인하지 못했어요'로 밝힘"),
+     "출발=열차 출발−접근 구간−탑승 여유로 역산해 제시. 좌석 잔여·실시간 지연은 '확인하지 못했어요'로 밝힘. 상호 점검에서 12:00 S3가 이미 지난 출발을 추천한 결함을 찾아 수정·재실행(test_prev_day_option_already_departed_is_excluded), 자정 넘는 시내 이동도 수정(test_intracity_overnight_window_builds_next_day_times)"),
     (9, "통과", E + "S2.json(재계획 2회 후 통과), docs/screenshots/trace_replan.jpg, test_replan_reuses_cache_and_widens",
      "재계획 때 같은 Tool·같은 입력은 실행 내 재사용(cached 표시)"),
     (10, "통과", "docs/evidence/2026-11-20-checklist-live.md 10장(재계획 3/3 후 no_option·사유·조정 안내), docs/evidence/S3.json, test_replan_limit_stops",
@@ -49,7 +49,7 @@ ITEMS = [
      "대화·계획·로그 화면이 /api/chat·/api/plans·/api/logs 호출(브라우저 네트워크 기록)"),
     (22, "통과", "docs/screenshots/trace_replan.jpg·processing.jpg·key_missing.jpg", "재계획 구분선, 처리 중 표시, 키 누락 배너, Tool 실패 시 카드 경고"),
     (23, "통과", "docs/검증결과.md 1장(S1~S10)·3일차 재실행 표, " + E + "scenarios.json",
-     "다섯 경우 모두 포함, 기대 vs 실제·차이·조치 기록. 처리 시간 1.5~9.1초(3일차 최종 코드 재실행)"),
+     "다섯 경우 모두 포함, 기대 vs 실제·차이·조치 기록. 처리 시간 1.5~5.5초(3일차 14:08 재실행)"),
     (24, "통과", "docs/실행로그샘플.md(S1 전체 이벤트 + S2 재계획)", "-"),
     (25, "통과", "비밀값 검사: .env 8종 × 추적 파일·커밋 이력 0건, test_500_hides_detail, docs/screenshots/key_missing.jpg",
      ".env·credentials.json·token.json 미추적. 화면엔 키 이름만, 오류 원문 없음"),
@@ -61,7 +61,7 @@ ITEMS = [
     (29, "통과", E + "F3021-PW.json, test_agents_labeled_and_tasks_have_fixed_args, test_verify_warn_triggers_one_rebuild, test_worker_request_replan_reaches_planner",
      "agent=planner/worker/logger 이벤트, 작업 목록(fixed_args)·수행 결과 형식"),
     (30, "통과", "test_worker_no_llm_on_success, test_worker_no_llm_on_invalid_key, test_worker_no_llm_on_missing_required_arg, test_worker_retry_on_no_data, test_worker_cannot_change_fixed_args, docs/비교결과.md",
-     "3일차 점검에서 '필수 인자 누락 시 Worker LLM 0회'를 보완(ab63a04). Worker LLM 끈/켠 비교는 비교결과.md"),
+     "3일차 점검에서 '필수 인자 누락 시 Worker LLM 0회'를 보완(ab63a04). Worker LLM 끈/켠 비교는 비교결과.md — 비교 실행에선 Worker LLM 호출이 0회라 개입 효과는 자동 테스트로만 확인"),
     (31, "통과", E + "S8.json(근거 문단 + 출처 korail_terms.pdf p.14), test_no_index_code",
      "11/20 오전 GMS GPT 장애 동안 임베딩이 실패해 안내 문장으로 대체 → 복구 후 재실행해 확인"),
     (32, "통과", "test_backend_swap_same_shape, test_register_reads_plan_from_repo, " + E + "S9.json, docs/evidence/google_calendar.json",

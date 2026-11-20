@@ -148,6 +148,30 @@ def build_intercity_options(trains: list[dict], access: list[Segment], egress: l
     return opts
 
 
+def _overnight(conds: Conditions) -> bool:
+    """"22시 이후 출발, 02:30까지 도착"처럼 마감이 출발 하한보다 이르면 마감은 다음 날이다."""
+    return bool(conds.arrive_by and conds.depart_after and conds.arrive_by <= conds.depart_after)
+
+
+# 회피 표현 → 제외할 구간 수단(Leg.mode). 고속버스 본선도 mode "bus"라 "버스"를 피하면 함께 빠진다
+_AVOID_MODES = {"택시": "taxi", "버스": "bus", "지하철": "subway", "기차": "train", "열차": "train"}
+_TRUNK_KO = {"train": "기차", "express_bus": "고속버스"}
+
+
+def mode_violation(o: Option, conds: Conditions) -> str | None:
+    """허용 수단(modes: 장거리 본선 train|express_bus)과 회피 수단(avoid)을 어기면 제외 사유, 아니면 None."""
+    trunk = next((lg for lg in o.legs if lg.source in ("tago_train", "tago_bus")), None)
+    if conds.modes and trunk:
+        kind = "express_bus" if trunk.source == "tago_bus" else "train"
+        if kind not in conds.modes:
+            allowed = "·".join(_TRUNK_KO.get(m, m) for m in conds.modes)
+            return f"수단 제외: {_TRUNK_KO[kind]} 구간 ({allowed}만 허용)"
+    for word, mode in _AVOID_MODES.items():
+        if word in conds.avoid and any(lg.mode == mode for lg in o.legs):
+            return f"수단 제외: {word} 구간 포함 ({word} 회피 요청)"
+    return None
+
+
 def build_intracity_options(paths: list[dict], car: dict | None, conds: Conditions) -> list[Option]:
     """시내 이동 Option: ODsay 경로마다 하나, 자동차 경로가 있으면 택시 하나를 더한다(소요 모르는 구간은 뺀다).
     arrive_by가 있으면 '마감 − 여유(buffer_min)'에서 거꾸로, 없으면 depart_after부터 시각을 잡는다.
@@ -161,7 +185,7 @@ def build_intracity_options(paths: list[dict], car: dict | None, conds: Conditio
             continue
         if conds.arrive_by:
             arrive = dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.arrive_by)) \
-                - dt.timedelta(minutes=conds.buffer_min)
+                + dt.timedelta(days=_overnight(conds), minutes=-conds.buffer_min)
             leave = arrive - dt.timedelta(minutes=s.minutes)
         else:
             leave = dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.depart_after))
@@ -173,20 +197,18 @@ def build_intracity_options(paths: list[dict], car: dict | None, conds: Conditio
 
 def evaluate(options: list[Option], conds: Conditions, busy: list[Busy], now: dt.datetime) -> Judgment:
     """Option들을 통과·제외·판단 불가·추정으로 나눈다(Judgment). 검사 순서:
-    추정 시간표 → 소요 불명 → 도착 마감(− 여유, 자정 넘김 반영) → 출발 하한(오늘이면 지금 이후)
-    → 캘린더 겹침 → 비 회피(rain_block) → 예산(운임을 모르면 판단 불가). 제외 항목에는 사유 문장이 붙는다.
+    추정 시간표 → 소요 불명 → 도착 마감(− 여유, 자정 넘김 반영) → 출발 하한(언제나 지금 이후)
+    → 허용·회피 수단 → 캘린더 겹침 → 비 회피(rain_block) → 예산(운임을 모르면 판단 불가). 제외 항목에는 사유 문장이 붙는다.
     """
     j = Judgment([], [], [], [])
-    # "22시 이후 출발, 02:30까지 도착"처럼 마감이 출발 하한보다 이르면 마감은 다음 날이다
-    overnight = bool(conds.arrive_by and conds.depart_after and conds.arrive_by <= conds.depart_after)
     deadline = (dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.arrive_by))
-                + dt.timedelta(days=overnight, minutes=-conds.buffer_min)) if conds.arrive_by else None
+                + dt.timedelta(days=_overnight(conds), minutes=-conds.buffer_min)) if conds.arrive_by else None
 
     def when(t: dt.datetime) -> str:  # 요청 날짜와 다른 날이면 날짜도 밝힌다
         return _hm(t) if t.date() == conds.date else t.strftime("%m-%d %H:%M")
     lower = dt.datetime.combine(conds.date, dt.time.fromisoformat(conds.depart_after)) if conds.depart_after else None
-    if conds.date == now.date():
-        lower = max(lower, now) if lower else now
+    # 요청 날짜와 상관없이 지금보다 앞선 출발은 탈 수 없다(전날 출발 후보는 이미 지난 시각일 수 있다)
+    lower = max(lower, now) if lower else now
     for o in options:
         if o.estimated:
             j.estimated.append(o)
@@ -199,6 +221,10 @@ def evaluate(options: list[Option], conds: Conditions, busy: list[Busy], now: dt
             continue
         if lower and o.leave_at < lower:
             j.excluded.append((o, f"출발 {when(o.leave_at)} < 가능 시각 {when(lower)}"))
+            continue
+        bad_mode = mode_violation(o, conds)
+        if bad_mode:
+            j.excluded.append((o, bad_mode))
             continue
         clash = next((b for b in busy if o.leave_at < b.end and b.start < o.arrive_at), None)
         if clash:
@@ -240,7 +266,7 @@ def checks_for(o: Option, conds: Conditions, busy: list[Busy], calendar_checked:
     return out
 
 
-_EXCLUSION_KINDS = (("도착", "마감"), ("총 ", "예산"), ("캘린더", "일정"), ("출발", "출발 시각"), ("강수", "날씨"))
+_EXCLUSION_KINDS = (("도착", "마감"), ("총 ", "예산"), ("캘린더", "일정"), ("출발", "출발 시각"), ("강수", "날씨"), ("수단", "수단"))
 
 
 def exclusion_kind(reason: str) -> str:

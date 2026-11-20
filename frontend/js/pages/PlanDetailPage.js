@@ -90,7 +90,9 @@ export default {
       store.pendingQuestion = q.text;
       router.push("/");
     }
-    const CHECK_ICON = { ok: "✓", warn: "⚠", info: "·" };
+    const CHECK_ICON = { ok: "✓", warn: "⚠", info: "·", unknown: "?" };
+    // ok는 모든 항목을 확인했을 때만. 확인 못 한 항목이 있으면(partial) 괜찮다고 말하지 않는다
+    const CHECK_TITLE = { ok: "그대로 가도 돼요", warn: "확인할 게 있어요", partial: "일부는 확인하지 못했어요", past: "출발 시각이 지났어요" };
 
     // 읽기 전용 공유 링크
     const shareUrl = computed(() => (plan.value?.share_token
@@ -128,7 +130,7 @@ export default {
     }
 
     return { plan, error, editing, form, busy, notice, confirmDelete, totalMin, startEdit, saveEdit, addCalendar, remove,
-      check, checking, recheck, replan, CHECK_ICON, shareUrl, share, unshare, copyLink,
+      check, checking, recheck, replan, CHECK_ICON, CHECK_TITLE, shareUrl, share, unshare, copyLink,
       dateLabel, legLabel, mins, won, POINT_LABEL, legColor, busTypeLabel };
   },
   template: `
@@ -166,7 +168,7 @@ export default {
         </section>
         <section v-if="check" class="recheck" :class="check.status" aria-live="polite">
           <div class="recheck-head">
-            <strong>{{ check.status === 'ok' ? '그대로 가도 돼요' : check.status === 'past' ? '출발 시각이 지났어요' : '확인할 게 있어요' }}</strong>
+            <strong>{{ CHECK_TITLE[check.status] || '확인할 게 있어요' }}</strong>
             <span class="basis">{{ check.checked_at.replace('T', ' ') }} 기준</span>
             <button v-if="check.status !== 'ok'" type="button" class="small" @click="replan">다른 경로 찾기</button>
           </div>

@@ -91,10 +91,11 @@ def test_rain_with_long_walk(tools):
     assert "weather" in kinds(r, "warn") and any("70%" in i["text"] for i in r["items"])
 
 
-def test_weather_out_of_range_is_info(tools):
+def test_weather_out_of_range_is_unknown_not_ok(tools):
+    # 상호 점검: 확인하지 못한 항목이 있으면 "그대로 가도 돼요"(ok)라고 하지 않는다
     tools["pop"] = None
     r = recheck_plan(plan(), calendar=FakeCal(), now=NOW)
-    assert "weather" in kinds(r, "info") and r["status"] == "ok"
+    assert "weather" in kinds(r, "unknown") and r["status"] == "partial"
 
 
 def test_festival_near_destination(tools):
@@ -108,17 +109,17 @@ def test_departure_passed(tools):
     assert r["status"] == "past" and "time" in kinds(r, "warn")
 
 
-def test_calendar_failure_is_info_not_crash(tools):
+def test_calendar_failure_is_unknown_not_crash(tools):
     class Broken:
         def get_free_busy(self, day, days=1):
             raise RuntimeError("down")
     r = recheck_plan(plan(), calendar=Broken(), now=NOW)
-    assert "calendar" in kinds(r, "info")
+    assert "calendar" in kinds(r, "unknown") and r["status"] == "partial"
 
 
 def test_old_plan_without_points_skips_train_check(tools):
     r = recheck_plan(plan(points=[]), calendar=FakeCal(), now=NOW)
-    assert "train" in kinds(r, "info") and not tools["calls"]
+    assert "train" in kinds(r, "unknown") and not tools["calls"]
 
 
 def test_recheck_api(make_client, tools, monkeypatch):
@@ -127,6 +128,6 @@ def test_recheck_api(make_client, tools, monkeypatch):
     pid = c.post("/api/plans", json=body).json()["plan"]["id"]
     monkeypatch.setenv("CALENDAR_BACKEND", "local")
     r = c.post(f"/api/plans/{pid}/recheck", json={})
-    assert r.status_code == 200 and r.json()["status"] in ("ok", "warn", "past")
+    assert r.status_code == 200 and r.json()["status"] in ("ok", "warn", "partial", "past")
     assert c.post("/api/plans/9999/recheck", json={}).status_code == 404
 

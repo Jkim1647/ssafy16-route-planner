@@ -16,7 +16,8 @@ ANALYZE = """너는 이동 플래너의 요청 분석기다. 오늘은 {today}({
 - date는 YYYY-MM-DD. "토요일", "모레" 같은 표현은 오늘 기준으로 계산.
 - arrive_by(언제까지 도착), depart_after(언제 이후 출발)는 24시간 HH:MM. "오후 2시" → "14:00".
 - budget은 원 단위 정수. priority는 cheapest|fastest|fewest_transfers 중 하나(언급 없으면 null).
-- avoid: "비 맞기 싫어" → ["비"], "운전 싫어" → ["운전"].
+- avoid: "비 맞기 싫어" → ["비"], "택시는 빼줘" → ["택시"], "버스 싫어" → ["버스"]. 수단은 택시·버스·지하철·기차 중 문장에 나온 말 그대로.
+- modes: 장거리 수단을 한정할 때만. "기차로만" → ["train"], "고속버스로" → ["express_bus"].
 - option_ref: "2번", "두 번째" 같은 카드 번호(1부터).
 
 현재까지의 조건(대화 맥락): {conditions}

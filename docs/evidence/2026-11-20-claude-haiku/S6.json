@@ -13,8 +13,8 @@
   "excluded_sample": [],
   "warnings": [],
   "reply": "어디에서 출발하시나요? 어느 날짜에 이동하시나요?",
-  "run_id": "855569194ed4",
-  "session_id": "da2c4d32eb6c",
+  "run_id": "281069ffe6c3",
+  "session_id": "28aea7a55b89",
   "anomaly": {
    "verdict": "undetermined",
    "rules": [],
@@ -22,8 +22,8 @@
   }
  },
  "result": {
-  "run_id": "855569194ed4",
-  "session_id": "da2c4d32eb6c",
+  "run_id": "281069ffe6c3",
+  "session_id": "28aea7a55b89",
   "reply": "어디에서 출발하시나요? 어느 날짜에 이동하시나요?",
   "cards": [],
   "excluded": [],
@@ -38,10 +38,10 @@
   "llm_calls": 1,
   "events": [
    {
-    "session_id": "da2c4d32eb6c",
-    "run_id": "855569194ed4",
+    "session_id": "28aea7a55b89",
+    "run_id": "281069ffe6c3",
     "seq": 1,
-    "ts": "2026-11-20T11:59:20.200",
+    "ts": "2026-11-20T14:09:12.722",
     "agent": "main",
     "type": "run_start",
     "node": null,
@@ -52,10 +52,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "da2c4d32eb6c",
-    "run_id": "855569194ed4",
+    "session_id": "28aea7a55b89",
+    "run_id": "281069ffe6c3",
     "seq": 2,
-    "ts": "2026-11-20T11:59:20.205",
+    "ts": "2026-11-20T14:09:12.727",
     "agent": "main",
     "type": "node_start",
     "node": "analyze",
@@ -63,17 +63,17 @@
     "duration_ms": null
    },
    {
-    "session_id": "da2c4d32eb6c",
-    "run_id": "855569194ed4",
+    "session_id": "28aea7a55b89",
+    "run_id": "281069ffe6c3",
     "seq": 3,
-    "ts": "2026-11-20T11:59:21.631",
+    "ts": "2026-11-20T14:09:15.090",
     "agent": "main",
     "type": "llm_decision",
     "node": "analyze",
     "payload": {
      "decision": "intent",
      "value": "plan_trip",
-     "reason": "목적지 서울로 특정 시각까지 도착해야 하는 이동 계획 요청이다.",
+     "reason": "목적지(서울)와 도착 시한(2시까지)이 있는 이동 계획 요청이다.",
      "changes": {
       "destination": "서울",
       "arrive_by": "14:00"
@@ -82,16 +82,16 @@
     "duration_ms": null
    },
    {
-    "session_id": "da2c4d32eb6c",
-    "run_id": "855569194ed4",
+    "session_id": "28aea7a55b89",
+    "run_id": "281069ffe6c3",
     "seq": 4,
-    "ts": "2026-11-20T11:59:21.639",
+    "ts": "2026-11-20T14:09:15.097",
     "agent": "main",
     "type": "node_end",
     "node": "analyze",
     "payload": {
      "intent": "plan_trip",
-     "intent_reason": "목적지 서울로 특정 시각까지 도착해야 하는 이동 계획 요청이다.",
+     "intent_reason": "목적지(서울)와 도착 시한(2시까지)이 있는 이동 계획 요청이다.",
      "conditions": {
       "origin": null,
       "destination": "서울",
@@ -109,13 +109,13 @@
       "date"
      ]
     },
-    "duration_ms": 1431
+    "duration_ms": 2366
    },
    {
-    "session_id": "da2c4d32eb6c",
-    "run_id": "855569194ed4",
+    "session_id": "28aea7a55b89",
+    "run_id": "281069ffe6c3",
     "seq": 5,
-    "ts": "2026-11-20T11:59:21.645",
+    "ts": "2026-11-20T14:09:15.101",
     "agent": "main",
     "type": "node_start",
     "node": "clarify",
@@ -123,10 +123,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "da2c4d32eb6c",
-    "run_id": "855569194ed4",
+    "session_id": "28aea7a55b89",
+    "run_id": "281069ffe6c3",
     "seq": 6,
-    "ts": "2026-11-20T11:59:21.649",
+    "ts": "2026-11-20T14:09:15.104",
     "agent": "main",
     "type": "node_end",
     "node": "clarify",
@@ -136,10 +136,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "da2c4d32eb6c",
-    "run_id": "855569194ed4",
+    "session_id": "28aea7a55b89",
+    "run_id": "281069ffe6c3",
     "seq": 7,
-    "ts": "2026-11-20T11:59:21.654",
+    "ts": "2026-11-20T14:09:15.108",
     "agent": "main",
     "type": "run_end",
     "node": null,

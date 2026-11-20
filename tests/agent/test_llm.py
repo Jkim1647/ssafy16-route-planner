@@ -76,10 +76,12 @@ def test_get_llm_claude_uses_gms_anthropic_route(monkeypatch):
 
 
 def test_get_llm_gpt_keeps_openai_route(monkeypatch):
+    # .env 없이도 같은 결과가 나오도록 GMS 주소를 테스트에서 직접 정한다(상호 점검: 실행 환경 의존)
     monkeypatch.setenv("LLM_MODEL", "gpt-6-luna")
+    monkeypatch.setenv("GMS_BASE_URL", "https://gms.ssafy.io/gmsapi/api.openai.com/v1")
     monkeypatch.setenv("LLM_REASONING_EFFORT", "")
     llm = get_llm()
-    assert llm.openai_api_base == "https://gms.ssafy.io/gmsapi/api.openai.com/v1" or "api.openai.com" in str(llm.openai_api_base)
+    assert llm.openai_api_base == "https://gms.ssafy.io/gmsapi/api.openai.com/v1"
     assert not (llm.default_headers or {}).get("x-api-key")
 
 

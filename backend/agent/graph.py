@@ -49,6 +49,8 @@ class Changes(BaseModel):
     depart_after: str | None = Field(None, description="이 시각 이후 출발. 시각만 HH:MM")
     budget: int | None = Field(None, description="교통비 상한(원)")
     priority: Literal["cheapest", "fastest", "fewest_transfers"] | None = None
+    modes: list[Literal["train", "express_bus"]] | None = Field(
+        None, description="장거리 구간에 허용한 수단. '기차로만' → [\"train\"], '고속버스로' → [\"express_bus\"]. 언급 없으면 null")
     avoid: list[str] | None = None
 
 
@@ -145,6 +147,19 @@ def numbers_ok(text: str, cards: list[dict]) -> bool:
     # "3시", "9만원"처럼 카드 값과 대조할 수 없는 숫자 표현은 통과시키지 않는다.
     loose = re.search(r"\d+\s*시(?!간)|\d+\s*[만천]\s*원", text)
     return not loose and times <= allowed_t and wons <= allowed_w
+
+
+def _day_note(cards: list[dict], day: dt.date | None) -> str | None:
+    """요청 날짜와 다른 날 출발하는 카드(전날 출발 전략)를 밝히는 한 줄. 시각만 보면 요청일 출발로 읽히기 때문."""
+    if day is None:
+        return None
+    other = [c for c in cards if c.get("date") and c["date"] != day.isoformat()]
+    if not other:
+        return None
+    dates = {c["date"] for c in other}
+    when = "전날" if dates == {(day - dt.timedelta(days=1)).isoformat()} else "다른 날"
+    nums = "·".join(str(c["index"]) for c in other)
+    return f"※ {nums}번은 요청일 {when}({'·'.join(sorted(d[5:] for d in dates))}) 출발이에요."
 
 
 def _template_reply(cards: list[dict]) -> str:
@@ -370,7 +385,8 @@ def build_graph(deps: Deps):
             deps.ctx.emitter.emit("llm_decision", node="respond",
                                   payload={"decision": "reply_rejected", "reason": "카드에 없는 숫자 포함"})
             text = None
-        reply = (text or _template_reply(cards)) + "\n" + prompts.DISCLAIMER
+        note = _day_note(cards, conds.date)
+        reply = (text or _template_reply(cards)) + (f"\n{note}" if note else "") + "\n" + prompts.DISCLAIMER
         return {"final_reply": reply, "status": "done", "last_cards": cards}
 
     def action(state: AgentState):

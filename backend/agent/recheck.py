@@ -5,7 +5,9 @@
 - 날씨: 출발·도착 지점 강수확률, 도보가 길면 주의
 - 행사: 도착지 근처 그날 행사(혼잡 참고)
 - 출발 시각: 이미 지났는지
-결과 status: ok(그대로 가도 됨) · warn(주의할 것 있음 → 다른 경로 찾기 권장) · past(출발 시각 지남)
+결과 status: ok(모두 확인했고 그대로 가도 됨) · warn(주의할 것 있음 → 다른 경로 찾기 권장)
+· partial(확인하지 못한 항목이 있음 — "괜찮다"고 말하지 않는다) · past(출발 시각 지남)
+항목 level: ok · warn · info(참고) · unknown(조회 실패·예보 없음 등으로 확인 못 함)
 """
 from __future__ import annotations
 
@@ -13,6 +15,7 @@ import datetime as dt
 
 from backend.agent.judge import RAIN_POP, WALK_WARN_MIN
 from backend.calendar.base import plan_span
+from backend.tools.budget import default_budget
 from backend.tools.registry import get_tool
 
 
@@ -32,7 +35,7 @@ def _train_items(plan, day: dt.date) -> list[dict]:
     pts = {p.kind: p for p in plan.points}
     dep, arr = pts.get("dep_station"), pts.get("arr_station")
     if not (dep and arr):
-        return [_item("train", "info", "역 정보가 없는 예전 계획이라 열차 시간표는 다시 확인하지 못했어요")]
+        return [_item("train", "unknown", "역 정보가 없는 예전 계획이라 열차 시간표는 다시 확인하지 못했어요")]
 
     def station_id(p):
         r = _run("find_stations", x=p.x, y=p.y)
@@ -42,10 +45,11 @@ def _train_items(plan, day: dt.date) -> list[dict]:
 
     sid_dep, sid_arr = station_id(dep), station_id(arr)
     if not (sid_dep and sid_arr):
-        return [_item("train", "info", "역을 다시 찾지 못해 열차 시간표는 확인하지 못했어요")]
-    r = _run("search_trains", dep_station_id=sid_dep, arr_station_id=sid_arr, date=day.isoformat())
+        return [_item("train", "unknown", "역을 다시 찾지 못해 열차 시간표는 확인하지 못했어요")]
+    with default_budget().no_cache():  # 재확인은 지금의 시간표를 봐야 한다(최대 24시간 캐시를 쓰지 않음)
+        r = _run("search_trains", dep_station_id=sid_dep, arr_station_id=sid_arr, date=day.isoformat())
     if not r or not r["ok"]:
-        return [_item("train", "info", "열차 시간표를 지금 조회하지 못했어요")]
+        return [_item("train", "unknown", "열차 시간표를 지금 조회하지 못했어요")]
     listed = {str(t.get("train_no")).lstrip("0") for t in r["data"]["trains"]}
     out = []
     for lg in trains:
@@ -63,7 +67,7 @@ def _calendar_items(plan, calendar, start: dt.datetime, end: dt.datetime) -> lis
     try:
         busy = calendar.get_free_busy(start.date(), days=2 if end.date() > start.date() else 1)
     except Exception:  # 캘린더 연결 실패는 재확인 전체를 막지 않는다
-        return [_item("calendar", "info", "캘린더를 지금 조회하지 못했어요")]
+        return [_item("calendar", "unknown", "캘린더를 지금 조회하지 못했어요")]
     own = f"이동: {plan.title}"
     clash = [b for b in busy if b.title != own and b.start < end and start < b.end]
     if not clash:
@@ -83,7 +87,7 @@ def _weather_items(plan, start: dt.datetime, end: dt.datetime) -> list[dict]:
         if r and r["ok"] and r["data"].get("pop") is not None:
             pops.append(r["data"]["pop"])
     if not pops:
-        return [_item("weather", "info", "그날 예보가 아직 없거나 조회하지 못했어요")]
+        return [_item("weather", "unknown", "그날 예보가 아직 없거나 조회하지 못해 날씨는 확인하지 못했어요")]
     pop = max(pops)
     if pop >= RAIN_POP and walk >= WALK_WARN_MIN:
         return [_item("weather", "warn", f"강수확률 {pop}% — 도보 {walk}분이라 우산을 챙기거나 택시 구간을 고려하세요")]
@@ -104,7 +108,7 @@ def _festival_items(plan, day: dt.date) -> list[dict]:
 def recheck_plan(plan, *, calendar, now: dt.datetime) -> dict:
     """저장된 계획 하나를 now 기준으로 다시 확인해 {plan_id, status, checked_at, items}를 돌려준다.
     items는 출발 시각·시간표·캘린더·날씨·행사 항목별 {kind, level(ok|warn), text}.
-    status: 출발 시각이 지났으면 past, warn 항목이 하나라도 있으면 warn, 아니면 ok.
+    status: 출발 시각이 지났으면 past, warn 항목이 있으면 warn, 확인 못 한(unknown) 항목이 있으면 partial, 아니면 ok.
     """
     start, end = plan_span(plan)
     items = []
@@ -117,5 +121,6 @@ def recheck_plan(plan, *, calendar, now: dt.datetime) -> dict:
     items += _calendar_items(plan, calendar, start, end)
     items += _weather_items(plan, start, end)
     items += _festival_items(plan, plan.date)
-    status = "past" if now >= start else "warn" if any(i["level"] == "warn" for i in items) else "ok"
+    levels = {i["level"] for i in items}
+    status = "past" if now >= start else "warn" if "warn" in levels else "partial" if "unknown" in levels else "ok"
     return {"plan_id": plan.id, "status": status, "checked_at": now.isoformat(timespec="minutes"), "items": items}
