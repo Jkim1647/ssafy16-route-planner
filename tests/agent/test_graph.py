@@ -278,6 +278,17 @@ def test_llm_unavailable_message(env, monkeypatch):
     assert "GMS_API_KEY" in res.reply
 
 
+def test_llm_quota_message_explains_and_keeps_tools_unused(env):
+    world, llm, make, _ = env
+    from backend.agent.llm import LLMUnavailable
+    llm.responses = [LLMUnavailable("한도", reason="quota")]
+    res = make()("내일 오전 9시까지 첨단동에서 교육장 가야 해")
+    assert res.status == "llm_unavailable"
+    assert "사용 한도" in res.reply and "GMS_API_KEY" not in res.reply
+    assert "여러 동선" in res.reply  # LLM 없이 되는 기능을 안내
+    assert not [e for e in res.events if e["type"] == "tool_call"]
+
+
 def test_odsay_calls_capped_per_run(env):
     world, llm, make, _ = env
     world.trains = [tr("13:00", "15:00")]  # 계속 재계획

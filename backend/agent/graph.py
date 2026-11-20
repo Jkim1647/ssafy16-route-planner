@@ -29,6 +29,13 @@ from backend.schemas import PlanIn
 from backend.tools.registry import get_tool
 
 WEEKDAY = "월화수목금토일"
+# LLM을 못 쓸 때(LLMUnavailable.reason별) 분석 대신 보낼 안내. 여러 동선 계산은 LLM 없이 동작하므로 함께 알린다.
+_NO_LLM_TIP = " 세 곳 이상은 '조건으로 질문 만들기'의 여러 동선 계산(LLM 없이 동작)으로 찾을 수 있어요."
+LLM_DOWN_REPLY = {
+    "no_key": "LLM 키(GMS_API_KEY)가 설정되지 않아 요청을 분석할 수 없어요. .env를 확인해 주세요.",
+    "quota": "LLM 서버(GMS)가 사용 한도에 걸려 지금은 문장을 분석할 수 없어요. 잠시 후 다시 시도해 주세요." + _NO_LLM_TIP,
+    "connection": "LLM 서버(GMS)에 연결할 수 없어 문장을 분석하지 못했어요. 잠시 후 다시 시도해 주세요." + _NO_LLM_TIP,
+}
 
 
 class Changes(BaseModel):
@@ -162,9 +169,9 @@ def build_graph(deps: Deps):
                 ("user", state["user_message"])]
         try:
             out: AnalyzeOut = structured(deps.llm_factory(), AnalyzeOut, msgs, deps.ctx.counter)
-        except LLMUnavailable:
-            return {"intent": "error", "status": "llm_unavailable",
-                    "final_reply": "LLM 키(GMS_API_KEY)가 설정되지 않아 요청을 분석할 수 없어요. .env를 확인해 주세요."}
+        except LLMUnavailable as e:
+            return {"intent": "error", "status": "llm_unavailable", "final_reply": LLM_DOWN_REPLY.get(e.reason,
+                    LLM_DOWN_REPLY["no_key"])}
         changes = {k: v for k, v in out.changes.model_dump().items() if v is not None}
         if out.intent in ("plan_trip", "modify", "fact_query"):
             changes = fix_changes(changes, state["user_message"], now.date())

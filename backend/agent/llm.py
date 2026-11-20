@@ -7,7 +7,12 @@ from backend.settings import get_settings
 
 
 class LLMUnavailable(RuntimeError):
-    """GMS 키가 없거나 LLM을 쓸 수 없을 때."""
+    """GMS 키가 없거나 LLM을 쓸 수 없을 때. reason: "no_key"(키 없음) · "quota"(GMS 사용 한도 초과, 429)
+    · "connection"(연결·시간 초과). 화면 안내 문장을 사유별로 고르는 데 쓴다."""
+
+    def __init__(self, message: str, reason: str = "no_key"):
+        super().__init__(message)
+        self.reason = reason
 
 
 @dataclass
@@ -37,4 +42,11 @@ def structured(llm, schema: type[BaseModel], messages: list, counter: LLMCounter
     """LLM 구조화 출력 호출 1회. counter가 있으면 호출 전에 1 올린다(실패한 호출도 요청당 LLM 호출 수에 들어간다)."""
     if counter is not None:
         counter.count += 1
-    return llm.with_structured_output(schema).invoke(messages)
+    import openai
+
+    try:
+        return llm.with_structured_output(schema).invoke(messages)
+    except openai.RateLimitError as e:  # 2026-11-20 실제 발생: GMS 뒤 조직 사용 한도 초과(429)
+        raise LLMUnavailable("GMS 사용 한도를 넘었습니다.", reason="quota") from e
+    except openai.APIConnectionError as e:  # 시간 초과(APITimeoutError)도 여기에 포함
+        raise LLMUnavailable("GMS에 연결할 수 없습니다.", reason="connection") from e
