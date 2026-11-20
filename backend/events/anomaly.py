@@ -92,9 +92,11 @@ def diagnose(llm, events: list[dict], findings: list[dict]) -> str | None:
                  if k in (e.get("payload") or {})}}
              for e in events if e["type"] in ("plan_tasks", "tool_call", "tool_result", "replan")][:60]
     try:
-        out = llm.with_structured_output(Diagnosis).invoke(
-            [("system", DIAG_PROMPT.format(findings=json.dumps(findings, ensure_ascii=False),
-                                           events=json.dumps(brief, ensure_ascii=False)))])
+        from backend.agent.llm import structured  # system만 있는 요청을 Claude가 거절하지 않게 맞춰 준다
+
+        out = structured(llm, Diagnosis,
+                         [("system", DIAG_PROMPT.format(findings=json.dumps(findings, ensure_ascii=False),
+                                                        events=json.dumps(brief, ensure_ascii=False)))])
         return out.text.strip()[:500]
     except Exception:  # 진단 실패해도 판정과 실행 로그는 그대로 남는다
         log.warning("anomaly diagnosis failed", exc_info=True)

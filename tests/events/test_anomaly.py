@@ -111,3 +111,10 @@ def test_diagnosis_failure_keeps_verdict(tmp_path):
 
 def test_diagnose_returns_none_on_error():
     assert diagnose(FakeLLM([RuntimeError("x")]), [], []) is None
+
+
+def test_diagnose_sends_a_user_turn():
+    # Claude는 system 메시지만 있는 요청을 400으로 거절한다(2026-11-20 시나리오 재실행: 진단이 매번 None)
+    llm = FakeLLM([Diagnosis(text="같은 인자로 두 번 호출")])
+    assert diagnose(llm, [], [{"rule": "DUPLICATE"}]) == "같은 인자로 두 번 호출"
+    assert any(m[0] != "system" for m in llm.prompts[0])
