@@ -98,7 +98,7 @@
 | Agent | 역할 | LLM 호출 조건 | LLM 안 부르는 경우 |
 |---|---|---|---|
 | Planner (`analyze`·`plan`·`replan`) | 요청 분해, 작업 목록(고정 인자 표시), 재구성 | 의도·조건 분석 1회 | 계획 템플릿·재계획 전략은 규칙 |
-| Worker (`execute`) | 작업 목록대로 Tool 호출 | 고칠 인자가 있는 Tool(`find_stations`·`find_terminals` 반경)이 `NO_DATA`·`NOT_FOUND`·`BAD_ARGUMENT`일 때 retry/skip/request_replan 판단(재시도 ≤2) | 정상 경로(0회), 치명적 실패(키·한도·서버), 장소 모호, 고칠 인자 없는 실패(열차 없음 등) |
+| Worker (`execute`) | 작업 목록대로 Tool 호출 | 고칠 인자가 있는 Tool(`find_stations`·`find_terminals` 반경)이 `NO_DATA`·`NOT_FOUND`·`BAD_ARGUMENT`일 때 retry/skip/request_replan 판단(재시도 ≤2) | 정상 경로(0회), 치명적 실패(키·한도·서버), 장소 모호, 필수 인자 누락, 고칠 인자 없는 실패(열차 없음 등) |
 | 로깅 (`verify` + 실행 종료 판정) | 수행 결과 검증, 이상 징후 판정 | `warn` 실행의 원인 진단 | 수집·저장·규칙 판정 |
 
 - 고정 인자(`FIXED_ARGS`): 장소 검색어, 좌표, 날짜, 예보 시각 등 사용자 조건에서 온 값 — Worker가 바꾸려 하면 판단을 무효(skip) 처리.

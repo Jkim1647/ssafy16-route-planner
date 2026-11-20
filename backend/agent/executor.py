@@ -122,6 +122,12 @@ def _worker_on_failure(ctx: RunCtx, task_id: str, name: str, args: dict, r: dict
         em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "skip", "llm": False,
                                                             "reason": "고칠 수 있는 인자가 없음(Planner가 정한 값뿐)"})
         return r
+    tool = get_tool(name)
+    missing = [k for k in ((tool.parameters if tool else {}).get("required") or []) if k not in args]
+    if missing:  # 필수 인자 누락은 조정 인자를 바꿔도 해결되지 않는다 — Planner 몫으로 보고(LLM 0회)
+        em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "report",
+                                                            "llm": False, "reason": f"필수 인자 누락: {', '.join(missing)}"})
+        return r
     if not ctx.worker_llm:
         em.emit("worker_decision", agent="worker", payload={"tool": name, "code": code, "action": "skip",
                                                             "llm": False, "reason": "WORKER_LLM=off"})

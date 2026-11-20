@@ -136,3 +136,21 @@ def test_single_mode_unchanged(env):
     llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
     res = make()("x")
     assert not any(e["type"] in ("verify", "worker_decision") for e in res.events)
+
+
+def test_worker_no_llm_on_missing_required_arg():
+    # 셀프 체크리스트 30번(2026-11-20): 필수 인자 누락은 인자를 고쳐도(반경 등) 해결되지 않으므로 Worker LLM을 부르지 않는다
+    import backend.tools.catalog_all  # noqa: F401 — 실제 find_stations 등록(입력 규격의 required 사용)
+    from backend.agent.executor import RunCtx, call_tool
+    from backend.agent.llm import LLMCounter
+    from backend.events.bus import EventBus, Emitter
+    from tests.fakes import FakeLLM
+
+    llm = FakeLLM([])  # 불리면 "응답이 더 없습니다"로 실패 → llm=True 기록
+    ctx = RunCtx(emitter=Emitter(EventBus(), "s", "r"), counter=LLMCounter(), mode="planner_worker",
+                 worker_llm=True, llm_factory=lambda: llm)
+    r = call_tool(ctx, "t3", "find_stations", {"y": 35.1})  # x 누락
+    assert not r["ok"] and r["error"]["code"] == "BAD_ARGUMENT"
+    dec = [e for e in ctx.emitter.events if e["type"] == "worker_decision"]
+    assert dec and not dec[0]["payload"]["llm"]
+    assert llm.prompts == [] and ctx.counter.count == 0
