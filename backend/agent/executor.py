@@ -407,8 +407,10 @@ def _debug_force(ctx, conds, o) -> None:
     if mode == "duplicate":
         ctx.no_reuse = True
         try:
+            # 캐시를 거치지 않는 실제 호출을 같은 입력으로 2회 — 원래 호출이 캐시 적중이어도 실제 중복이 남는다
             with default_budget().no_cache():
-                call_tool(ctx, "t1", "search_places", {"query": conds.origin})
+                for _ in range(2):
+                    call_tool(ctx, "t1", "search_places", {"query": conds.origin})
         finally:
             ctx.no_reuse = False
     elif mode == "unplanned" and get_tool("get_weather"):

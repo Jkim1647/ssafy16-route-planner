@@ -492,6 +492,25 @@ def test_debug_force_creates_detectable_anomaly(env, monkeypatch, mode, rule):
     assert r["verdict"] == "warn" and rule in {f["rule"] for f in r["findings"]}
 
 
+def test_debug_force_duplicate_detected_with_warm_cache(env, monkeypatch):
+    # 2026-11-20 발견: 캐시 표시를 고친 뒤 원래 호출이 캐시 적중(cached=True)이면 실제 호출이 1회뿐이라 중복이 안 잡혔다.
+    # 검증용 강제 중복은 캐시를 거치지 않는 실제 호출을 2회 만들어야 한다.
+    from backend.events.anomaly import judge_run
+    from backend.tools.budget import default_budget
+    world, llm, make, _ = env
+    tools = dict(registry._TOOLS)
+    orig = tools["search_places"]
+
+    def warm(**kw):  # 영구 캐시가 차 있는 상태: 캐시 우회가 아니면 적중으로 표시
+        return {**orig.func(**kw), "cached": not getattr(default_budget(), "_bypass", False)}
+    tools["search_places"] = Tool("search_places", orig.description, orig.parameters, warm, orig.kind)
+    monkeypatch.setattr(registry, "_TOOLS", tools)
+    monkeypatch.setenv("DEBUG_FORCE", "duplicate")
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    r = judge_run(make()("x").events, 3)
+    assert "DUPLICATE_CALL" in {f["rule"] for f in r["findings"]}
+
+
 def test_calendar_busy_excludes_overlapping_options(env, monkeypatch):
     world, llm, make, _ = env
     tools = dict(registry._TOOLS)
