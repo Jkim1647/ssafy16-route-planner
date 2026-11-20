@@ -77,8 +77,11 @@ def judge_run(events: list[dict], max_replan: int) -> dict:
     return {"verdict": "warn" if findings else "ok", "findings": findings}
 
 
-DIAG_PROMPT = """너는 Agent 실행 로그를 검토하는 진단기다. 아래 규칙 판정 결과와 이벤트 요약을 읽고,
-어느 쪽(Planner/계획, Worker/실행기, Tool) 문제인지와 무엇을 고치면 되는지 한국어 3문장 이내로 써라.
+DIAG_PROMPT = """너는 Agent 실행 로그를 검토하는 진단기다. 아래 규칙 판정 결과와 이벤트 요약을 읽고 한국어 3문장으로 답하라.
+1) 분석·계획·Tool 호출·판단·응답 중 어느 단계의 문제인지(Planner·Worker·Tool 중 누구 몫인지 포함)
+2) 근거가 된 이벤트(seq와 Tool 이름을 그대로)
+3) 무엇을 고치면 되는지
+기록에 없는 것은 추측하지 마라.
 판정 결과: {findings}
 이벤트 요약: {events}"""
 
