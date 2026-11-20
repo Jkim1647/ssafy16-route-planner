@@ -78,20 +78,28 @@ def _calendar_items(plan, calendar, start: dt.datetime, end: dt.datetime) -> lis
 def _weather_items(plan, start: dt.datetime, end: dt.datetime) -> list[dict]:
     pts = {p.kind: p for p in plan.points}
     walk = sum(lg.minutes or 0 for lg in plan.legs if lg.mode == "walk")
-    pops = []
-    for kind, at in (("origin", start), ("destination", end)):
+    pops, got, missed = [], [], []
+    for kind, at, label in (("origin", start, "출발지"), ("destination", end, "도착지")):
         p = pts.get(kind)
         if not p:
             continue
         r = _run("get_weather", lat=p.y, lon=p.x, at=at.strftime("%Y-%m-%dT%H:%M"))
         if r and r["ok"] and r["data"].get("pop") is not None:
             pops.append(r["data"]["pop"])
+            got.append(label)
+        else:
+            missed.append(label)
     if not pops:
         return [_item("weather", "unknown", "그날 예보가 아직 없거나 조회하지 못해 날씨는 확인하지 못했어요")]
     pop = max(pops)
+    out = []
     if pop >= RAIN_POP and walk >= WALK_WARN_MIN:
-        return [_item("weather", "warn", f"강수확률 {pop}% — 도보 {walk}분이라 우산을 챙기거나 택시 구간을 고려하세요")]
-    return [_item("weather", "ok", f"강수확률 {pop}%")]
+        out.append(_item("weather", "warn", f"강수확률 {pop}% — 도보 {walk}분이라 우산을 챙기거나 택시 구간을 고려하세요"))
+    else:
+        out.append(_item("weather", "ok", f"강수확률 {pop}%" + (f"({'·'.join(got)} 기준)" if missed else "")))
+    if missed:  # 한쪽만 확인했으면 날씨 전체를 확인했다고 하지 않는다
+        out.append(_item("weather", "unknown", f"{'·'.join(missed)} 예보는 받지 못해 확인하지 못했어요"))
+    return out
 
 
 def _festival_items(plan, day: dt.date) -> list[dict]:

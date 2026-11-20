@@ -327,6 +327,16 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
     if is_intracity(o["x"], o["y"], d["x"], d["y"], same_station=False):
         return _intracity(ctx, conds, o, d, errors)
 
+    dates = [conds.date] + ([conds.date - dt.timedelta(days=1)]
+                            if strategy >= 3 and prev_day_ok(conds, ctx.today) else [])
+    train_ok = not conds.modes or "train" in conds.modes
+    bus_ok = not conds.modes or "express_bus" in conds.modes
+    if not train_ok:  # 고속버스만 허용: 기차역·열차를 조회하지 않아 그 장애에 막히지 않는다
+        if bus_ok:
+            _bus_trunk(ctx, errors, o, d, dates)
+        return {"errors": errors, "fatal": not ctx.options and any(e["code"] in FATAL for e in errors),
+                "clarify": None, "kind": "intercity"}
+
     n = 2 if strategy < 1 else 3
     st = {}
     for tid, key, pl in (("t3", "origin", o), ("t4", "destination", d)):
@@ -338,8 +348,6 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
     if st["origin"][0]["station_id"] == st["destination"][0]["station_id"]:
         return _intracity(ctx, conds, o, d, errors)
 
-    dates = [conds.date] + ([conds.date - dt.timedelta(days=1)]
-                            if strategy >= 3 and prev_day_ok(conds, ctx.today) else [])
     want_taxi = strategy >= 2
     access = {s["station_id"]: _segment(ctx, errors, "t6", "t7", o["x"], o["y"], s["x"], s["y"], want_taxi)
               for s in st["origin"]}
@@ -362,7 +370,7 @@ def run_plan_trip(ctx: RunCtx, conds: Conditions, strategy: int, cached_places: 
                     opt.points = [point("origin", o), point("dep_station", so), point("arr_station", sd),
                                   point("destination", d)]
                     ctx.options.append(opt)
-    if strategy >= 2:
+    if strategy >= 2 and bus_ok:
         _bus_trunk(ctx, errors, o, d, dates)
     return {"errors": errors, "fatal": fatal_trains and not ctx.options, "clarify": None, "kind": "intercity"}
 

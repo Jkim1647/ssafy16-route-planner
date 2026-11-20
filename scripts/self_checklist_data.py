@@ -18,7 +18,7 @@ ITEMS = [
     (4, "통과", "docs/evidence/2026-11-20-checklist-live.md 4장, test_search_places_ok, test_search_places_no_data, test_festivals_near_and_on_date, test_festivals_none_is_ok_empty",
      "이름·주소·place_url 반환, 결과 없음은 NO_DATA"),
     (5, "통과", E + "S1.json, S6.json(analyze 종료 이벤트의 conditions)",
-     "S1은 출발·도착·날짜·마감·예산 추출, 없는 depart_after 등은 null. S6(조건 부족)은 되묻기. 상호 점검 뒤 허용 수단(modes)도 추출해 판정까지 연결(test_analyze_schema_extracts_modes, test_train_only_excludes_express_bus, test_avoid_taxi_excludes_taxi_options)"),
+     "S1은 출발·도착·날짜·마감·예산 추출, 없는 depart_after 등은 null. S6(조건 부족)은 되묻기. 상호 점검 뒤 허용 수단(modes)도 추출해 판정까지 연결(test_analyze_schema_extracts_modes, test_train_only_excludes_express_bus, test_avoid_taxi_excludes_taxi_options, test_express_bus_only_not_blocked_by_station_failure)"),
     (6, "통과", "docs/실행로그샘플.md(plan_tasks), " + E + "S5.json(Tool 0), README 'Agent 그래프'·docs/evidence/graph.mmd",
      "인사 요청은 Tool 호출 0. 그래프 노드 = Agent 설계 문서 실행 단계"),
     (7, "통과", "docs/실행로그샘플.md($t1 참조 입력), " + E + "S4.json, docs/screenshots/key_missing.jpg, test_tool_failure_continues",
