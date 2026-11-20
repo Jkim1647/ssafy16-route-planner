@@ -30,6 +30,31 @@ def fail(code: str, message: str) -> dict:
     return {"ok": False, "error": {"code": code, "message": message}}
 
 
+def _type_mismatch(schema: dict, args: dict) -> str | None:
+    """JSON Schema의 number·integer·string 타입과 맞지 않는 인자 이름(첫 번째). 숫자로 읽히는 문자열은 허용(기존 호출 호환)."""
+    props = (schema or {}).get("properties") or {}
+    for k, v in args.items():
+        want = (props.get(k) or {}).get("type")
+        if v is None or want not in ("number", "integer", "string"):
+            continue
+        if want == "string":
+            if not isinstance(v, str):
+                return k
+            continue
+        if isinstance(v, bool):
+            return k
+        if isinstance(v, str):
+            try:
+                n = float(v)
+            except ValueError:
+                return k
+            if want == "integer" and not n.is_integer():
+                return k
+        elif not isinstance(v, (int, float)) or (want == "integer" and isinstance(v, float) and not v.is_integer()):
+            return k
+    return None
+
+
 @dataclass
 class Tool:
     name: str
@@ -39,6 +64,9 @@ class Tool:
     kind: Literal["external", "local"]
 
     def run(self, **kwargs) -> dict:
+        bad = _type_mismatch(self.parameters, kwargs)
+        if bad:  # 잘못된 입력을 함수 안의 예외(UPSTREAM_ERROR)로 오인하지 않게 입력 규격으로 먼저 거른다
+            return fail(BAD_ARGUMENT, f"입력값 형식이 규약과 다릅니다: {bad}")
         try:
             return self.func(**kwargs)
         except TypeError:

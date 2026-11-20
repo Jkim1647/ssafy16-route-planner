@@ -15,8 +15,8 @@
   "excluded_sample": [],
   "warnings": [],
   "reply": "관련 규정을 찾았어요. 근거 문단과 출처를 확인해 주세요.\n- 1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시간전까지: 10%\n 4)출발3시간전경과후부터출발시각전까지: 20%\n 2.출발후\n 가.출발시각경과후20분까지: 30%(단,월～목요일은15%)\n 나.출발시각20분경과후 60분까지:40%\n 다.출발 (출처: korail_terms, p.14)\n- 6.승차권을위ㆍ변조하여사용하는경우:30배\n ② 철도공사는 제1항에 정한 부가운임 기준을 홈페이지에 게시하며\n명절기간등에는부가운임기준을최고30배범위내에서수수할수\n있습니다.<개정2024.07.18.>\n ③운임할인신분증또는증명서를제시하지못하여부가운임을지급\n한사람은승차한날로부터1년이내에다음각호를역(간이역및승\n차권판매대리점제외)에제출하고부가운임의환불을청구할수있습\n니 (출처: korail_terms, p.12)\n- # 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)\n\n출처: 대한민국 정책브리핑, 국토교통부 보도(2025.03.18) \"주말·명절 고속버스 취소 수수료 10%→15%·20%…'노쇼 방지'\"\nhttps://www.korea.kr/news/policyNewsView.do?newsId=148940659 — 텍스트 공공누리 제1유 (출처: 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행))",
-  "run_id": "a0c9ea80abc8",
-  "session_id": "ac500354d3b6",
+  "run_id": "edf9a4db9907",
+  "session_id": "16f9c4760f80",
   "anomaly": {
    "verdict": "ok",
    "rules": [],
@@ -24,8 +24,8 @@
   }
  },
  "result": {
-  "run_id": "a0c9ea80abc8",
-  "session_id": "ac500354d3b6",
+  "run_id": "edf9a4db9907",
+  "session_id": "16f9c4760f80",
   "reply": "관련 규정을 찾았어요. 근거 문단과 출처를 확인해 주세요.\n- 1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시간전까지: 10%\n 4)출발3시간전경과후부터출발시각전까지: 20%\n 2.출발후\n 가.출발시각경과후20분까지: 30%(단,월～목요일은15%)\n 나.출발시각20분경과후 60분까지:40%\n 다.출발 (출처: korail_terms, p.14)\n- 6.승차권을위ㆍ변조하여사용하는경우:30배\n ② 철도공사는 제1항에 정한 부가운임 기준을 홈페이지에 게시하며\n명절기간등에는부가운임기준을최고30배범위내에서수수할수\n있습니다.<개정2024.07.18.>\n ③운임할인신분증또는증명서를제시하지못하여부가운임을지급\n한사람은승차한날로부터1년이내에다음각호를역(간이역및승\n차권판매대리점제외)에제출하고부가운임의환불을청구할수있습\n니 (출처: korail_terms, p.12)\n- # 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)\n\n출처: 대한민국 정책브리핑, 국토교통부 보도(2025.03.18) \"주말·명절 고속버스 취소 수수료 10%→15%·20%…'노쇼 방지'\"\nhttps://www.korea.kr/news/policyNewsView.do?newsId=148940659 — 텍스트 공공누리 제1유 (출처: 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행))",
   "cards": [
    {
@@ -34,7 +34,7 @@
     "source": "korail_terms.pdf",
     "title": "korail_terms",
     "page": 14,
-    "distance": 0.4357
+    "distance": 0.4358
    },
    {
     "type": "source",
@@ -42,7 +42,7 @@
     "source": "korail_terms.pdf",
     "title": "korail_terms",
     "page": 12,
-    "distance": 0.5233
+    "distance": 0.5234
    },
    {
     "type": "source",
@@ -65,10 +65,10 @@
   "llm_calls": 1,
   "events": [
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 1,
-    "ts": "2026-11-20T10:41:07.160",
+    "ts": "2026-11-20T11:59:21.672",
     "agent": "main",
     "type": "run_start",
     "node": null,
@@ -79,10 +79,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 2,
-    "ts": "2026-11-20T10:41:07.164",
+    "ts": "2026-11-20T11:59:21.676",
     "agent": "main",
     "type": "node_start",
     "node": "analyze",
@@ -90,10 +90,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 3,
-    "ts": "2026-11-20T10:41:08.728",
+    "ts": "2026-11-20T11:59:23.435",
     "agent": "main",
     "type": "llm_decision",
     "node": "analyze",
@@ -106,10 +106,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 4,
-    "ts": "2026-11-20T10:41:08.732",
+    "ts": "2026-11-20T11:59:23.440",
     "agent": "main",
     "type": "node_end",
     "node": "analyze",
@@ -130,13 +130,13 @@
      },
      "missing": []
     },
-    "duration_ms": 1564
+    "duration_ms": 1761
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 5,
-    "ts": "2026-11-20T10:41:08.736",
+    "ts": "2026-11-20T11:59:23.445",
     "agent": "main",
     "type": "node_start",
     "node": "plan",
@@ -144,10 +144,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 6,
-    "ts": "2026-11-20T10:41:08.740",
+    "ts": "2026-11-20T11:59:23.448",
     "agent": "main",
     "type": "plan_tasks",
     "node": "plan",
@@ -168,10 +168,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 7,
-    "ts": "2026-11-20T10:41:08.744",
+    "ts": "2026-11-20T11:59:23.451",
     "agent": "main",
     "type": "node_end",
     "node": "plan",
@@ -179,10 +179,10 @@
     "duration_ms": 3
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 8,
-    "ts": "2026-11-20T10:41:08.749",
+    "ts": "2026-11-20T11:59:23.455",
     "agent": "main",
     "type": "node_start",
     "node": "execute",
@@ -190,10 +190,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 9,
-    "ts": "2026-11-20T10:41:08.752",
+    "ts": "2026-11-20T11:59:23.458",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -207,10 +207,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 10,
-    "ts": "2026-11-20T10:41:10.232",
+    "ts": "2026-11-20T11:59:25.125",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -223,24 +223,24 @@
      "summary": "chunks 4건",
      "cached": false
     },
-    "duration_ms": 1476
+    "duration_ms": 1663
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 11,
-    "ts": "2026-11-20T10:41:10.238",
+    "ts": "2026-11-20T11:59:25.129",
     "agent": "main",
     "type": "node_end",
     "node": "execute",
     "payload": {},
-    "duration_ms": 1485
+    "duration_ms": 1670
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 12,
-    "ts": "2026-11-20T10:41:10.244",
+    "ts": "2026-11-20T11:59:25.135",
     "agent": "main",
     "type": "node_start",
     "node": "respond",
@@ -248,10 +248,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 13,
-    "ts": "2026-11-20T10:41:10.248",
+    "ts": "2026-11-20T11:59:25.140",
     "agent": "main",
     "type": "node_end",
     "node": "respond",
@@ -261,10 +261,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "ac500354d3b6",
-    "run_id": "a0c9ea80abc8",
+    "session_id": "16f9c4760f80",
+    "run_id": "edf9a4db9907",
     "seq": 14,
-    "ts": "2026-11-20T10:41:10.252",
+    "ts": "2026-11-20T11:59:25.144",
     "agent": "main",
     "type": "run_end",
     "node": null,

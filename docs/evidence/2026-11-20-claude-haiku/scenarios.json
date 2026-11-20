@@ -51,8 +51,8 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 07:45 출발 → 10:52 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 06:10 출발 → 09:22 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "de1a0973285d",
-  "session_id": "6c87ab5eda4c",
+  "run_id": "24a2a7d9beff",
+  "session_id": "51cbb3af3c14",
   "anomaly": {
    "verdict": "ok",
    "rules": [],
@@ -92,8 +92,8 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 1가지를 찾았어요.\n1) 최저가: 10:16 출발 → 13:29 도착, 총 44,800원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "d9941417df66",
-  "session_id": "6c87ab5eda4c",
+  "run_id": "712d2b7640f7",
+  "session_id": "51cbb3af3c14",
   "anomaly": {
    "verdict": "ok",
    "rules": [],
@@ -143,14 +143,14 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 2가지를 찾았어요.\n1) 최저가: 07:02 출발 → 10:18 도착, 총 57,150원\n2) 최단 소요: 07:02 출발 → 10:18 도착, 총 69,200원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "67d35c4a540d",
-  "session_id": "e01c4765c433",
+  "run_id": "235e6ac7d71e",
+  "session_id": "f485112b6410",
   "anomaly": {
    "verdict": "warn",
    "rules": [
     "EXCESSIVE_REPLAN"
    ],
-   "diagnosis": "이 로그는 Planner(plan 노드)의 계획 단계 문제로, 조건을 만족하는 후보가 0개인 상황에서 재계획이 반복되며 EXCESSIVE_REPLAN 규칙(재계획 2회, 상한 3)에 걸렸다. 근거는 seq 45 replan(strategy: 거점 확장(근처 역 3곳까지), reason: 조건을 만족하는 후보 0개 (검토 71개))와 seq 48 plan_tasks(strategy 1), 그리고 seq 36 search_trains의 NO_DATA 결과와 seq 6 plan_tasks 이후 검색 Tool(search_places, get_transit_route 등)이 같은 조건으로 재호출된 점이다. 수정 방안으로는 Planner가 후보 0개일 때 재계획 전에 검색 조건(날짜·역 범위·거리 기준)을 완화하거나 NO_DATA 결과를 반영하도록 재계획 전략을 바꾸고, Worker는 cached 결과를 재사용하도록 하며, 재계획 횟수 상한에 도달하면 사용자에게 결과 부족을 알리도록 응답 로"
+   "diagnosis": "문제는 계획 단계이며, 초기 전략(plan_tasks seq 6, strategy 0)을 세운 Planner의 몫입니다. 근거는 seq 45 replan이 '조건을 만족하는 후보 0개 (검토 71개)' 사유로 거점 확장 전략을 택했고, seq 97 재계획까지 합쳐 2회가 발생했다는 점이며, 도구 측에서는 seq 36 search_trains의 code NO_DATA가 함께 보입니다. 고치려면 Planner가 초기 후보 조건과 거점 범위를 더 넓게 잡거나 조건을 완화한 뒤 재계획하도록 하고, 동일 사유의 재계획이 반복되지 않도록 재계획 전략과 상한 판단 기준을 점검해야 합니다."
   }
  },
  {
@@ -208,14 +208,14 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 16:46 출발 → 20:08 도착, 총 40,900원\n3) 늦게 출발: 17:45 출발 → 23:09 도착, 총 35,250원\n4) 환승 최소: 05:21 출발 → 09:57 도착, 총 40,300원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "ddd6a1fb3aa8",
-  "session_id": "868a2fed8640",
+  "run_id": "8ed055520234",
+  "session_id": "d81567b9de8c",
   "anomaly": {
    "verdict": "warn",
    "rules": [
     "EXCESSIVE_REPLAN"
    ],
-   "diagnosis": "재계획이 3회(상한 도달)로 누적된 EXCESSIVE_REPLAN 문제이며, 주된 몫은 Planner(계획 단계)에 있고 Tool 자체의 오류 신호는 대부분 cached 응답이라 원인으로 보기 어렵다. 근거는 seq 45 replan(\"조건을 만족하는 후보 0개 (검토 71개)\", strategy 거점 확장)과 seq 6→48 plan_tasks 재수립, 그리고 seq 36 search_trains의 NO_DATA 결과 등 Planner가 후보 조건을 충족시키지 못한 상태에서 같은 search_places·search_trains·get_transit_route 호출을 반복한 기록이며, seq 97·173의 재계획 근거는 기록에 없어 확인할 수 없다. 수정 방향은 Planner가 조건 완화 기준이나 후보 0개일 때의 종료·대안 경로를 미리 정의하고 재계획 전에 동일 Tool 호출 결과를 재사용하도록 하는 것이며, 특히 search_trains의 NO_DATA 역 조합을 제외하는 로직"
+   "diagnosis": "이 로그는 Planner 몫의 계획 단계 문제로, 판정 EXCESSIVE_REPLAN(재계획 3회, 상한 3 도달)이 seq 45, 97, 173에서 발생했다. 근거 이벤트는 seq 45 replan(reason: \"조건을 만족하는 후보 0개 (검토 71개)\", strategy: \"거점 확장(근처 역 3곡까지)\")이며, 이 시점 이전 seq 36 search_trains의 NO_DATA 결과와 seq 9~40 구간의 search_places·find_stations·get_transit_route 반복 호출이 후보 소진의 배경이다. 개선점은 조건 미충족 시 재계획 전에 후보 조건(시간·역 반경)을 완화하거나 NO_DATA 역 조합을 제외하는 전략을 Planner가 미리 설계하도록 하고, search_trains 결과가 비었을 때 같은 노선을 재조회하지 않도록 Worker/Tool 호출 캐시 및 중단 규칙을 추가하는 것이다. 다만 로그 요약에는 seq 97·173 이벤트의 내용과 se"
   }
  },
  {
@@ -232,8 +232,8 @@
   "excluded_sample": [],
   "warnings": [],
   "reply": "출발지·도착지와 '언제까지 도착' 또는 '언제부터 출발'을 알려 주세요. 예) \"토요일 오후 2시까지 광주 첨단동에서 서울 강남역, 6만원 이하\". 도보·지하철·버스·KTX·택시를 이어 붙여 시간과 요금을 계산해 드려요.",
-  "run_id": "e606e257c8d7",
-  "session_id": "37aa56a1b397",
+  "run_id": "f1ca3952c859",
+  "session_id": "83d47cdd8da8",
   "anomaly": {
    "verdict": "undetermined",
    "rules": [],
@@ -254,8 +254,8 @@
   "excluded_sample": [],
   "warnings": [],
   "reply": "어디에서 출발하시나요? 어느 날짜에 이동하시나요?",
-  "run_id": "0f7cc15e5233",
-  "session_id": "bb9814f29390",
+  "run_id": "855569194ed4",
+  "session_id": "da2c4d32eb6c",
   "anomaly": {
    "verdict": "undetermined",
    "rules": [],
@@ -278,8 +278,8 @@
   "excluded_sample": [],
   "warnings": [],
   "reply": "관련 규정을 찾았어요. 근거 문단과 출처를 확인해 주세요.\n- 1)출발3시간전까지: 무료\n 2)출발3시간전경과후부터출발시각전까지: 5%\n 나.금～일요일, 공휴일\n 1)출발2일전까지:최저위약금\n 2)출발1일전까지:5%\n 3)출발3시간전까지: 10%\n 4)출발3시간전경과후부터출발시각전까지: 20%\n 2.출발후\n 가.출발시각경과후20분까지: 30%(단,월～목요일은15%)\n 나.출발시각20분경과후 60분까지:40%\n 다.출발 (출처: korail_terms, p.14)\n- 6.승차권을위ㆍ변조하여사용하는경우:30배\n ② 철도공사는 제1항에 정한 부가운임 기준을 홈페이지에 게시하며\n명절기간등에는부가운임기준을최고30배범위내에서수수할수\n있습니다.<개정2024.07.18.>\n ③운임할인신분증또는증명서를제시하지못하여부가운임을지급\n한사람은승차한날로부터1년이내에다음각호를역(간이역및승\n차권판매대리점제외)에제출하고부가운임의환불을청구할수있습\n니 (출처: korail_terms, p.12)\n- # 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행)\n\n출처: 대한민국 정책브리핑, 국토교통부 보도(2025.03.18) \"주말·명절 고속버스 취소 수수료 10%→15%·20%…'노쇼 방지'\"\nhttps://www.korea.kr/news/policyNewsView.do?newsId=148940659 — 텍스트 공공누리 제1유 (출처: 고속버스 승차권 취소 수수료 기준 개편 (국토교통부, 2025.05.01 시행))",
-  "run_id": "a0c9ea80abc8",
-  "session_id": "ac500354d3b6",
+  "run_id": "edf9a4db9907",
+  "session_id": "16f9c4760f80",
   "anomaly": {
    "verdict": "ok",
    "rules": [],
@@ -338,8 +338,8 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 09:49 출발 → 13:01 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 09:21 출발 → 12:37 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "ec060fcc9fbc",
-  "session_id": "11a3e5d7d14d",
+  "run_id": "4101c9842f70",
+  "session_id": "1daa8dfeebdd",
   "anomaly": {
    "verdict": "ok",
    "rules": [],
@@ -354,7 +354,7 @@
   "intent": "plan_trip",
   "replans": 0,
   "llm_calls": 2,
-  "tool_calls": 21,
+  "tool_calls": 18,
   "tools": [
    "find_stations",
    "get_car_route",
@@ -398,11 +398,11 @@
    "도착 15:44 > 마감 14:50"
   ],
   "warnings": [
-   "대중교통 정보 없음 → 택시 기준"
+   "대중교통 조회 키 없음 → 택시 기준"
   ],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 07:11 출발 → 12:58 도착, 총 60,300원\n2) 최단 소요: 07:55 출발 → 10:57 도착, 총 67,900원\n3) 늦게 출발: 10:55 출발 → 14:13 도착, 총 69,200원\n4) 환승 최소: 10:26 출발 → 13:29 도착, 총 69,200원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "7483b511a420",
-  "session_id": "07264ad9eb4f",
+  "run_id": "1ecac97c0bd6",
+  "session_id": "3571ee45fedd",
   "anomaly": {
    "verdict": "ok",
    "rules": [],
@@ -461,14 +461,14 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 07:45 출발 → 10:52 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 06:10 출발 → 09:22 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "3d110cca77eb",
-  "session_id": "b3f26f3fc163",
+  "run_id": "9cfbcf1855a0",
+  "session_id": "8baf4c80b3b1",
   "anomaly": {
    "verdict": "warn",
    "rules": [
     "DUPLICATE_CALL"
    ],
-   "diagnosis": "문제는 Worker가 같은 입력(query: \"광주 첨단동\")으로 search_places를 중복 호출한 실행 단계(Tool 호출 판단)에 있으며, 책임은 Worker 몫이다. 근거는 seq 13과 seq 15의 search_places 호출이 동일한 task_id t1과 동일한 args를 가지며, 직전 seq 10에서 같은 결과가 cached=true로 이미 반환되었음에도 seq 13 결과(seq 14)가 cached=false로 다시 조회되었다는 점이다. 수정 방향은 Worker가 동일 tool과 동일 args 호출 이력을 확인해 기존 결과를 재사용하도록 중복 호출 방지 로직을 추가하는 것이며, seq 15도 seq 13과 같은 입력이므로 함께 제거 대상이다."
+   "diagnosis": "문제는 Worker 단계의 도구 호출 판단에 있으며, seq 13과 seq 15에서 search_places를 같은 입력(query: 광주 첨단동)으로 중복 호출한 DUPLICATE_CALL이 근거이다. 직전 seq 10에서 같은 질의 결과가 cached: true로 이미 반환되었고 seq 14·16의 결과는 cached: false였으므로, 캐시 조회와 재사용 로직(Worker가 이전 결과를 확인하지 않고 재호출한 부분, Tool 자체는 정상 응답)을 점검해 동일 입력 호출은 이전 결과를 재사용하도록 고치면 된다. 로그만으로는 Planner의 task 분배 오류나 Tool 장애 여부를 확인할 수 없으므로 이에 대해서는 추측하지 않는다."
   }
  },
  {
@@ -523,14 +523,14 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 07:45 출발 → 10:52 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 06:10 출발 → 09:22 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "ab9d53ba4dea",
-  "session_id": "293722696eac",
+  "run_id": "0327f034c906",
+  "session_id": "819e5150705b",
   "anomaly": {
    "verdict": "warn",
    "rules": [
     "UNPLANNED_CALL"
    ],
-   "diagnosis": "문제는 Planner 단계의 계획 누락이 아니라 Worker(실행자) 단계의 판단 문제로, 계획(plan_tasks, seq 6)에 없는 task t99에 대해 Worker가 get_weather 호출을 임의로 수행한 것이 UNPLANNED_CALL 위반의 근거다 (seq 13 tool_call get_weather, task_id t99, 이후 seq 14 tool_result로 응답됨). 해당 호출은 계획에 정의되지 않은 task_id를 사용했으므로, Worker가 계획된 task 목록(t1~t6, t10~t12, t15 등)에만 호출을 매핑하도록 task_id 검증 로직을 추가하고, 계획에 없는 Tool 호출은 실행 전에 차단하거나 Planner에 재계획을 요청하도록 고치면 된다."
+   "diagnosis": "진단 단계는 Planner 몫의 계획 단계 문제로, 계획(plan_tasks, seq 6)에 없던 task t99의 get_weather 호출이 Worker가 계획을 벗어나 실행한 것으로 기록되어 있다. 근거는 seq 13 tool_call get_weather(task_id t99)이며, 이후 seq 14 tool_result는 cached true로 정상 반환되었다. 고치려면 Worker가 계획에 없는 task_id의 Tool 호출을 차단하도록 실행 전 계획 대조 검증을 추가하고, 날씨 조회가 필요하면 Planner가 해당 task를 계획에 명시하도록 수정해야 한다."
   }
  },
  {
@@ -588,14 +588,14 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 07:55 출발 → 10:52 도착, 총 56,050원\n3) 늦게 출발: 10:26 출발 → 13:29 도착, 총 57,150원\n4) 환승 최소: 07:45 출발 → 10:57 도착, 총 55,550원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "6e593158cc88",
-  "session_id": "c4abfc6bbc7b",
+  "run_id": "2694c6262b83",
+  "session_id": "eef107a9125f",
   "anomaly": {
    "verdict": "warn",
    "rules": [
     "EXCESSIVE_REPLAN"
    ],
-   "diagnosis": "이 로그는 재계획이 상한 3회 이내이지만 2회 발생한 EXCESSIVE_REPLAN 위반으로, 첫 번째 replan(seq 45)은 Planner가 조건을 만족하는 후보 0개(검토 0개)라는 결과를 받고 거점 확장 전략을 세운 계획 단계의 문제이며, 두 번째 재계획(seq 97)은 기록 요약에 포함되지 않아 원인을 확인할 수 없다. 근거는 seq 45 replan(reason: 조건을 만족하는 후보 0개)과 seq 36 search_trains의 NO_DATA 결과 및 seq 6·48 plan_tasks 전략 변경이며, Tool 측 NO_DATA는 Tool 몫이지만 빈 결과에 대한 판단과 재계획 호출은 Planner·Worker 몫이므로 수정 방향은 seq 36의 NO_DATA 결과를 재계획 트리거로 바로 쓰지 않도록 Worker의 빈 결과 처리와 Planner의 재계획 조건을 검토하고, 후보가 0개일 때 거점 확장 외 대안을 한 번에 탐색하도록 상한과 조건을 조정하는 것이다."
+   "diagnosis": "이 로그는 재계획이 2회(seq 45, 97) 발생해 상한 3에 근접한 EXCESSIVE_REPLAN 위반으로, 주된 원인은 Planner가 seq 6에서 세운 초기 계획의 후보 탐색 범위 설정 문제이며 seq 45 replan의 사유 \"조건을 만족하는 후보 0개 (검토 0개)\"는 Worker가 search_places·find_stations·search_trains 등 Tool 결과를 바탕으로 후보를 만들지 못한 판단 단계의 결과로 보인다. 근거는 seq 36의 search_trains 호출이 code NO_DATA를 반환했고 seq 9·11의 search_places 결과가 있음에도 seq 45에서 전원 탈락 처리되었으며, seq 48에서 strategy 1로 재계획된 뒤 seq 51~75에서 동일 Tool(get_weather, get_transit_route, search_trains 등)을 cached 결과 포함해 반복 호출한 점이다. 수정 방향은 Planner가 재계획 "
   }
  },
  {
@@ -650,8 +650,8 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 07:45 출발 → 10:52 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 06:10 출발 → 09:22 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "699961af4b37",
-  "session_id": "14a7fadb48e2",
+  "run_id": "fc1a7bdbc6dc",
+  "session_id": "6075eebfa307",
   "anomaly": {
    "verdict": "ok",
    "rules": [],

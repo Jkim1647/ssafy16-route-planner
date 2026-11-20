@@ -51,19 +51,19 @@
   ],
   "warnings": [],
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 07:45 출발 → 10:52 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 06:10 출발 → 09:22 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
-  "run_id": "ab9d53ba4dea",
-  "session_id": "293722696eac",
+  "run_id": "0327f034c906",
+  "session_id": "819e5150705b",
   "anomaly": {
    "verdict": "warn",
    "rules": [
     "UNPLANNED_CALL"
    ],
-   "diagnosis": "문제는 Planner 단계의 계획 누락이 아니라 Worker(실행자) 단계의 판단 문제로, 계획(plan_tasks, seq 6)에 없는 task t99에 대해 Worker가 get_weather 호출을 임의로 수행한 것이 UNPLANNED_CALL 위반의 근거다 (seq 13 tool_call get_weather, task_id t99, 이후 seq 14 tool_result로 응답됨). 해당 호출은 계획에 정의되지 않은 task_id를 사용했으므로, Worker가 계획된 task 목록(t1~t6, t10~t12, t15 등)에만 호출을 매핑하도록 task_id 검증 로직을 추가하고, 계획에 없는 Tool 호출은 실행 전에 차단하거나 Planner에 재계획을 요청하도록 고치면 된다."
+   "diagnosis": "진단 단계는 Planner 몫의 계획 단계 문제로, 계획(plan_tasks, seq 6)에 없던 task t99의 get_weather 호출이 Worker가 계획을 벗어나 실행한 것으로 기록되어 있다. 근거는 seq 13 tool_call get_weather(task_id t99)이며, 이후 seq 14 tool_result는 cached true로 정상 반환되었다. 고치려면 Worker가 계획에 없는 task_id의 Tool 호출을 차단하도록 실행 전 계획 대조 검증을 추가하고, 날씨 조회가 필요하면 Planner가 해당 task를 계획에 명시하도록 수정해야 한다."
   }
  },
  "result": {
-  "run_id": "ab9d53ba4dea",
-  "session_id": "293722696eac",
+  "run_id": "0327f034c906",
+  "session_id": "819e5150705b",
   "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 07:45 출발 → 10:52 도착, 총 43,700원\n3) 늦게 출발: 10:16 출발 → 13:29 도착, 총 44,800원\n4) 환승 최소: 06:10 출발 → 09:22 도착, 총 43,700원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
   "cards": [
    {
@@ -1234,10 +1234,10 @@
   "llm_calls": 2,
   "events": [
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 1,
-    "ts": "2026-11-20T10:41:26.850",
+    "ts": "2026-11-20T11:59:43.573",
     "agent": "main",
     "type": "run_start",
     "node": null,
@@ -1248,10 +1248,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 2,
-    "ts": "2026-11-20T10:41:26.857",
+    "ts": "2026-11-20T11:59:43.578",
     "agent": "main",
     "type": "node_start",
     "node": "analyze",
@@ -1259,17 +1259,17 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 3,
-    "ts": "2026-11-20T10:41:28.998",
+    "ts": "2026-11-20T11:59:45.270",
     "agent": "main",
     "type": "llm_decision",
     "node": "analyze",
     "payload": {
      "decision": "intent",
      "value": "plan_trip",
-     "reason": "광주 첨단동에서 서울 강남역까지 토요일 오후 2시 도착 조건의 이동 계획 요청",
+     "reason": "어디서 어디로 언제까지 가는 이동 계획 요청",
      "changes": {
       "origin": "광주 첨단동",
       "destination": "서울 강남역",
@@ -1281,16 +1281,16 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 4,
-    "ts": "2026-11-20T10:41:29.002",
+    "ts": "2026-11-20T11:59:45.275",
     "agent": "main",
     "type": "node_end",
     "node": "analyze",
     "payload": {
      "intent": "plan_trip",
-     "intent_reason": "광주 첨단동에서 서울 강남역까지 토요일 오후 2시 도착 조건의 이동 계획 요청",
+     "intent_reason": "어디서 어디로 언제까지 가는 이동 계획 요청",
      "conditions": {
       "origin": "광주 첨단동",
       "destination": "서울 강남역",
@@ -1305,13 +1305,13 @@
      },
      "missing": []
     },
-    "duration_ms": 2139
+    "duration_ms": 1693
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 5,
-    "ts": "2026-11-20T10:41:29.007",
+    "ts": "2026-11-20T11:59:45.281",
     "agent": "main",
     "type": "node_start",
     "node": "plan",
@@ -1319,10 +1319,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 6,
-    "ts": "2026-11-20T10:41:29.012",
+    "ts": "2026-11-20T11:59:45.286",
     "agent": "main",
     "type": "plan_tasks",
     "node": "plan",
@@ -1488,21 +1488,21 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 7,
-    "ts": "2026-11-20T10:41:29.015",
+    "ts": "2026-11-20T11:59:45.291",
     "agent": "main",
     "type": "node_end",
     "node": "plan",
     "payload": {},
-    "duration_ms": 4
+    "duration_ms": 5
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 8,
-    "ts": "2026-11-20T10:41:29.021",
+    "ts": "2026-11-20T11:59:45.298",
     "agent": "main",
     "type": "node_start",
     "node": "execute",
@@ -1510,10 +1510,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 9,
-    "ts": "2026-11-20T10:41:29.025",
+    "ts": "2026-11-20T11:59:45.304",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1527,10 +1527,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 10,
-    "ts": "2026-11-20T10:41:29.030",
+    "ts": "2026-11-20T11:59:45.310",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1543,13 +1543,13 @@
      "summary": "places 5건",
      "cached": true
     },
-    "duration_ms": 0
+    "duration_ms": 1
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 11,
-    "ts": "2026-11-20T10:41:29.034",
+    "ts": "2026-11-20T11:59:45.316",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1563,10 +1563,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 12,
-    "ts": "2026-11-20T10:41:29.039",
+    "ts": "2026-11-20T11:59:45.324",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1579,13 +1579,13 @@
      "summary": "places 5건",
      "cached": true
     },
-    "duration_ms": 0
+    "duration_ms": 1
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 13,
-    "ts": "2026-11-20T10:41:29.043",
+    "ts": "2026-11-20T11:59:45.328",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1601,10 +1601,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 14,
-    "ts": "2026-11-20T10:41:29.054",
+    "ts": "2026-11-20T11:59:45.340",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1620,10 +1620,10 @@
     "duration_ms": 6
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 15,
-    "ts": "2026-11-20T10:41:29.058",
+    "ts": "2026-11-20T11:59:45.347",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1639,10 +1639,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 16,
-    "ts": "2026-11-20T10:41:29.067",
+    "ts": "2026-11-20T11:59:45.357",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1658,10 +1658,10 @@
     "duration_ms": 5
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 17,
-    "ts": "2026-11-20T10:41:29.072",
+    "ts": "2026-11-20T11:59:45.364",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1677,10 +1677,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 18,
-    "ts": "2026-11-20T10:41:29.082",
+    "ts": "2026-11-20T11:59:45.375",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1693,13 +1693,13 @@
      "summary": "at=2026-11-21T14:00, forecast_at=2026-11-21T14:00, pop=0",
      "cached": true
     },
-    "duration_ms": 5
+    "duration_ms": 6
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 19,
-    "ts": "2026-11-20T10:41:29.086",
+    "ts": "2026-11-20T11:59:45.381",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1713,10 +1713,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 20,
-    "ts": "2026-11-20T10:41:29.093",
+    "ts": "2026-11-20T11:59:45.388",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1732,10 +1732,10 @@
     "duration_ms": 2
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 21,
-    "ts": "2026-11-20T10:41:29.096",
+    "ts": "2026-11-20T11:59:45.392",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1751,10 +1751,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 22,
-    "ts": "2026-11-20T10:41:29.101",
+    "ts": "2026-11-20T11:59:45.397",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1770,10 +1770,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 23,
-    "ts": "2026-11-20T10:41:29.104",
+    "ts": "2026-11-20T11:59:45.401",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1788,10 +1788,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 24,
-    "ts": "2026-11-20T10:41:29.109",
+    "ts": "2026-11-20T11:59:45.407",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1807,10 +1807,10 @@
     "duration_ms": 1
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 25,
-    "ts": "2026-11-20T10:41:29.113",
+    "ts": "2026-11-20T11:59:45.411",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1825,10 +1825,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 26,
-    "ts": "2026-11-20T10:41:29.117",
+    "ts": "2026-11-20T11:59:45.416",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1844,10 +1844,10 @@
     "duration_ms": 1
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 27,
-    "ts": "2026-11-20T10:41:29.121",
+    "ts": "2026-11-20T11:59:45.420",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1864,10 +1864,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 28,
-    "ts": "2026-11-20T10:41:29.126",
+    "ts": "2026-11-20T11:59:45.425",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1883,10 +1883,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 29,
-    "ts": "2026-11-20T10:41:29.130",
+    "ts": "2026-11-20T11:59:45.430",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1903,10 +1903,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 30,
-    "ts": "2026-11-20T10:41:29.134",
+    "ts": "2026-11-20T11:59:45.435",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1922,10 +1922,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 31,
-    "ts": "2026-11-20T10:41:29.138",
+    "ts": "2026-11-20T11:59:45.439",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1942,10 +1942,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 32,
-    "ts": "2026-11-20T10:41:29.142",
+    "ts": "2026-11-20T11:59:45.443",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -1961,10 +1961,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 33,
-    "ts": "2026-11-20T10:41:29.146",
+    "ts": "2026-11-20T11:59:45.447",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -1981,10 +1981,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 34,
-    "ts": "2026-11-20T10:41:29.151",
+    "ts": "2026-11-20T11:59:45.452",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2000,10 +2000,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 35,
-    "ts": "2026-11-20T10:41:29.154",
+    "ts": "2026-11-20T11:59:45.456",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2019,10 +2019,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 36,
-    "ts": "2026-11-20T10:41:29.158",
+    "ts": "2026-11-20T11:59:45.460",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2038,10 +2038,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 37,
-    "ts": "2026-11-20T10:41:29.162",
+    "ts": "2026-11-20T11:59:45.464",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2057,10 +2057,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 38,
-    "ts": "2026-11-20T10:41:29.168",
+    "ts": "2026-11-20T11:59:45.471",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2076,10 +2076,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 39,
-    "ts": "2026-11-20T10:41:29.171",
+    "ts": "2026-11-20T11:59:45.474",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2095,10 +2095,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 40,
-    "ts": "2026-11-20T10:41:29.175",
+    "ts": "2026-11-20T11:59:45.479",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2114,10 +2114,10 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 41,
-    "ts": "2026-11-20T10:41:29.179",
+    "ts": "2026-11-20T11:59:45.483",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2133,10 +2133,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 42,
-    "ts": "2026-11-20T10:41:29.184",
+    "ts": "2026-11-20T11:59:45.487",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2152,21 +2152,21 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 43,
-    "ts": "2026-11-20T10:41:29.187",
+    "ts": "2026-11-20T11:59:45.491",
     "agent": "main",
     "type": "node_end",
     "node": "execute",
     "payload": {},
-    "duration_ms": 162
+    "duration_ms": 188
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 44,
-    "ts": "2026-11-20T10:41:29.192",
+    "ts": "2026-11-20T11:59:45.496",
     "agent": "main",
     "type": "node_start",
     "node": "judge",
@@ -2174,10 +2174,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 45,
-    "ts": "2026-11-20T10:41:29.197",
+    "ts": "2026-11-20T11:59:45.501",
     "agent": "main",
     "type": "tool_call",
     "node": null,
@@ -2197,10 +2197,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 46,
-    "ts": "2026-11-20T10:41:29.201",
+    "ts": "2026-11-20T11:59:45.505",
     "agent": "main",
     "type": "tool_result",
     "node": null,
@@ -2216,21 +2216,21 @@
     "duration_ms": 0
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 47,
-    "ts": "2026-11-20T10:41:29.207",
+    "ts": "2026-11-20T11:59:45.509",
     "agent": "main",
     "type": "node_end",
     "node": "judge",
     "payload": {},
-    "duration_ms": 10
+    "duration_ms": 8
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 48,
-    "ts": "2026-11-20T10:41:29.211",
+    "ts": "2026-11-20T11:59:45.514",
     "agent": "main",
     "type": "node_start",
     "node": "respond",
@@ -2238,10 +2238,10 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 49,
-    "ts": "2026-11-20T10:41:30.956",
+    "ts": "2026-11-20T11:59:47.347",
     "agent": "main",
     "type": "llm_decision",
     "node": "respond",
@@ -2252,23 +2252,23 @@
     "duration_ms": null
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 50,
-    "ts": "2026-11-20T10:41:30.960",
+    "ts": "2026-11-20T11:59:47.352",
     "agent": "main",
     "type": "node_end",
     "node": "respond",
     "payload": {
      "status": "done"
     },
-    "duration_ms": 1744
+    "duration_ms": 1834
    },
    {
-    "session_id": "293722696eac",
-    "run_id": "ab9d53ba4dea",
+    "session_id": "819e5150705b",
+    "run_id": "0327f034c906",
     "seq": 51,
-    "ts": "2026-11-20T10:41:30.965",
+    "ts": "2026-11-20T11:59:47.356",
     "agent": "main",
     "type": "run_end",
     "node": null,

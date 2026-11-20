@@ -26,6 +26,19 @@ def test_run_type_error_becomes_bad_argument():
     assert t.run(x=1, y=2)["error"]["code"] == "BAD_ARGUMENT"
 
 
+def test_run_wrong_type_against_schema_is_bad_argument():
+    # 셀프 체크리스트 1번 실제 실행(2026-11-20): find_terminals(x="abc")가 UPSTREAM_ERROR로 나왔다 — 잘못된 입력은 BAD_ARGUMENT
+    schema = {"type": "object", "properties": {"x": {"type": "number"}, "n": {"type": "integer"}, "q": {"type": "string"}}}
+    called = []
+    t = Tool("typed", "d", schema, lambda **kw: called.append(kw) or ok(kw), "external")
+    assert t.run(x="abc")["error"]["code"] == "BAD_ARGUMENT"
+    assert t.run(n="1.5")["error"]["code"] == "BAD_ARGUMENT"
+    assert t.run(q=3)["error"]["code"] == "BAD_ARGUMENT"
+    assert called == []  # 함수까지 가지 않는다
+    assert t.run(x=126.8, n=3, q="a")["ok"]
+    assert t.run(x="126.8")["ok"]  # 숫자로 읽을 수 있는 문자열은 받아 준다(기존 동작)
+
+
 def test_run_exception_becomes_upstream():
     def boom():
         raise ValueError("secretkey")
