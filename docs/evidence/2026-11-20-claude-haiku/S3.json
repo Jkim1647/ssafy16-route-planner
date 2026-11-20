@@ -1,0 +1,6855 @@
+{
+ "summary": {
+  "id": "S3",
+  "title": "재계획 상한 도달",
+  "expected": "재계획 3회 후 멈추고 조건 조정 질문",
+  "status": "done",
+  "intent": "plan_trip",
+  "replans": 3,
+  "llm_calls": 2,
+  "tool_calls": 114,
+  "tools": [
+   "find_stations",
+   "find_terminals",
+   "get_car_route",
+   "get_festivals",
+   "get_free_busy",
+   "get_road_events",
+   "get_transit_route",
+   "get_weather",
+   "search_express_bus",
+   "search_places",
+   "search_trains"
+  ],
+  "cards": [
+   [
+    "최저가",
+    "08:13",
+    "13:25",
+    35250
+   ],
+   [
+    "최단 소요",
+    "16:46",
+    "20:08",
+    40900
+   ],
+   [
+    "늦게 출발",
+    "17:45",
+    "23:09",
+    35250
+   ],
+   [
+    "환승 최소",
+    "05:21",
+    "09:57",
+    40300
+   ]
+  ],
+  "excluded_sample": [
+   "도착 09:57 > 마감 09:50",
+   "도착 09:57 > 마감 09:50",
+   "도착 09:57 > 마감 09:50"
+  ],
+  "warnings": [],
+  "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 16:46 출발 → 20:08 도착, 총 40,900원\n3) 늦게 출발: 17:45 출발 → 23:09 도착, 총 35,250원\n4) 환승 최소: 05:21 출발 → 09:57 도착, 총 40,300원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+  "run_id": "f8662a78bef1",
+  "session_id": "049cb9e508cd",
+  "anomaly": {
+   "verdict": "warn",
+   "rules": [
+    "EXCESSIVE_REPLAN"
+   ],
+   "diagnosis": "원인은 Planner(계획) 쪽이다. 재계획이 3회(상한 도달)로 반복됐는데, 45번 재계획은 조건을 만족하는 후보가 0개라는 이유로 거점 확장 전략을 택했을 뿐 계획 자체가 후보 탐색 조건과 제약을 현실 데이터에 맞게 조정하지 못했다. 고치려면 재계획 전에 후보가 0개일 때의 완화 기준(예: 시간대·거리·역 반경의 단계적 완화)을 계획 단계에 명시하고, 같은 실패 원인에 대해서는 동일 전략을 반복하지 않도록 재계획 트리거와 전략 선택 로직을 보강해야 한다."
+  }
+ },
+ "result": {
+  "run_id": "f8662a78bef1",
+  "session_id": "049cb9e508cd",
+  "reply": "조건에 맞는 이동 방법 4가지를 찾았어요.\n1) 최저가: 08:13 출발 → 13:25 도착, 총 35,250원\n2) 최단 소요: 16:46 출발 → 20:08 도착, 총 40,900원\n3) 늦게 출발: 17:45 출발 → 23:09 도착, 총 35,250원\n4) 환승 최소: 05:21 출발 → 09:57 도착, 총 40,300원\n좌석 잔여와 실시간 지연은 확인하지 못했어요. 예매처(코레일톡 등)에서 확인해 주세요.",
+  "cards": [
+   {
+    "index": 1,
+    "label": "최저가",
+    "date": "2026-11-20",
+    "leave_at": "08:13",
+    "arrive_at": "13:25",
+    "arrive_date": "2026-11-20",
+    "total_fare": 35250,
+    "total_min": 312,
+    "transfers": 5,
+    "legs": [
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 7,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "bus",
+      "name": "20",
+      "minutes": 10,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.836201,
+        35.221483
+       ],
+       [
+        126.831705,
+        35.221719
+       ],
+       [
+        126.828351,
+        35.221245
+       ],
+       [
+        126.82488,
+        35.222014
+       ],
+       [
+        126.824266,
+        35.223432
+       ]
+      ],
+      "line_code": 12
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "bus",
+      "name": "100(비아.장성)",
+      "minutes": 33,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.825693,
+        35.223518
+       ],
+       [
+        126.821596,
+        35.237206
+       ],
+       [
+        126.818611,
+        35.238493
+       ],
+       [
+        126.815703,
+        35.241277
+       ],
+       [
+        126.812961,
+        35.243936
+       ],
+       [
+        126.812495,
+        35.249538
+       ],
+       [
+        126.808385,
+        35.258611
+       ],
+       [
+        126.806661,
+        35.261505
+       ],
+       [
+        126.803656,
+        35.267064
+       ],
+       [
+        126.798675,
+        35.268727
+       ],
+       [
+        126.789479,
+        35.274458
+       ],
+       [
+        126.792684,
+        35.280665
+       ],
+       [
+        126.783143,
+        35.289511
+       ],
+       [
+        126.780253,
+        35.293069
+       ],
+       [
+        126.780622,
+        35.297048
+       ]
+      ],
+      "line_code": 20
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 5,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "train",
+      "name": "ITX-새마을 01424",
+      "minutes": 213,
+      "fare": 31000,
+      "source": "tago_train",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "경의중앙선",
+      "minutes": 4,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.965003,
+        37.529578
+       ],
+       [
+        126.973651,
+        37.522379
+       ]
+      ],
+      "line_code": 104
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 4호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.974396,
+        37.522427
+       ],
+       [
+        126.980341,
+        37.502915
+       ],
+       [
+        126.982193,
+        37.486803
+       ],
+       [
+        126.981668,
+        37.476798
+       ]
+      ],
+      "line_code": 4
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 2호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.981363,
+        37.476575
+       ],
+       [
+        126.997667,
+        37.481496
+       ],
+       [
+        127.007702,
+        37.491852
+       ],
+       [
+        127.014395,
+        37.493902
+       ],
+       [
+        127.027619,
+        37.497952
+       ]
+      ],
+      "line_code": 2
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     }
+    ],
+    "warnings": [],
+    "estimated": false,
+    "points": [
+     {
+      "kind": "origin",
+      "name": "쌍암공원 분수광장",
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     },
+     {
+      "kind": "dep_station",
+      "name": "장성",
+      "x": 126.78019386686799,
+      "y": 35.300022173219034
+     },
+     {
+      "kind": "arr_station",
+      "name": "용산",
+      "x": 126.964824061815,
+      "y": 37.5300763645794
+     },
+     {
+      "kind": "destination",
+      "name": "강남역 2호선",
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    ],
+    "basis": {
+     "board_buffer_min": 10,
+     "access_min": 57,
+     "egress_min": 32,
+     "train_dep": "09:20",
+     "train_arr": "12:53",
+     "train_fare": 31000,
+     "access_fare": 2700,
+     "egress_fare": 1550,
+     "dep_station": "장성",
+     "arr_station": "용산",
+     "label": "최저가"
+    },
+    "checks": [
+     {
+      "kind": "deadline",
+      "text": "마감 10:00까지 여유 20시간 35분"
+     },
+     {
+      "kind": "budget",
+      "text": "예산 43,000원 중 7,750원 남음"
+     },
+     {
+      "kind": "calendar",
+      "text": "그날 일정 없음"
+     }
+    ],
+    "risk": {
+     "level": "보통",
+     "absorb_min": 1235,
+     "text": "20시간 35분까지 늦어져도 제시간 도착 · 환승 5회라 연결 지연 주의"
+    }
+   },
+   {
+    "index": 2,
+    "label": "최단 소요",
+    "date": "2026-11-20",
+    "leave_at": "16:46",
+    "arrive_at": "20:08",
+    "arrive_date": "2026-11-20",
+    "total_fare": 40900,
+    "total_min": 202,
+    "transfers": 4,
+    "legs": [
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 8,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "bus",
+      "name": "1002",
+      "minutes": 29,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.840864,
+        35.218021
+       ],
+       [
+        126.838667,
+        35.218037
+       ],
+       [
+        126.834338,
+        35.216607
+       ],
+       [
+        126.819906,
+        35.200612
+       ],
+       [
+        126.822727,
+        35.194591
+       ],
+       [
+        126.823248,
+        35.189684
+       ],
+       [
+        126.819613,
+        35.185115
+       ],
+       [
+        126.817654,
+        35.18167
+       ],
+       [
+        126.817274,
+        35.177574
+       ],
+       [
+        126.817147,
+        35.174247
+       ],
+       [
+        126.802978,
+        35.143993
+       ],
+       [
+        126.799963,
+        35.143756
+       ],
+       [
+        126.795373,
+        35.14252
+       ],
+       [
+        126.793739,
+        35.140945
+       ],
+       [
+        126.791694,
+        35.138229
+       ]
+      ],
+      "line_code": 15
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "train",
+      "name": "KTX-산천 00466",
+      "minutes": 121,
+      "fare": 38100,
+      "source": "tago_train",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "경의중앙선",
+      "minutes": 4,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.965003,
+        37.529578
+       ],
+       [
+        126.973651,
+        37.522379
+       ]
+      ],
+      "line_code": 104
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 4호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.974396,
+        37.522427
+       ],
+       [
+        126.980341,
+        37.502915
+       ],
+       [
+        126.982193,
+        37.486803
+       ],
+       [
+        126.981668,
+        37.476798
+       ]
+      ],
+      "line_code": 4
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 2호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.981363,
+        37.476575
+       ],
+       [
+        126.997667,
+        37.481496
+       ],
+       [
+        127.007702,
+        37.491852
+       ],
+       [
+        127.014395,
+        37.493902
+       ],
+       [
+        127.027619,
+        37.497952
+       ]
+      ],
+      "line_code": 2
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     }
+    ],
+    "warnings": [],
+    "estimated": false,
+    "points": [
+     {
+      "kind": "origin",
+      "name": "쌍암공원 분수광장",
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     },
+     {
+      "kind": "dep_station",
+      "name": "광주송정",
+      "x": 126.79080503506053,
+      "y": 35.13766750683345
+     },
+     {
+      "kind": "arr_station",
+      "name": "용산",
+      "x": 126.964824061815,
+      "y": 37.5300763645794
+     },
+     {
+      "kind": "destination",
+      "name": "강남역 2호선",
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    ],
+    "basis": {
+     "board_buffer_min": 10,
+     "access_min": 39,
+     "egress_min": 32,
+     "train_dep": "17:35",
+     "train_arr": "19:36",
+     "train_fare": 38100,
+     "access_fare": 1250,
+     "egress_fare": 1550,
+     "dep_station": "광주송정",
+     "arr_station": "용산",
+     "label": "최단 소요"
+    },
+    "checks": [
+     {
+      "kind": "deadline",
+      "text": "마감 10:00까지 여유 13시간 52분"
+     },
+     {
+      "kind": "budget",
+      "text": "예산 43,000원 중 2,100원 남음"
+     },
+     {
+      "kind": "calendar",
+      "text": "그날 일정 없음"
+     }
+    ],
+    "risk": {
+     "level": "보통",
+     "absorb_min": 832,
+     "text": "13시간 52분까지 늦어져도 제시간 도착 · 환승 4회라 연결 지연 주의"
+    }
+   },
+   {
+    "index": 3,
+    "label": "늦게 출발",
+    "date": "2026-11-20",
+    "leave_at": "17:45",
+    "arrive_at": "23:09",
+    "arrive_date": "2026-11-20",
+    "total_fare": 35250,
+    "total_min": 324,
+    "transfers": 5,
+    "legs": [
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 7,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "bus",
+      "name": "20",
+      "minutes": 10,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.836201,
+        35.221483
+       ],
+       [
+        126.831705,
+        35.221719
+       ],
+       [
+        126.828351,
+        35.221245
+       ],
+       [
+        126.82488,
+        35.222014
+       ],
+       [
+        126.824266,
+        35.223432
+       ]
+      ],
+      "line_code": 12
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "bus",
+      "name": "100(비아.장성)",
+      "minutes": 33,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.825693,
+        35.223518
+       ],
+       [
+        126.821596,
+        35.237206
+       ],
+       [
+        126.818611,
+        35.238493
+       ],
+       [
+        126.815703,
+        35.241277
+       ],
+       [
+        126.812961,
+        35.243936
+       ],
+       [
+        126.812495,
+        35.249538
+       ],
+       [
+        126.808385,
+        35.258611
+       ],
+       [
+        126.806661,
+        35.261505
+       ],
+       [
+        126.803656,
+        35.267064
+       ],
+       [
+        126.798675,
+        35.268727
+       ],
+       [
+        126.789479,
+        35.274458
+       ],
+       [
+        126.792684,
+        35.280665
+       ],
+       [
+        126.783143,
+        35.289511
+       ],
+       [
+        126.780253,
+        35.293069
+       ],
+       [
+        126.780622,
+        35.297048
+       ]
+      ],
+      "line_code": 20
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 5,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "train",
+      "name": "ITX-새마을 01428",
+      "minutes": 225,
+      "fare": 31000,
+      "source": "tago_train",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "경의중앙선",
+      "minutes": 4,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.965003,
+        37.529578
+       ],
+       [
+        126.973651,
+        37.522379
+       ]
+      ],
+      "line_code": 104
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 4호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.974396,
+        37.522427
+       ],
+       [
+        126.980341,
+        37.502915
+       ],
+       [
+        126.982193,
+        37.486803
+       ],
+       [
+        126.981668,
+        37.476798
+       ]
+      ],
+      "line_code": 4
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 2호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.981363,
+        37.476575
+       ],
+       [
+        126.997667,
+        37.481496
+       ],
+       [
+        127.007702,
+        37.491852
+       ],
+       [
+        127.014395,
+        37.493902
+       ],
+       [
+        127.027619,
+        37.497952
+       ]
+      ],
+      "line_code": 2
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     }
+    ],
+    "warnings": [],
+    "estimated": false,
+    "points": [
+     {
+      "kind": "origin",
+      "name": "쌍암공원 분수광장",
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     },
+     {
+      "kind": "dep_station",
+      "name": "장성",
+      "x": 126.78019386686799,
+      "y": 35.300022173219034
+     },
+     {
+      "kind": "arr_station",
+      "name": "용산",
+      "x": 126.964824061815,
+      "y": 37.5300763645794
+     },
+     {
+      "kind": "destination",
+      "name": "강남역 2호선",
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    ],
+    "basis": {
+     "board_buffer_min": 10,
+     "access_min": 57,
+     "egress_min": 32,
+     "train_dep": "18:52",
+     "train_arr": "22:37",
+     "train_fare": 31000,
+     "access_fare": 2700,
+     "egress_fare": 1550,
+     "dep_station": "장성",
+     "arr_station": "용산",
+     "label": "늦게 출발"
+    },
+    "checks": [
+     {
+      "kind": "deadline",
+      "text": "마감 10:00까지 여유 10시간 51분"
+     },
+     {
+      "kind": "budget",
+      "text": "예산 43,000원 중 7,750원 남음"
+     },
+     {
+      "kind": "calendar",
+      "text": "그날 일정 없음"
+     }
+    ],
+    "risk": {
+     "level": "보통",
+     "absorb_min": 651,
+     "text": "10시간 51분까지 늦어져도 제시간 도착 · 환승 5회라 연결 지연 주의"
+    }
+   },
+   {
+    "index": 4,
+    "label": "환승 최소",
+    "date": "2026-11-20",
+    "leave_at": "05:21",
+    "arrive_at": "09:57",
+    "arrive_date": "2026-11-20",
+    "total_fare": 40300,
+    "total_min": 276,
+    "transfers": 4,
+    "legs": [
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 8,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "bus",
+      "name": "1002",
+      "minutes": 29,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.840864,
+        35.218021
+       ],
+       [
+        126.838667,
+        35.218037
+       ],
+       [
+        126.834338,
+        35.216607
+       ],
+       [
+        126.819906,
+        35.200612
+       ],
+       [
+        126.822727,
+        35.194591
+       ],
+       [
+        126.823248,
+        35.189684
+       ],
+       [
+        126.819613,
+        35.185115
+       ],
+       [
+        126.817654,
+        35.18167
+       ],
+       [
+        126.817274,
+        35.177574
+       ],
+       [
+        126.817147,
+        35.174247
+       ],
+       [
+        126.802978,
+        35.143993
+       ],
+       [
+        126.799963,
+        35.143756
+       ],
+       [
+        126.795373,
+        35.14252
+       ],
+       [
+        126.793739,
+        35.140945
+       ],
+       [
+        126.791694,
+        35.138229
+       ]
+      ],
+      "line_code": 15
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "train",
+      "name": "KTX 00464",
+      "minutes": 195,
+      "fare": 37500,
+      "source": "tago_train",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "경의중앙선",
+      "minutes": 4,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.965003,
+        37.529578
+       ],
+       [
+        126.973651,
+        37.522379
+       ]
+      ],
+      "line_code": 104
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 4호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.974396,
+        37.522427
+       ],
+       [
+        126.980341,
+        37.502915
+       ],
+       [
+        126.982193,
+        37.486803
+       ],
+       [
+        126.981668,
+        37.476798
+       ]
+      ],
+      "line_code": 4
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 2,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     },
+     {
+      "mode": "subway",
+      "name": "수도권 2호선",
+      "minutes": 9,
+      "fare": null,
+      "source": "odsay",
+      "path": [
+       [
+        126.981363,
+        37.476575
+       ],
+       [
+        126.997667,
+        37.481496
+       ],
+       [
+        127.007702,
+        37.491852
+       ],
+       [
+        127.014395,
+        37.493902
+       ],
+       [
+        127.027619,
+        37.497952
+       ]
+      ],
+      "line_code": 2
+     },
+     {
+      "mode": "walk",
+      "name": null,
+      "minutes": 1,
+      "fare": null,
+      "source": "odsay",
+      "path": null,
+      "line_code": null
+     }
+    ],
+    "warnings": [],
+    "estimated": false,
+    "points": [
+     {
+      "kind": "origin",
+      "name": "쌍암공원 분수광장",
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     },
+     {
+      "kind": "dep_station",
+      "name": "광주송정",
+      "x": 126.79080503506053,
+      "y": 35.13766750683345
+     },
+     {
+      "kind": "arr_station",
+      "name": "용산",
+      "x": 126.964824061815,
+      "y": 37.5300763645794
+     },
+     {
+      "kind": "destination",
+      "name": "강남역 2호선",
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    ],
+    "basis": {
+     "board_buffer_min": 10,
+     "access_min": 39,
+     "egress_min": 32,
+     "train_dep": "06:10",
+     "train_arr": "09:25",
+     "train_fare": 37500,
+     "access_fare": 1250,
+     "egress_fare": 1550,
+     "dep_station": "광주송정",
+     "arr_station": "용산",
+     "label": "환승 최소"
+    },
+    "checks": [
+     {
+      "kind": "deadline",
+      "text": "마감 10:00까지 여유 24시간 3분"
+     },
+     {
+      "kind": "budget",
+      "text": "예산 43,000원 중 2,700원 남음"
+     },
+     {
+      "kind": "calendar",
+      "text": "그날 일정 없음"
+     }
+    ],
+    "risk": {
+     "level": "보통",
+     "absorb_min": 1443,
+     "text": "24시간 3분까지 늦어져도 제시간 도착 · 환승 4회라 연결 지연 주의"
+    }
+   }
+  ],
+  "excluded": [
+   {
+    "summary": "KTX 00464 05:18 출발 → 09:57 도착",
+    "reason": "도착 09:57 > 마감 09:50"
+   },
+   {
+    "summary": "KTX 00464 05:18 출발 → 09:57 도착",
+    "reason": "도착 09:57 > 마감 09:50"
+   },
+   {
+    "summary": "KTX 00464 05:53 출발 → 09:57 도착",
+    "reason": "도착 09:57 > 마감 09:50"
+   },
+   {
+    "summary": "KTX 00464 05:53 출발 → 09:57 도착",
+    "reason": "도착 09:57 > 마감 09:50"
+   },
+   {
+    "summary": "ITX-새마을 01422 06:08 출발 → 11:27 도착",
+    "reason": "도착 11:27 > 마감 09:50"
+   },
+   {
+    "summary": "ITX-새마을 01422 06:08 출발 → 11:27 도착",
+    "reason": "도착 11:27 > 마감 09:50"
+   },
+   {
+    "summary": "ITX-새마을 01422 06:43 출발 → 11:27 도착",
+    "reason": "도착 11:27 > 마감 09:50"
+   },
+   {
+    "summary": "ITX-새마을 01422 06:43 출발 → 11:27 도착",
+    "reason": "도착 11:27 > 마감 09:50"
+   }
+  ],
+  "undetermined": [],
+  "estimated": [],
+  "warnings": [],
+  "decision": {
+   "checked": 838,
+   "passed": 23,
+   "dominated": 0,
+   "excluded_by": {
+    "마감": 388,
+    "예산": 427
+   },
+   "undetermined": 0,
+   "estimated": 0
+  },
+  "clarification": null,
+  "status": "done",
+  "intent": "plan_trip",
+  "replan_count": 3,
+  "llm_calls": 2,
+  "events": [
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 1,
+    "ts": "2026-11-20T09:52:54.478",
+    "agent": "main",
+    "type": "run_start",
+    "node": null,
+    "payload": {
+     "message": "토요일 오전 10시까지 광주 첨단동에서 서울 강남역 가야 해. 4만3천원 이하로",
+     "mode": "single"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 2,
+    "ts": "2026-11-20T09:52:54.483",
+    "agent": "main",
+    "type": "node_start",
+    "node": "analyze",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 3,
+    "ts": "2026-11-20T09:52:56.108",
+    "agent": "main",
+    "type": "llm_decision",
+    "node": "analyze",
+    "payload": {
+     "decision": "intent",
+     "value": "plan_trip",
+     "reason": "어디서 어디로 언제까지 가는 이동 계획 요청",
+     "changes": {
+      "origin": "광주 첨단동",
+      "destination": "서울 강남역",
+      "date": "2026-11-21",
+      "arrive_by": "10:00",
+      "budget": 43000
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 4,
+    "ts": "2026-11-20T09:52:56.114",
+    "agent": "main",
+    "type": "node_end",
+    "node": "analyze",
+    "payload": {
+     "intent": "plan_trip",
+     "intent_reason": "어디서 어디로 언제까지 가는 이동 계획 요청",
+     "conditions": {
+      "origin": "광주 첨단동",
+      "destination": "서울 강남역",
+      "date": "2026-11-21",
+      "arrive_by": "10:00",
+      "depart_after": null,
+      "priority": "cheapest",
+      "modes": null,
+      "avoid": [],
+      "budget": 43000,
+      "buffer_min": 10
+     },
+     "missing": []
+    },
+    "duration_ms": 1626
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 5,
+    "ts": "2026-11-20T09:52:56.118",
+    "agent": "main",
+    "type": "node_start",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 6,
+    "ts": "2026-11-20T09:52:56.130",
+    "agent": "main",
+    "type": "plan_tasks",
+    "node": "plan",
+    "payload": {
+     "tasks": [
+      {
+       "id": "t1",
+       "tool": "search_places",
+       "purpose": "출발지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t2",
+       "tool": "search_places",
+       "purpose": "도착지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t3",
+       "tool": "find_stations",
+       "purpose": "출발지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t4",
+       "tool": "find_stations",
+       "purpose": "도착지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t5",
+       "tool": "search_trains",
+       "purpose": "역 쌍별 열차 시간표·운임",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t6",
+       "tool": "get_transit_route",
+       "purpose": "장소↔역 구간 도보·지하철·버스",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t7",
+       "tool": "get_car_route",
+       "purpose": "장소↔역 구간 택시(대체·변형)",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t8",
+       "tool": "get_transit_route",
+       "purpose": "같은 도시 안 대중교통",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t9",
+       "tool": "get_car_route",
+       "purpose": "같은 도시 안 택시",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t10",
+       "tool": "get_weather",
+       "purpose": "출발·도착 지점 강수확률",
+       "when": null,
+       "fixed_args": [
+        "lat",
+        "lon",
+        "at"
+       ]
+      },
+      {
+       "id": "t11",
+       "tool": "get_free_busy",
+       "purpose": "그날 캘린더 일정",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t12",
+       "tool": "get_road_events",
+       "purpose": "최종 후보 도로 구간 돌발정보(판단 후 1회)",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t13",
+       "tool": "find_terminals",
+       "purpose": "고속버스 터미널(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t14",
+       "tool": "search_express_bus",
+       "purpose": "고속버스 시간표·요금(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t15",
+       "tool": "get_festivals",
+       "purpose": "도착지 근처 그날 행사(혼잡 참고)",
+       "when": null,
+       "fixed_args": [
+        "x",
+        "y",
+        "date"
+       ]
+      }
+     ],
+     "strategy": 0
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 7,
+    "ts": "2026-11-20T09:52:56.134",
+    "agent": "main",
+    "type": "node_end",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 8,
+    "ts": "2026-11-20T09:52:56.139",
+    "agent": "main",
+    "type": "node_start",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 9,
+    "ts": "2026-11-20T09:52:56.143",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t1",
+     "tool": "search_places",
+     "args": {
+      "query": "광주 첨단동"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 10,
+    "ts": "2026-11-20T09:52:56.147",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t1",
+     "tool": "search_places",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "places 5건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 11,
+    "ts": "2026-11-20T09:52:56.151",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t2",
+     "tool": "search_places",
+     "args": {
+      "query": "서울 강남역"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 12,
+    "ts": "2026-11-20T09:52:56.155",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t2",
+     "tool": "search_places",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "places 5건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 13,
+    "ts": "2026-11-20T09:52:56.159",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 35.2228609553696,
+      "lon": 126.841304933753,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 14,
+    "ts": "2026-11-20T09:52:56.167",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 5
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 15,
+    "ts": "2026-11-20T09:52:56.171",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 37.49808633653005,
+      "lon": 127.02800140627488,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 16,
+    "ts": "2026-11-20T09:52:56.180",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 5
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 17,
+    "ts": "2026-11-20T09:52:56.184",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "args": {
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 18,
+    "ts": "2026-11-20T09:52:56.191",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "busy 0건",
+     "cached": false
+    },
+    "duration_ms": 2
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 19,
+    "ts": "2026-11-20T09:52:56.194",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005,
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 20,
+    "ts": "2026-11-20T09:52:56.199",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 21,
+    "ts": "2026-11-20T09:52:56.202",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "args": {
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 22,
+    "ts": "2026-11-20T09:52:56.208",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 1
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 23,
+    "ts": "2026-11-20T09:52:56.211",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 24,
+    "ts": "2026-11-20T09:52:56.215",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 25,
+    "ts": "2026-11-20T09:52:56.219",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.78019386686799,
+      "ey": 35.300022173219034
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 26,
+    "ts": "2026-11-20T09:52:56.223",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 27,
+    "ts": "2026-11-20T09:52:56.226",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.79080503506053,
+      "ey": 35.13766750683345
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 28,
+    "ts": "2026-11-20T09:52:56.231",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 29,
+    "ts": "2026-11-20T09:52:56.234",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.964824061815,
+      "sy": 37.5300763645794,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 30,
+    "ts": "2026-11-20T09:52:56.239",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 31,
+    "ts": "2026-11-20T09:52:56.242",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 127.10437056849396,
+      "sy": 37.48549612670822,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 32,
+    "ts": "2026-11-20T09:52:56.246",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 33,
+    "ts": "2026-11-20T09:52:56.250",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 34,
+    "ts": "2026-11-20T09:52:56.255",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 14건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 35,
+    "ts": "2026-11-20T09:52:56.303",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 36,
+    "ts": "2026-11-20T09:52:56.309",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 37,
+    "ts": "2026-11-20T09:52:56.313",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 38,
+    "ts": "2026-11-20T09:52:56.318",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 35건",
+     "cached": true
+    },
+    "duration_ms": 1
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 39,
+    "ts": "2026-11-20T09:52:56.322",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 40,
+    "ts": "2026-11-20T09:52:56.326",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 22건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 41,
+    "ts": "2026-11-20T09:52:56.333",
+    "agent": "main",
+    "type": "node_end",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": 190
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 42,
+    "ts": "2026-11-20T09:52:56.338",
+    "agent": "main",
+    "type": "node_start",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 43,
+    "ts": "2026-11-20T09:52:56.342",
+    "agent": "main",
+    "type": "node_end",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 44,
+    "ts": "2026-11-20T09:52:56.347",
+    "agent": "main",
+    "type": "node_start",
+    "node": "replan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 45,
+    "ts": "2026-11-20T09:52:56.351",
+    "agent": "main",
+    "type": "replan",
+    "node": "replan",
+    "payload": {
+     "count": 1,
+     "strategy": "거점 확장(근처 역 3곳까지)",
+     "reason": "조건을 만족하는 후보 0개 (검토 71개)",
+     "source": "no_option"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 46,
+    "ts": "2026-11-20T09:52:56.354",
+    "agent": "main",
+    "type": "node_end",
+    "node": "replan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 47,
+    "ts": "2026-11-20T09:52:56.358",
+    "agent": "main",
+    "type": "node_start",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 48,
+    "ts": "2026-11-20T09:52:56.362",
+    "agent": "main",
+    "type": "plan_tasks",
+    "node": "plan",
+    "payload": {
+     "tasks": [
+      {
+       "id": "t1",
+       "tool": "search_places",
+       "purpose": "출발지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t2",
+       "tool": "search_places",
+       "purpose": "도착지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t3",
+       "tool": "find_stations",
+       "purpose": "출발지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t4",
+       "tool": "find_stations",
+       "purpose": "도착지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t5",
+       "tool": "search_trains",
+       "purpose": "역 쌍별 열차 시간표·운임",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t6",
+       "tool": "get_transit_route",
+       "purpose": "장소↔역 구간 도보·지하철·버스",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t7",
+       "tool": "get_car_route",
+       "purpose": "장소↔역 구간 택시(대체·변형)",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t8",
+       "tool": "get_transit_route",
+       "purpose": "같은 도시 안 대중교통",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t9",
+       "tool": "get_car_route",
+       "purpose": "같은 도시 안 택시",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t10",
+       "tool": "get_weather",
+       "purpose": "출발·도착 지점 강수확률",
+       "when": null,
+       "fixed_args": [
+        "lat",
+        "lon",
+        "at"
+       ]
+      },
+      {
+       "id": "t11",
+       "tool": "get_free_busy",
+       "purpose": "그날 캘린더 일정",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t12",
+       "tool": "get_road_events",
+       "purpose": "최종 후보 도로 구간 돌발정보(판단 후 1회)",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t13",
+       "tool": "find_terminals",
+       "purpose": "고속버스 터미널(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t14",
+       "tool": "search_express_bus",
+       "purpose": "고속버스 시간표·요금(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t15",
+       "tool": "get_festivals",
+       "purpose": "도착지 근처 그날 행사(혼잡 참고)",
+       "when": null,
+       "fixed_args": [
+        "x",
+        "y",
+        "date"
+       ]
+      }
+     ],
+     "strategy": 1
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 49,
+    "ts": "2026-11-20T09:52:56.366",
+    "agent": "main",
+    "type": "node_end",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 50,
+    "ts": "2026-11-20T09:52:56.370",
+    "agent": "main",
+    "type": "node_start",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 51,
+    "ts": "2026-11-20T09:52:56.374",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 35.2228609553696,
+      "lon": 126.841304933753,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 52,
+    "ts": "2026-11-20T09:52:56.378",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 53,
+    "ts": "2026-11-20T09:52:56.382",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 37.49808633653005,
+      "lon": 127.02800140627488,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 54,
+    "ts": "2026-11-20T09:52:56.386",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 55,
+    "ts": "2026-11-20T09:52:56.390",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "args": {
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 56,
+    "ts": "2026-11-20T09:52:56.394",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "busy 0건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 57,
+    "ts": "2026-11-20T09:52:56.399",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005,
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 58,
+    "ts": "2026-11-20T09:52:56.402",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 59,
+    "ts": "2026-11-20T09:52:56.406",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "args": {
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 60,
+    "ts": "2026-11-20T09:52:56.410",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 61,
+    "ts": "2026-11-20T09:52:56.414",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 62,
+    "ts": "2026-11-20T09:52:56.417",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 63,
+    "ts": "2026-11-20T09:52:56.420",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.78019386686799,
+      "ey": 35.300022173219034
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 64,
+    "ts": "2026-11-20T09:52:56.424",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 65,
+    "ts": "2026-11-20T09:52:56.428",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.79080503506053,
+      "ey": 35.13766750683345
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 66,
+    "ts": "2026-11-20T09:52:56.432",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 67,
+    "ts": "2026-11-20T09:52:56.436",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.83029486172833,
+      "ey": 35.17618120481935
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 68,
+    "ts": "2026-11-20T09:52:56.440",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=16, distance_km=8.9, taxi_fare=10600",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 69,
+    "ts": "2026-11-20T09:52:56.444",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.964824061815,
+      "sy": 37.5300763645794,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 70,
+    "ts": "2026-11-20T09:52:56.447",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 71,
+    "ts": "2026-11-20T09:52:56.451",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 127.10437056849396,
+      "sy": 37.48549612670822,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 72,
+    "ts": "2026-11-20T09:52:56.456",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 73,
+    "ts": "2026-11-20T09:52:56.460",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.97070335253385,
+      "sy": 37.55406888733184,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 74,
+    "ts": "2026-11-20T09:52:56.465",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=35, distance_km=11.7, taxi_fare=15500",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 75,
+    "ts": "2026-11-20T09:52:56.468",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 76,
+    "ts": "2026-11-20T09:52:56.472",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 14건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 77,
+    "ts": "2026-11-20T09:52:56.478",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 78,
+    "ts": "2026-11-20T09:52:56.483",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 79,
+    "ts": "2026-11-20T09:52:56.487",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 80,
+    "ts": "2026-11-20T09:52:56.491",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 81,
+    "ts": "2026-11-20T09:52:56.496",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 82,
+    "ts": "2026-11-20T09:52:56.499",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 35건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 83,
+    "ts": "2026-11-20T09:52:56.503",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 84,
+    "ts": "2026-11-20T09:52:56.506",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 22건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 85,
+    "ts": "2026-11-20T09:52:56.511",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 86,
+    "ts": "2026-11-20T09:52:56.516",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 10건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 87,
+    "ts": "2026-11-20T09:52:56.521",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 88,
+    "ts": "2026-11-20T09:52:56.527",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 89,
+    "ts": "2026-11-20T09:52:56.531",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 90,
+    "ts": "2026-11-20T09:52:56.535",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 91,
+    "ts": "2026-11-20T09:52:56.538",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 92,
+    "ts": "2026-11-20T09:52:56.544",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 93,
+    "ts": "2026-11-20T09:52:56.547",
+    "agent": "main",
+    "type": "node_end",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": 173
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 94,
+    "ts": "2026-11-20T09:52:56.552",
+    "agent": "main",
+    "type": "node_start",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 95,
+    "ts": "2026-11-20T09:52:56.556",
+    "agent": "main",
+    "type": "node_end",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 96,
+    "ts": "2026-11-20T09:52:56.561",
+    "agent": "main",
+    "type": "node_start",
+    "node": "replan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 97,
+    "ts": "2026-11-20T09:52:56.565",
+    "agent": "main",
+    "type": "replan",
+    "node": "replan",
+    "payload": {
+     "count": 2,
+     "strategy": "수단 확장(택시 구간 포함)",
+     "reason": "조건을 만족하는 후보 0개 (검토 85개)",
+     "source": "no_option"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 98,
+    "ts": "2026-11-20T09:52:56.569",
+    "agent": "main",
+    "type": "node_end",
+    "node": "replan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 99,
+    "ts": "2026-11-20T09:52:56.573",
+    "agent": "main",
+    "type": "node_start",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 100,
+    "ts": "2026-11-20T09:52:56.578",
+    "agent": "main",
+    "type": "plan_tasks",
+    "node": "plan",
+    "payload": {
+     "tasks": [
+      {
+       "id": "t1",
+       "tool": "search_places",
+       "purpose": "출발지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t2",
+       "tool": "search_places",
+       "purpose": "도착지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t3",
+       "tool": "find_stations",
+       "purpose": "출발지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t4",
+       "tool": "find_stations",
+       "purpose": "도착지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t5",
+       "tool": "search_trains",
+       "purpose": "역 쌍별 열차 시간표·운임",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t6",
+       "tool": "get_transit_route",
+       "purpose": "장소↔역 구간 도보·지하철·버스",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t7",
+       "tool": "get_car_route",
+       "purpose": "장소↔역 구간 택시(대체·변형)",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t8",
+       "tool": "get_transit_route",
+       "purpose": "같은 도시 안 대중교통",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t9",
+       "tool": "get_car_route",
+       "purpose": "같은 도시 안 택시",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t10",
+       "tool": "get_weather",
+       "purpose": "출발·도착 지점 강수확률",
+       "when": null,
+       "fixed_args": [
+        "lat",
+        "lon",
+        "at"
+       ]
+      },
+      {
+       "id": "t11",
+       "tool": "get_free_busy",
+       "purpose": "그날 캘린더 일정",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t12",
+       "tool": "get_road_events",
+       "purpose": "최종 후보 도로 구간 돌발정보(판단 후 1회)",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t13",
+       "tool": "find_terminals",
+       "purpose": "고속버스 터미널(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t14",
+       "tool": "search_express_bus",
+       "purpose": "고속버스 시간표·요금(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t15",
+       "tool": "get_festivals",
+       "purpose": "도착지 근처 그날 행사(혼잡 참고)",
+       "when": null,
+       "fixed_args": [
+        "x",
+        "y",
+        "date"
+       ]
+      }
+     ],
+     "strategy": 2
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 101,
+    "ts": "2026-11-20T09:52:56.582",
+    "agent": "main",
+    "type": "node_end",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 102,
+    "ts": "2026-11-20T09:52:56.586",
+    "agent": "main",
+    "type": "node_start",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 103,
+    "ts": "2026-11-20T09:52:56.589",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 35.2228609553696,
+      "lon": 126.841304933753,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 104,
+    "ts": "2026-11-20T09:52:56.593",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 105,
+    "ts": "2026-11-20T09:52:56.597",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 37.49808633653005,
+      "lon": 127.02800140627488,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 106,
+    "ts": "2026-11-20T09:52:56.601",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 107,
+    "ts": "2026-11-20T09:52:56.605",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "args": {
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 108,
+    "ts": "2026-11-20T09:52:56.609",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "busy 0건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 109,
+    "ts": "2026-11-20T09:52:56.613",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005,
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 110,
+    "ts": "2026-11-20T09:52:56.616",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 111,
+    "ts": "2026-11-20T09:52:56.620",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "args": {
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 112,
+    "ts": "2026-11-20T09:52:56.624",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 113,
+    "ts": "2026-11-20T09:52:56.628",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 114,
+    "ts": "2026-11-20T09:52:56.631",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 115,
+    "ts": "2026-11-20T09:52:56.634",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.78019386686799,
+      "ey": 35.300022173219034
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 116,
+    "ts": "2026-11-20T09:52:56.637",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 117,
+    "ts": "2026-11-20T09:52:56.641",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.78019386686799,
+      "ey": 35.300022173219034
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 118,
+    "ts": "2026-11-20T09:52:56.646",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=22, distance_km=13.0, taxi_fare=16900",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 119,
+    "ts": "2026-11-20T09:52:56.650",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.79080503506053,
+      "ey": 35.13766750683345
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 120,
+    "ts": "2026-11-20T09:52:56.653",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 121,
+    "ts": "2026-11-20T09:52:56.657",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.79080503506053,
+      "ey": 35.13766750683345
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 122,
+    "ts": "2026-11-20T09:52:56.661",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=29, distance_km=12.2, taxi_fare=13600",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 123,
+    "ts": "2026-11-20T09:52:56.664",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.83029486172833,
+      "ey": 35.17618120481935
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 124,
+    "ts": "2026-11-20T09:52:56.667",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=16, distance_km=8.9, taxi_fare=10600",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 125,
+    "ts": "2026-11-20T09:52:56.671",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.964824061815,
+      "sy": 37.5300763645794,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 126,
+    "ts": "2026-11-20T09:52:56.674",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 127,
+    "ts": "2026-11-20T09:52:56.678",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.964824061815,
+      "sy": 37.5300763645794,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 128,
+    "ts": "2026-11-20T09:52:56.684",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=32, distance_km=9.4, taxi_fare=13600",
+     "cached": true
+    },
+    "duration_ms": 2
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 129,
+    "ts": "2026-11-20T09:52:56.689",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 127.10437056849396,
+      "sy": 37.48549612670822,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 130,
+    "ts": "2026-11-20T09:52:56.693",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 131,
+    "ts": "2026-11-20T09:52:56.697",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 127.10437056849396,
+      "sy": 37.48549612670822,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 132,
+    "ts": "2026-11-20T09:52:56.701",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=31, distance_km=8.6, taxi_fare=13400",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 133,
+    "ts": "2026-11-20T09:52:56.705",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.97070335253385,
+      "sy": 37.55406888733184,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 134,
+    "ts": "2026-11-20T09:52:56.708",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=35, distance_km=11.7, taxi_fare=15500",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 135,
+    "ts": "2026-11-20T09:52:56.712",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 136,
+    "ts": "2026-11-20T09:52:56.715",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 14건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 137,
+    "ts": "2026-11-20T09:52:56.719",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 138,
+    "ts": "2026-11-20T09:52:56.722",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 139,
+    "ts": "2026-11-20T09:52:56.726",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 140,
+    "ts": "2026-11-20T09:52:56.730",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 141,
+    "ts": "2026-11-20T09:52:56.734",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 142,
+    "ts": "2026-11-20T09:52:56.737",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 35건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 143,
+    "ts": "2026-11-20T09:52:56.741",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 144,
+    "ts": "2026-11-20T09:52:56.745",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 22건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 145,
+    "ts": "2026-11-20T09:52:56.749",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 146,
+    "ts": "2026-11-20T09:52:56.753",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 10건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 147,
+    "ts": "2026-11-20T09:52:56.756",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 148,
+    "ts": "2026-11-20T09:52:56.760",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 149,
+    "ts": "2026-11-20T09:52:56.763",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 150,
+    "ts": "2026-11-20T09:52:56.767",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 151,
+    "ts": "2026-11-20T09:52:56.771",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 152,
+    "ts": "2026-11-20T09:52:56.775",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 153,
+    "ts": "2026-11-20T09:52:56.779",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "args": {
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 154,
+    "ts": "2026-11-20T09:52:56.793",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 1
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 155,
+    "ts": "2026-11-20T09:52:56.797",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 156,
+    "ts": "2026-11-20T09:52:56.803",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 2
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 157,
+    "ts": "2026-11-20T09:52:56.806",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK050",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 158,
+    "ts": "2026-11-20T09:52:56.810",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 고속버스가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 159,
+    "ts": "2026-11-20T09:52:56.814",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK010",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 160,
+    "ts": "2026-11-20T09:52:56.817",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 고속버스가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 161,
+    "ts": "2026-11-20T09:52:56.821",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK020",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 162,
+    "ts": "2026-11-20T09:52:56.824",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 고속버스가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 163,
+    "ts": "2026-11-20T09:52:56.829",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK021",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 164,
+    "ts": "2026-11-20T09:52:56.834",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "buses 120건",
+     "cached": true
+    },
+    "duration_ms": 1
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 165,
+    "ts": "2026-11-20T09:52:56.838",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.87931250116888,
+      "ey": 35.160407612937625
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 166,
+    "ts": "2026-11-20T09:52:56.843",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=25, distance_km=12.2, taxi_fare=16400",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 167,
+    "ts": "2026-11-20T09:52:56.846",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 127.00425245559464,
+      "sy": 37.505039937971254,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 168,
+    "ts": "2026-11-20T09:52:56.851",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=23, distance_km=4.4, taxi_fare=10000",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 169,
+    "ts": "2026-11-20T09:52:56.857",
+    "agent": "main",
+    "type": "node_end",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": 266
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 170,
+    "ts": "2026-11-20T09:52:56.862",
+    "agent": "main",
+    "type": "node_start",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 171,
+    "ts": "2026-11-20T09:52:56.869",
+    "agent": "main",
+    "type": "node_end",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 172,
+    "ts": "2026-11-20T09:52:56.874",
+    "agent": "main",
+    "type": "node_start",
+    "node": "replan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 173,
+    "ts": "2026-11-20T09:52:56.878",
+    "agent": "main",
+    "type": "replan",
+    "node": "replan",
+    "payload": {
+     "count": 3,
+     "strategy": "전날 출발 후보 추가",
+     "reason": "조건을 만족하는 후보 0개 (검토 432개)",
+     "source": "no_option"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 174,
+    "ts": "2026-11-20T09:52:56.881",
+    "agent": "main",
+    "type": "node_end",
+    "node": "replan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 175,
+    "ts": "2026-11-20T09:52:56.884",
+    "agent": "main",
+    "type": "node_start",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 176,
+    "ts": "2026-11-20T09:52:56.888",
+    "agent": "main",
+    "type": "plan_tasks",
+    "node": "plan",
+    "payload": {
+     "tasks": [
+      {
+       "id": "t1",
+       "tool": "search_places",
+       "purpose": "출발지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t2",
+       "tool": "search_places",
+       "purpose": "도착지 이름 → 좌표",
+       "when": null,
+       "fixed_args": [
+        "query"
+       ]
+      },
+      {
+       "id": "t3",
+       "tool": "find_stations",
+       "purpose": "출발지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t4",
+       "tool": "find_stations",
+       "purpose": "도착지 근처 기차역(역 ID)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t5",
+       "tool": "search_trains",
+       "purpose": "역 쌍별 열차 시간표·운임",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t6",
+       "tool": "get_transit_route",
+       "purpose": "장소↔역 구간 도보·지하철·버스",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t7",
+       "tool": "get_car_route",
+       "purpose": "장소↔역 구간 택시(대체·변형)",
+       "when": "intercity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t8",
+       "tool": "get_transit_route",
+       "purpose": "같은 도시 안 대중교통",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t9",
+       "tool": "get_car_route",
+       "purpose": "같은 도시 안 택시",
+       "when": "intracity",
+       "fixed_args": [
+        "sx",
+        "sy",
+        "ex",
+        "ey"
+       ]
+      },
+      {
+       "id": "t10",
+       "tool": "get_weather",
+       "purpose": "출발·도착 지점 강수확률",
+       "when": null,
+       "fixed_args": [
+        "lat",
+        "lon",
+        "at"
+       ]
+      },
+      {
+       "id": "t11",
+       "tool": "get_free_busy",
+       "purpose": "그날 캘린더 일정",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t12",
+       "tool": "get_road_events",
+       "purpose": "최종 후보 도로 구간 돌발정보(판단 후 1회)",
+       "when": null,
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t13",
+       "tool": "find_terminals",
+       "purpose": "고속버스 터미널(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "id": "t14",
+       "tool": "search_express_bus",
+       "purpose": "고속버스 시간표·요금(재계획 수단 확장)",
+       "when": "intercity",
+       "fixed_args": [
+        "date"
+       ]
+      },
+      {
+       "id": "t15",
+       "tool": "get_festivals",
+       "purpose": "도착지 근처 그날 행사(혼잡 참고)",
+       "when": null,
+       "fixed_args": [
+        "x",
+        "y",
+        "date"
+       ]
+      }
+     ],
+     "strategy": 3
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 177,
+    "ts": "2026-11-20T09:52:56.892",
+    "agent": "main",
+    "type": "node_end",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 178,
+    "ts": "2026-11-20T09:52:56.897",
+    "agent": "main",
+    "type": "node_start",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 179,
+    "ts": "2026-11-20T09:52:56.901",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 35.2228609553696,
+      "lon": 126.841304933753,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 180,
+    "ts": "2026-11-20T09:52:56.904",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 181,
+    "ts": "2026-11-20T09:52:56.908",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "args": {
+      "lat": 37.49808633653005,
+      "lon": 127.02800140627488,
+      "at": "2026-11-21T10:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 182,
+    "ts": "2026-11-20T09:52:56.911",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t10",
+     "tool": "get_weather",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "at=2026-11-21T10:00, forecast_at=2026-11-21T10:00, pop=0",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 183,
+    "ts": "2026-11-20T09:52:56.916",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "args": {
+      "date": "2026-11-20",
+      "days": 2
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 184,
+    "ts": "2026-11-20T09:52:56.921",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t11",
+     "tool": "get_free_busy",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "busy 0건",
+     "cached": false
+    },
+    "duration_ms": 2
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 185,
+    "ts": "2026-11-20T09:52:56.925",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005,
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 186,
+    "ts": "2026-11-20T09:52:56.929",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t15",
+     "tool": "get_festivals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 187,
+    "ts": "2026-11-20T09:52:56.932",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "args": {
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 188,
+    "ts": "2026-11-20T09:52:56.936",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t3",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 189,
+    "ts": "2026-11-20T09:52:56.940",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 190,
+    "ts": "2026-11-20T09:52:56.943",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t4",
+     "tool": "find_stations",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "stations 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 191,
+    "ts": "2026-11-20T09:52:56.947",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.78019386686799,
+      "ey": 35.300022173219034
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 192,
+    "ts": "2026-11-20T09:52:56.951",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 193,
+    "ts": "2026-11-20T09:52:56.954",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.78019386686799,
+      "ey": 35.300022173219034
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 194,
+    "ts": "2026-11-20T09:52:56.959",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=22, distance_km=13.0, taxi_fare=16900",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 195,
+    "ts": "2026-11-20T09:52:56.963",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.79080503506053,
+      "ey": 35.13766750683345
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 196,
+    "ts": "2026-11-20T09:52:56.966",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 197,
+    "ts": "2026-11-20T09:52:56.970",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.79080503506053,
+      "ey": 35.13766750683345
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 198,
+    "ts": "2026-11-20T09:52:56.974",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=29, distance_km=12.2, taxi_fare=13600",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 199,
+    "ts": "2026-11-20T09:52:56.977",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.83029486172833,
+      "ey": 35.17618120481935
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 200,
+    "ts": "2026-11-20T09:52:56.981",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=16, distance_km=8.9, taxi_fare=10600",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 201,
+    "ts": "2026-11-20T09:52:56.985",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 126.964824061815,
+      "sy": 37.5300763645794,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 202,
+    "ts": "2026-11-20T09:52:56.988",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 203,
+    "ts": "2026-11-20T09:52:56.992",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.964824061815,
+      "sy": 37.5300763645794,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 204,
+    "ts": "2026-11-20T09:52:56.995",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=32, distance_km=9.4, taxi_fare=13600",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 205,
+    "ts": "2026-11-20T09:52:56.999",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "args": {
+      "sx": 127.10437056849396,
+      "sy": 37.48549612670822,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 206,
+    "ts": "2026-11-20T09:52:57.002",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t6",
+     "tool": "get_transit_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "paths 3건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 207,
+    "ts": "2026-11-20T09:52:57.005",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 127.10437056849396,
+      "sy": 37.48549612670822,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 208,
+    "ts": "2026-11-20T09:52:57.009",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=31, distance_km=8.6, taxi_fare=13400",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 209,
+    "ts": "2026-11-20T09:52:57.013",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.97070335253385,
+      "sy": 37.55406888733184,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 210,
+    "ts": "2026-11-20T09:52:57.016",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=35, distance_km=11.7, taxi_fare=15500",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 211,
+    "ts": "2026-11-20T09:52:57.020",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 212,
+    "ts": "2026-11-20T09:52:57.024",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 14건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 213,
+    "ts": "2026-11-20T09:52:57.029",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 214,
+    "ts": "2026-11-20T09:52:57.034",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 14건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 215,
+    "ts": "2026-11-20T09:52:57.039",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 216,
+    "ts": "2026-11-20T09:52:57.042",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 217,
+    "ts": "2026-11-20T09:52:57.045",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 218,
+    "ts": "2026-11-20T09:52:57.049",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 219,
+    "ts": "2026-11-20T09:52:57.053",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 220,
+    "ts": "2026-11-20T09:52:57.057",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 221,
+    "ts": "2026-11-20T09:52:57.060",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031638",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 222,
+    "ts": "2026-11-20T09:52:57.064",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 223,
+    "ts": "2026-11-20T09:52:57.067",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 224,
+    "ts": "2026-11-20T09:52:57.072",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 35건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 225,
+    "ts": "2026-11-20T09:52:57.076",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 226,
+    "ts": "2026-11-20T09:52:57.080",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 35건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 227,
+    "ts": "2026-11-20T09:52:57.084",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 228,
+    "ts": "2026-11-20T09:52:57.089",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 22건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 229,
+    "ts": "2026-11-20T09:52:57.093",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 230,
+    "ts": "2026-11-20T09:52:57.098",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 22건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 231,
+    "ts": "2026-11-20T09:52:57.102",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 232,
+    "ts": "2026-11-20T09:52:57.106",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 10건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 233,
+    "ts": "2026-11-20T09:52:57.110",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT031857",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 234,
+    "ts": "2026-11-20T09:52:57.114",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 10건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 235,
+    "ts": "2026-11-20T09:52:57.118",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 236,
+    "ts": "2026-11-20T09:52:57.121",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 237,
+    "ts": "2026-11-20T09:52:57.125",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010032",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 238,
+    "ts": "2026-11-20T09:52:57.129",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "trains 2건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 239,
+    "ts": "2026-11-20T09:52:57.133",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 240,
+    "ts": "2026-11-20T09:52:57.137",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 241,
+    "ts": "2026-11-20T09:52:57.141",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NATH30000",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 242,
+    "ts": "2026-11-20T09:52:57.145",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 243,
+    "ts": "2026-11-20T09:52:57.148",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 244,
+    "ts": "2026-11-20T09:52:57.151",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 245,
+    "ts": "2026-11-20T09:52:57.155",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "args": {
+      "dep_station_id": "NAT883086",
+      "arr_station_id": "NAT010000",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 246,
+    "ts": "2026-11-20T09:52:57.158",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t5",
+     "tool": "search_trains",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 열차가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": false
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 247,
+    "ts": "2026-11-20T09:52:57.162",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "args": {
+      "x": 126.841304933753,
+      "y": 35.2228609553696
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 248,
+    "ts": "2026-11-20T09:52:57.166",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 249,
+    "ts": "2026-11-20T09:52:57.169",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "args": {
+      "x": 127.02800140627488,
+      "y": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 250,
+    "ts": "2026-11-20T09:52:57.173",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t13",
+     "tool": "find_terminals",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 251,
+    "ts": "2026-11-20T09:52:57.177",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK050",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 252,
+    "ts": "2026-11-20T09:52:57.180",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 고속버스가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 253,
+    "ts": "2026-11-20T09:52:57.184",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK010",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 254,
+    "ts": "2026-11-20T09:52:57.187",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 고속버스가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 255,
+    "ts": "2026-11-20T09:52:57.190",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK020",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 256,
+    "ts": "2026-11-20T09:52:57.194",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": false,
+     "code": "NO_DATA",
+     "message": "해당 날짜·구간의 고속버스가 없습니다.",
+     "summary": "NO_DATA",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 257,
+    "ts": "2026-11-20T09:52:57.197",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK021",
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 258,
+    "ts": "2026-11-20T09:52:57.201",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "buses 120건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 259,
+    "ts": "2026-11-20T09:52:57.204",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 126.841304933753,
+      "sy": 35.2228609553696,
+      "ex": 126.87931250116888,
+      "ey": 35.160407612937625
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 260,
+    "ts": "2026-11-20T09:52:57.208",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=25, distance_km=12.2, taxi_fare=16400",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 261,
+    "ts": "2026-11-20T09:52:57.211",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "args": {
+      "sx": 127.00425245559464,
+      "sy": 37.505039937971254,
+      "ex": 127.02800140627488,
+      "ey": 37.49808633653005
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 262,
+    "ts": "2026-11-20T09:52:57.214",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t7",
+     "tool": "get_car_route",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "duration_min=23, distance_km=4.4, taxi_fare=10000",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 263,
+    "ts": "2026-11-20T09:52:57.220",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "args": {
+      "dep_terminal_id": "NAEK500",
+      "arr_terminal_id": "NAEK021",
+      "date": "2026-11-20"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 264,
+    "ts": "2026-11-20T09:52:57.226",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t14",
+     "tool": "search_express_bus",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "buses 94건",
+     "cached": true
+    },
+    "duration_ms": 1
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 265,
+    "ts": "2026-11-20T09:52:57.230",
+    "agent": "main",
+    "type": "node_end",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": 329
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 266,
+    "ts": "2026-11-20T09:52:57.235",
+    "agent": "main",
+    "type": "node_start",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 267,
+    "ts": "2026-11-20T09:52:57.240",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t12",
+     "tool": "get_road_events",
+     "args": {
+      "bbox": [
+       126.791304933753,
+       35.1728609553696,
+       126.89130493375299,
+       35.272860955369595
+      ],
+      "date": "2026-11-21"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 268,
+    "ts": "2026-11-20T09:52:57.244",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t12",
+     "tool": "get_road_events",
+     "ok": true,
+     "code": null,
+     "message": null,
+     "summary": "events 0건",
+     "cached": true
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 269,
+    "ts": "2026-11-20T09:52:57.251",
+    "agent": "main",
+    "type": "node_end",
+    "node": "judge",
+    "payload": {},
+    "duration_ms": 14
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 270,
+    "ts": "2026-11-20T09:52:57.256",
+    "agent": "main",
+    "type": "node_start",
+    "node": "respond",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 271,
+    "ts": "2026-11-20T09:53:01.027",
+    "agent": "main",
+    "type": "llm_decision",
+    "node": "respond",
+    "payload": {
+     "decision": "reply_rejected",
+     "reason": "카드에 없는 숫자 포함"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 272,
+    "ts": "2026-11-20T09:53:01.031",
+    "agent": "main",
+    "type": "node_end",
+    "node": "respond",
+    "payload": {
+     "status": "done"
+    },
+    "duration_ms": 3771
+   },
+   {
+    "session_id": "049cb9e508cd",
+    "run_id": "f8662a78bef1",
+    "seq": 273,
+    "ts": "2026-11-20T09:53:01.036",
+    "agent": "main",
+    "type": "run_end",
+    "node": null,
+    "payload": {
+     "status": "done",
+     "replan_count": 3,
+     "llm_calls": 2
+    },
+    "duration_ms": null
+   }
+  ]
+ }
+}

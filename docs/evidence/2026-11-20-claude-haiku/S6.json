@@ -1,0 +1,155 @@
+{
+ "summary": {
+  "id": "S6",
+  "title": "조건 부족 → 되묻기",
+  "expected": "Tool 호출 0, 출발지·날짜 질문",
+  "status": "clarify",
+  "intent": "plan_trip",
+  "replans": 0,
+  "llm_calls": 1,
+  "tool_calls": 0,
+  "tools": [],
+  "cards": [],
+  "excluded_sample": [],
+  "warnings": [],
+  "reply": "어디에서 출발하시나요? 어느 날짜에 이동하시나요?",
+  "run_id": "aee51e368025",
+  "session_id": "dd486e0ddff0",
+  "anomaly": {
+   "verdict": "undetermined",
+   "rules": [],
+   "diagnosis": null
+  }
+ },
+ "result": {
+  "run_id": "aee51e368025",
+  "session_id": "dd486e0ddff0",
+  "reply": "어디에서 출발하시나요? 어느 날짜에 이동하시나요?",
+  "cards": [],
+  "excluded": [],
+  "undetermined": [],
+  "estimated": [],
+  "warnings": [],
+  "decision": null,
+  "clarification": "어디에서 출발하시나요? 어느 날짜에 이동하시나요?",
+  "status": "clarify",
+  "intent": "plan_trip",
+  "replan_count": 0,
+  "llm_calls": 1,
+  "events": [
+   {
+    "session_id": "dd486e0ddff0",
+    "run_id": "aee51e368025",
+    "seq": 1,
+    "ts": "2026-11-20T09:53:05.067",
+    "agent": "main",
+    "type": "run_start",
+    "node": null,
+    "payload": {
+     "message": "2시까지 서울 가야 해",
+     "mode": "single"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "dd486e0ddff0",
+    "run_id": "aee51e368025",
+    "seq": 2,
+    "ts": "2026-11-20T09:53:05.071",
+    "agent": "main",
+    "type": "node_start",
+    "node": "analyze",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "dd486e0ddff0",
+    "run_id": "aee51e368025",
+    "seq": 3,
+    "ts": "2026-11-20T09:53:07.200",
+    "agent": "main",
+    "type": "llm_decision",
+    "node": "analyze",
+    "payload": {
+     "decision": "intent",
+     "value": "plan_trip",
+     "reason": "도착 시한(2시까지)과 목적지(서울)가 있는 이동 계획 요청이다.",
+     "changes": {
+      "destination": "서울",
+      "arrive_by": "14:00"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "dd486e0ddff0",
+    "run_id": "aee51e368025",
+    "seq": 4,
+    "ts": "2026-11-20T09:53:07.205",
+    "agent": "main",
+    "type": "node_end",
+    "node": "analyze",
+    "payload": {
+     "intent": "plan_trip",
+     "intent_reason": "도착 시한(2시까지)과 목적지(서울)가 있는 이동 계획 요청이다.",
+     "conditions": {
+      "origin": null,
+      "destination": "서울",
+      "date": null,
+      "arrive_by": "14:00",
+      "depart_after": null,
+      "priority": "cheapest",
+      "modes": null,
+      "avoid": [],
+      "budget": null,
+      "buffer_min": 10
+     },
+     "missing": [
+      "origin",
+      "date"
+     ]
+    },
+    "duration_ms": 2130
+   },
+   {
+    "session_id": "dd486e0ddff0",
+    "run_id": "aee51e368025",
+    "seq": 5,
+    "ts": "2026-11-20T09:53:07.209",
+    "agent": "main",
+    "type": "node_start",
+    "node": "clarify",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "dd486e0ddff0",
+    "run_id": "aee51e368025",
+    "seq": 6,
+    "ts": "2026-11-20T09:53:07.212",
+    "agent": "main",
+    "type": "node_end",
+    "node": "clarify",
+    "payload": {
+     "status": "clarify"
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "dd486e0ddff0",
+    "run_id": "aee51e368025",
+    "seq": 7,
+    "ts": "2026-11-20T09:53:07.216",
+    "agent": "main",
+    "type": "run_end",
+    "node": null,
+    "payload": {
+     "status": "clarify",
+     "replan_count": 0,
+     "llm_calls": 1
+    },
+    "duration_ms": null
+   }
+  ]
+ }
+}

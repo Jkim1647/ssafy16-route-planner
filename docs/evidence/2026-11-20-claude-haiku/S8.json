@@ -1,0 +1,255 @@
+{
+ "summary": {
+  "id": "S8",
+  "title": "규정 질문(RAG)",
+  "expected": "약관 근거 문단과 출처",
+  "status": "done",
+  "intent": "terms_query",
+  "replans": 0,
+  "llm_calls": 1,
+  "tool_calls": 1,
+  "tools": [
+   "search_terms"
+  ],
+  "cards": [],
+  "excluded_sample": [],
+  "warnings": [],
+  "reply": "규정 문서를 검색하지 못했어요.",
+  "run_id": "96f56e38d3f4",
+  "session_id": "823874bf094f",
+  "anomaly": {
+   "verdict": "ok",
+   "rules": [],
+   "diagnosis": null
+  }
+ },
+ "result": {
+  "run_id": "96f56e38d3f4",
+  "session_id": "823874bf094f",
+  "reply": "규정 문서를 검색하지 못했어요.",
+  "cards": [],
+  "excluded": [],
+  "undetermined": [],
+  "estimated": [],
+  "warnings": [],
+  "decision": null,
+  "clarification": null,
+  "status": "done",
+  "intent": "terms_query",
+  "replan_count": 0,
+  "llm_calls": 1,
+  "events": [
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 1,
+    "ts": "2026-11-20T09:53:07.234",
+    "agent": "main",
+    "type": "run_start",
+    "node": null,
+    "payload": {
+     "message": "KTX 출발 30분 전에 승차권 반환하면 위약금 얼마야?",
+     "mode": "single"
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 2,
+    "ts": "2026-11-20T09:53:07.239",
+    "agent": "main",
+    "type": "node_start",
+    "node": "analyze",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 3,
+    "ts": "2026-11-20T09:53:08.797",
+    "agent": "main",
+    "type": "llm_decision",
+    "node": "analyze",
+    "payload": {
+     "decision": "intent",
+     "value": "terms_query",
+     "reason": "KTX 승차권 반환 위약금이라는 환불·위약금 규정 질문이다.",
+     "changes": {}
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 4,
+    "ts": "2026-11-20T09:53:08.802",
+    "agent": "main",
+    "type": "node_end",
+    "node": "analyze",
+    "payload": {
+     "intent": "terms_query",
+     "intent_reason": "KTX 승차권 반환 위약금이라는 환불·위약금 규정 질문이다.",
+     "conditions": {
+      "origin": null,
+      "destination": null,
+      "date": null,
+      "arrive_by": null,
+      "depart_after": null,
+      "priority": "cheapest",
+      "modes": null,
+      "avoid": [],
+      "budget": null,
+      "buffer_min": 10
+     },
+     "missing": []
+    },
+    "duration_ms": 1559
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 5,
+    "ts": "2026-11-20T09:53:08.807",
+    "agent": "main",
+    "type": "node_start",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 6,
+    "ts": "2026-11-20T09:53:08.810",
+    "agent": "main",
+    "type": "plan_tasks",
+    "node": "plan",
+    "payload": {
+     "tasks": [
+      {
+       "id": "t1",
+       "tool": "search_terms",
+       "purpose": "운송약관·행동요령 문서 검색",
+       "when": null,
+       "fixed_args": [
+        "question"
+       ]
+      }
+     ],
+     "strategy": 0
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 7,
+    "ts": "2026-11-20T09:53:08.813",
+    "agent": "main",
+    "type": "node_end",
+    "node": "plan",
+    "payload": {},
+    "duration_ms": 3
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 8,
+    "ts": "2026-11-20T09:53:08.818",
+    "agent": "main",
+    "type": "node_start",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 9,
+    "ts": "2026-11-20T09:53:08.822",
+    "agent": "main",
+    "type": "tool_call",
+    "node": null,
+    "payload": {
+     "task_id": "t1",
+     "tool": "search_terms",
+     "args": {
+      "question": "KTX 출발 30분 전에 승차권 반환하면 위약금 얼마야?"
+     }
+    },
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 10,
+    "ts": "2026-11-20T09:53:12.982",
+    "agent": "main",
+    "type": "tool_result",
+    "node": null,
+    "payload": {
+     "task_id": "t1",
+     "tool": "search_terms",
+     "ok": false,
+     "code": "UPSTREAM_ERROR",
+     "message": "규정 검색 중 오류가 났습니다.",
+     "summary": "UPSTREAM_ERROR",
+     "cached": false
+    },
+    "duration_ms": 4156
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 11,
+    "ts": "2026-11-20T09:53:12.986",
+    "agent": "main",
+    "type": "node_end",
+    "node": "execute",
+    "payload": {},
+    "duration_ms": 4163
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 12,
+    "ts": "2026-11-20T09:53:12.990",
+    "agent": "main",
+    "type": "node_start",
+    "node": "respond",
+    "payload": {},
+    "duration_ms": null
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 13,
+    "ts": "2026-11-20T09:53:12.994",
+    "agent": "main",
+    "type": "node_end",
+    "node": "respond",
+    "payload": {
+     "status": "done"
+    },
+    "duration_ms": 0
+   },
+   {
+    "session_id": "823874bf094f",
+    "run_id": "96f56e38d3f4",
+    "seq": 14,
+    "ts": "2026-11-20T09:53:12.998",
+    "agent": "main",
+    "type": "run_end",
+    "node": null,
+    "payload": {
+     "status": "done",
+     "replan_count": 0,
+     "llm_calls": 1
+    },
+    "duration_ms": null
+   }
+  ]
+ }
+}

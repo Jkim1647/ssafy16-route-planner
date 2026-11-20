@@ -16,7 +16,7 @@ EVID.mkdir(parents=True, exist_ok=True)
 from backend.settings import get_settings  # noqa: E402
 
 get_settings()
-os.environ.setdefault("CALENDAR_BACKEND", "local")
+os.environ["CALENDAR_BACKEND"] = "local"  # .env가 google이어도 실제 일정이 결과·증거에 섞이지 않게(2026-11-20 발견)
 from backend.calendar.local import LocalCalendar  # noqa: E402
 from backend.container import Container  # noqa: E402
 from backend.events.anomaly import judge_run  # noqa: E402
@@ -66,9 +66,14 @@ rows.append(summarize("S8", "규정 질문(RAG)", "약관 근거 문단과 출�
                       c.chat(None, "KTX 출발 30분 전에 승차권 반환하면 위약금 얼마야?"), c))
 
 cal = LocalCalendar(c.settings.DB_PATH)
-cal.add("팀 회의(검증용)", dt.datetime.combine(SAT, dt.time(7, 0)), dt.datetime.combine(SAT, dt.time(8, 0)))
-rows.append(summarize("S9", "캘린더 일정 반영", "07:00–08:00 회의와 겹치는 이동은 제외",
-                      c.chat(None, TRIP), c))
+meeting = cal.add("팀 회의(검증용)", dt.datetime.combine(SAT, dt.time(7, 0)), dt.datetime.combine(SAT, dt.time(8, 0)))
+try:
+    rows.append(summarize("S9", "캘린더 일정 반영", "07:00–08:00 회의와 겹치는 이동은 제외",
+                          c.chat(None, TRIP), c))
+finally:  # 검증용 일정을 남기면 다음 실행의 S2(07:00 이후 출발)가 이 회의에 막힌다(2026-11-20 발견)
+    import sqlite3
+    with sqlite3.connect(c.settings.DB_PATH) as db:
+        db.execute("DELETE FROM local_calendar WHERE id=?", (int(meeting.removeprefix("local-")),))
 
 # S10: 같은 날 겹치는 계획 저장 → 저장은 되고 겹침 알림
 from backend.schemas import PlanIn  # noqa: E402
@@ -82,6 +87,8 @@ for x in cards[:2]:
     saved.append({"plan_id": res.plan.id, "overlaps": [p.id for p in res.overlaps]})
 (EVID / "S10.json").write_text(json.dumps({"saved": saved}, ensure_ascii=False, indent=1), encoding="utf-8")
 print("[S10]", saved)
+for s in saved:  # 검증용 계획을 지워 다음 실행의 겹침 결과가 쌓이지 않게
+    c.plans.delete(s["plan_id"])
 
 # S4: Tool 하나 실패(ODsay 키 제거) → 택시 기준 대체, 나머지 진행
 key = os.environ.pop("ODSAY_API_KEY", "")
