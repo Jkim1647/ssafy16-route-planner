@@ -3,7 +3,7 @@
 
 AUTHOR = "김진영"
 CHECKER = "김진영(셀프 점검)"
-CHECKED_AT = "2026-11-20 15:40"
+CHECKED_AT = "2026-11-20 14:55"
 
 E = "docs/evidence/2026-11-20-claude-haiku/"  # 3일차 재실행 증거(claude-haiku-5-5, 실제 API, 로컬 캘린더)
 
@@ -49,7 +49,7 @@ ITEMS = [
      "대화·계획·로그 화면이 /api/chat·/api/plans·/api/logs 호출(브라우저 네트워크 기록)"),
     (22, "통과", "docs/screenshots/trace_replan.jpg·processing.jpg·key_missing.jpg", "재계획 구분선, 처리 중 표시, 키 누락 배너, Tool 실패 시 카드 경고"),
     (23, "통과", "docs/검증결과.md 1장(S1~S10)·3일차 재실행 표, " + E + "scenarios.json",
-     "다섯 경우 모두 포함, 기대 vs 실제·차이·조치 기록. 처리 시간 2.2~8.0초(3일차 15:30 재실행)"),
+     "다섯 경우 모두 포함, 기대 vs 실제·차이·조치 기록. 처리 시간 2.2~8.0초(3일차 14:52 재실행)"),
     (24, "통과", "docs/실행로그샘플.md(S1 전체 이벤트 + S2 재계획)", "-"),
     (25, "통과", "비밀값 검사: .env 8종 × 추적 파일·커밋 이력 0건, test_500_hides_detail, docs/screenshots/key_missing.jpg",
      ".env·credentials.json·token.json 미추적. 화면엔 키 이름만, 오류 원문 없음"),
