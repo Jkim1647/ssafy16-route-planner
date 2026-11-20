@@ -70,7 +70,12 @@ def _train_items(plan, day: dt.date) -> list[dict]:
                 out.append(_item("train", "warn", f"{lg.name} 소요 시간이 {lg.minutes}분 → {now_min}분으로 달라졌어요"
                                                   "(운행 시각 변경 가능 — 예매처에서 시각을 확인하세요)"))
             else:
-                same = "소요 시간도 같아요" if now_min is not None and lg.minutes is not None else "시각은 비교하지 못했어요"
+                if now_min is None or lg.minutes is None:
+                    same = "시각은 비교하지 못했어요"
+                elif now_min == lg.minutes:
+                    same = "소요 시간도 같아요"
+                else:  # 5분 미만 차이는 경고하지 않지만 '같다'고 하지 않는다
+                    same = f"소요 시간 {lg.minutes}분 → {now_min}분, 차이 {abs(now_min - lg.minutes)}분"
                 out.append(_item("train", "ok", f"{lg.name} 열차 번호가 그날 시간표에 그대로 있어요({same})"))
         else:
             out.append(_item("train", "warn", f"{lg.name}을(를) 그날 시간표에서 찾지 못했어요(운휴·변경 가능)"))

@@ -39,7 +39,7 @@
 | Frontend | ![Vue.js](https://img.shields.io/badge/Vue_3-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white) ![Vue Router](https://img.shields.io/badge/Vue_Router-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white) ![Leaflet](https://img.shields.io/badge/Leaflet-199900?style=for-the-badge&logo=leaflet&logoColor=white) ![OpenStreetMap](https://img.shields.io/badge/OpenStreetMap-7EBC6F?style=for-the-badge&logo=openstreetmap&logoColor=white) |
 | 인증 · 연동 | ![Google OAuth](https://img.shields.io/badge/Google_OAuth-4285F4?style=for-the-badge&logo=google&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white) ![Google Calendar](https://img.shields.io/badge/Google_Calendar-4285F4?style=for-the-badge&logo=googlecalendar&logoColor=white) |
 | 외부 데이터 | ![Kakao](https://img.shields.io/badge/카카오_로컬·모빌리티-FFCD00?style=for-the-badge&logo=kakao&logoColor=black) ![data.go.kr](https://img.shields.io/badge/공공데이터포털_TAGO·기상청·TourAPI-0B5394?style=for-the-badge) ![ODsay](https://img.shields.io/badge/ODsay-2F6FDE?style=for-the-badge) ![ITS](https://img.shields.io/badge/ITS_돌발정보-555555?style=for-the-badge) |
-| 테스트 | ![pytest](https://img.shields.io/badge/pytest_387-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white) ![node test](https://img.shields.io/badge/node_--test_16-339933?style=for-the-badge&logo=nodedotjs&logoColor=white) |
+| 테스트 | ![pytest](https://img.shields.io/badge/pytest_388-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white) ![node test](https://img.shields.io/badge/node_--test_16-339933?style=for-the-badge&logo=nodedotjs&logoColor=white) |
 
 버전: FastAPI 0.141 · LangGraph 1.2 · LangChain 1.3 · Pydantic 2.13 · Chroma 1.5 · Vue 3.5 · Vue Router 4.5 · Leaflet 1.9 (프론트는 빌드 없이 CDN, 버전·무결성 해시 고정)
 
@@ -145,7 +145,7 @@ flowchart TD
 | 무료 API 한도 | 영구 캐시 + API별 일·월 카운터, 요청당 상한, 초과 시 택시 기준으로 대체 |
 | Agent가 잘 돌았는지 | 모든 단계를 이벤트로 저장하고 규칙으로 이상 징후 판정 → 실제로 중복 호출 버그를 이것으로 발견 |
 | 보안 | 키는 `.env`만, 오류 메시지에서 URL·키 제거, 로그인 쿠키 HttpOnly·SameSite, Host 검사, 상태 변경 API는 JSON만(폼 위조 차단), 사용자별 데이터 분리, 공유 링크 무작위 토큰·개인 정보 제외 |
-| 검증 | pytest 387개(외부 호출 차단, 실제 응답 샘플로) + 실제 API 시나리오·실사용 점검 — [검증 결과](docs/검증결과.md) |
+| 검증 | pytest 388개(외부 호출 차단, 실제 응답 샘플로) + 실제 API 시나리오·실사용 점검 — [검증 결과](docs/검증결과.md) |
 
 ## ERD
 

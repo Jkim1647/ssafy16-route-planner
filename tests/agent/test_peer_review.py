@@ -254,3 +254,13 @@ def test_worker_retry_must_widen_radius(env, monkeypatch):
     res = pw(make)("x")
     dec = next(e for e in res.events if e["type"] == "worker_decision")["payload"]
     assert dec["action"] == "skip" and "넓히" in dec["reason"] and 10 not in seen
+
+
+# 5차 상호 점검. 5분 미만 차이(120→123분)는 경고는 아니지만 "같아요"라고 하지 않고 실제 차이를 밝힌다
+def test_recheck_small_duration_change_shows_difference(tools):
+    p = plan()
+    legs = [lg.model_copy(update={"minutes": 120}) if lg.source == "tago_train" else lg for lg in p.legs]
+    tools["trains"] = [{"train_no": "00406", "dep_at": "2026-11-21T07:41", "arr_at": "2026-11-21T09:44"}]  # 123분
+    r = recheck_plan(p.model_copy(update={"legs": legs}), calendar=FakeCal(), now=RNOW)
+    train = [i for i in r["items"] if i["kind"] == "train"]
+    assert train[0]["level"] == "ok" and "같아요" not in train[0]["text"] and "120분 → 123분" in train[0]["text"]
