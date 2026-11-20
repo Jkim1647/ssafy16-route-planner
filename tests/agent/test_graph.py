@@ -555,3 +555,18 @@ def test_rate_limited_falls_back_to_taxi_no_replan(env):
     res = make()("x")
     assert res.replan_count == 0 and res.cards
     assert "대중교통 조회 한도 초과 → 택시 기준" in res.cards[0]["warnings"]
+
+
+def test_missing_transit_key_says_key_and_stops_calling(env):
+    # 2026-11-20 화면 점검: ODsay 키를 비우면 실패 호출이 요청당 상한(4회)을 다 써서 카드 경고가
+    # "요청당 대중교통 조회 상한(4회)"으로 나왔다. 원인(키 없음)을 밝히고, 다시 불러도 안 되는 호출은 반복하지 않는다.
+    world, llm, make, _ = env
+    world.transit = fail("INVALID_KEY", "키 없음")
+    llm.responses = [A("plan_trip", **TRIP), Reply(text="ok")]
+    res = make()("x")
+    assert res.replan_count == 0 and res.cards
+    warns = [w for c in res.cards for w in c["warnings"]]
+    assert "대중교통 조회 키 없음 → 택시 기준" in warns
+    assert not any("상한" in w for w in warns)
+    calls = [e for e in res.events if e["type"] == "tool_call" and e["payload"]["tool"] == "get_transit_route"]
+    assert len(calls) == 1

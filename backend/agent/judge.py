@@ -18,6 +18,7 @@ RAIN_POP = 60
 WALK_WARN_MIN = 10
 ROAD_MODES = {"taxi", "car", "bus"}
 NOTE = {"RATE_LIMITED": "대중교통 조회 한도 초과 → 택시 기준",
+        "INVALID_KEY": "대중교통 조회 키 없음 → 택시 기준",
         "RUN_CAP": "요청당 대중교통 조회 상한(4회) → 택시 기준"}
 
 

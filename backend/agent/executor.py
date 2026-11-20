@@ -33,6 +33,7 @@ class RunCtx:
     weather: dict = field(default_factory=dict)
     places: dict = field(default_factory=dict)
     odsay_calls: int = 0
+    transit_down: str | None = None  # 키 없음·한도 초과처럼 이번 실행에서 다시 불러도 안 되는 ODsay 실패 코드
     calls: list[tuple[str, str]] = field(default_factory=list)  # (task_id, tool)
     # Planner·Worker 모드(F3021)
     mode: str = "single"
@@ -207,12 +208,16 @@ def _segment(ctx, errors, task_t, task_c, sx, sy, ex, ey, want_taxi) -> list[Seg
         minutes = max(1, math.ceil(km * 1000 / WALK_M_PER_MIN))
         return [Segment("transit", minutes, 0, [Leg("walk", None, minutes, 0, "estimate")])]
     transit, terr = None, None
-    if _transit_allowed(ctx, {"sx": sx, "sy": sy, "ex": ex, "ey": ey}):
+    if ctx.transit_down:  # 키 없음·한도 초과면 같은 실행에서 다시 불러도 실패 — 상한을 쓰지 않고 원인을 그대로 남긴다
+        terr = ctx.transit_down
+    elif _transit_allowed(ctx, {"sx": sx, "sy": sy, "ex": ex, "ey": ey}):
         r = call_tool(ctx, task_t, "get_transit_route", {"sx": sx, "sy": sy, "ex": ex, "ey": ey})
         if r["ok"]:
             transit = r["data"]
         else:
             terr = r["error"]["code"]
+            if terr in ("INVALID_KEY", "RATE_LIMITED"):
+                ctx.transit_down = terr
             _err(errors, task_t, "get_transit_route", r)
     else:
         terr = "RUN_CAP"
